@@ -1,12 +1,11 @@
-"""Rule-based edit suggestions from segment signals and VLM tags.
+"""Rule-based edit suggestions from segment signals, quality scores and tags.
 
 Scoring and slot filling are deterministic so every suggestion can be traced
-back to a signal or a tag; the VLM only supplies the tags.
+back to a signal, a DOVER quality score or a VLM tag.
 """
 
 from __future__ import annotations
 
-import math
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -18,10 +17,10 @@ MAX_CLIP_SEC = 4.0
 MIN_CLIP_SEC = 1.5
 DROP_SCORE = 2.0
 DUP_JACCARD = 0.5
-# The VLM highlight is a 1-5 integer and most segments get 3 or 4, so a
-# continuous sharpness term (relative to the segment's own video) separates
-# ties. +/-0.5 at 2x / 0.5x the video's median sharpness.
-SHARPNESS_WEIGHT = 0.5
+# "Is this shot good" comes mainly from the DOVER quality model (0-1); the VLM
+# highlight (1-5 integer, mostly 3 or 4 in practice) keeps a small weight.
+AESTHETIC_WEIGHT = 0.8
+VLM_WEIGHT = 0.2
 
 
 @dataclass(frozen=True)
@@ -36,6 +35,10 @@ class Candidate:
     sharpness: float
     # sharpness / median sharpness of the same video
     sharpness_rel: float
+    # DOVER fused quality in [0, 1] and its raw technical / aesthetic outputs
+    quality: float
+    tech_raw: float
+    aes_raw: float
 
     @property
     def duration(self) -> float:
@@ -68,17 +71,19 @@ class Clip:
 
 
 def assess(c: Candidate) -> Assessment:
-    """Score = VLM highlight (1-5) + sharpness term - penalties for defects."""
+    """Score on a 1-5 scale from DOVER quality (80%) and VLM highlight (20%),
+    minus penalties for measured defects."""
     tags = c.tags
     if c.sharpness_rel < 0:
         raise ValueError(f"sharpness_rel must be non-negative: {c}")
-    # Saturates at 0.5x and 2x the median; a flat black frame (0) gets -0.5.
-    rel = min(2.0, max(0.5, c.sharpness_rel))
-    bonus = SHARPNESS_WEIGHT * math.log2(rel)
-    score = float(tags["highlight"]) + bonus
+    if not 0.0 <= c.quality <= 1.0:
+        raise ValueError(f"quality must be in [0, 1]: {c}")
+    highlight = (tags["highlight"] - 1) / 4
+    combined = AESTHETIC_WEIGHT * c.quality + VLM_WEIGHT * highlight
+    score = 1 + 4 * combined
     reasons = [
-        f"精彩度 {tags['highlight']}/5",
-        f"清晰度为本片中位数的 {c.sharpness_rel:.2f} 倍（{bonus:+.2f}）",
+        f"美学模型 {c.quality:.2f}（技术 {c.tech_raw:+.3f} / 美学 {c.aes_raw:+.3f}）",
+        f"VLM 精彩度 {tags['highlight']}/5（权重 {VLM_WEIGHT:.0%}）",
     ]
     if "blurry" in c.flags:
         score -= 1.5
@@ -89,10 +94,6 @@ def assess(c: Candidate) -> Assessment:
     if "low_light" in c.flags and tags["time_of_day"] != "夜晚":
         score -= 1.0
         reasons.append("非夜景但亮度过低")
-    vlm_issues = [i for i in tags["issues"] if i not in ("无明显问题", "过暗")]
-    if vlm_issues:
-        score -= 0.5 * len(vlm_issues)
-        reasons.append("模型指出：" + "、".join(vlm_issues))
     if c.duration < MIN_CLIP_SEC:
         score -= 0.5
         reasons.append(f"时长仅 {c.duration:.1f}s")

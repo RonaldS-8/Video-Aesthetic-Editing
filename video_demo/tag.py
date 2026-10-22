@@ -112,6 +112,19 @@ def validate(tags: Any) -> dict[str, Any]:
     return tags
 
 
+def check_server(server_url: str = SERVER_URL) -> None:
+    """Raise if llama-server is not up and ready (``GET /health`` == 200)."""
+    try:
+        resp = requests.get(f"{server_url}/health", timeout=5)
+    except requests.RequestException as exc:
+        raise ConnectionError(f"无法连接 llama-server（{server_url}）：{exc}") from exc
+    if resp.status_code != 200:
+        raise ConnectionError(
+            f"llama-server 未就绪（{server_url}/health 返回 {resp.status_code}），"
+            "模型可能还在加载"
+        )
+
+
 def _image_part(path: Path) -> dict[str, Any]:
     data = base64.b64encode(path.read_bytes()).decode("ascii")
     return {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{data}"}}

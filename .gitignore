@@ -8,7 +8,7 @@ __pycache__/
 # Large media that can be re-downloaded (data/raw/SOURCES.md) or regenerated
 data/raw/*.webm
 data/synth/*.mp4
-out/previews/
+out/**/previews/
 
 # Third-party code and model weights (see README for versions)
 third_party/

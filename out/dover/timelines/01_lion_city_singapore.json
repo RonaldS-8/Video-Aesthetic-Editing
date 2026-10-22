@@ -1,0 +1,658 @@
+{
+  "name": "01_lion_city_singapore",
+  "target_sec": 30.0,
+  "total_sec": 32.89,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "01_lion_city_singapore.webm",
+      "index": 47,
+      "src_start": 157.93,
+      "src_end": 161.93,
+      "description": "新加坡鱼尾狮雕像喷水，背景是现代化高楼大厦。",
+      "reason": "得分 4.0，远景，鱼尾狮、新加坡、城市景观",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 4,
+      "src_start": 11.22,
+      "src_end": 13.847,
+      "description": "红色灯笼和中国结悬挂在建筑外，营造出喜庆的节日氛围。",
+      "reason": "得分 3.8，近景，春节、节日装饰、灯笼",
+      "duration": 2.627
+    },
+    {
+      "order": 2,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 6,
+      "src_start": 16.975,
+      "src_end": 19.603,
+      "description": "镜头展示一座色彩斑斓的印度教寺庙建筑，一只白色神兽雕像卧在神庙顶部。",
+      "reason": "得分 3.7，特写，印度教、寺庙、神兽",
+      "duration": 2.628
+    },
+    {
+      "order": 3,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 11,
+      "src_start": 28.362,
+      "src_end": 30.405,
+      "description": "一名男子在餐厅柜台前与店员交流，店员在展示菜单。",
+      "reason": "得分 3.8，中景，餐厅、顾客、店员",
+      "duration": 2.043
+    },
+    {
+      "order": 4,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 21,
+      "src_start": 49.675,
+      "src_end": 53.095,
+      "description": "男子在室内吃冰淇淋，背景是彩色线轴。",
+      "reason": "得分 4.3，中景，吃冰淇淋、室内、零食",
+      "duration": 3.42
+    },
+    {
+      "order": 5,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 32,
+      "src_start": 86.651,
+      "src_end": 90.651,
+      "description": "一只猴子在茂密的森林中攀爬树干",
+      "reason": "得分 3.9，中景，猴子、森林、自然",
+      "duration": 4.0
+    },
+    {
+      "order": 6,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 35,
+      "src_start": 101.291,
+      "src_end": 105.291,
+      "description": "森林中一只蜘蛛在蛛网上静止，背景是模糊的绿植。",
+      "reason": "得分 4.4，特写，蜘蛛、森林、自然",
+      "duration": 4.0
+    },
+    {
+      "order": 7,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 36,
+      "src_start": 106.567,
+      "src_end": 110.567,
+      "description": "热带植物的红色花朵在不同时间点的特写",
+      "reason": "得分 4.1，特写，热带植物、花朵、特写",
+      "duration": 4.0
+    },
+    {
+      "order": 8,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 42,
+      "src_start": 132.468,
+      "src_end": 136.468,
+      "description": "一位女士戴着墨镜站在高楼阳台上，背景是城市天际线。",
+      "reason": "得分 3.6，中景，女性、城市风光、阳台上",
+      "duration": 4.0
+    },
+    {
+      "order": 9,
+      "role": "收尾",
+      "video": "01_lion_city_singapore.webm",
+      "index": 2,
+      "src_start": 5.756,
+      "src_end": 7.925,
+      "description": "两盏红色灯笼在天空下悬挂，背景是建筑和云朵。",
+      "reason": "得分 3.7，远景，灯笼、节日、建筑",
+      "duration": 2.169
+    }
+  ],
+  "assessments": [
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 0,
+      "score": 2.24,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.51（技术 -0.047 / 美学 +0.049）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 1,
+      "score": 2.611,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.046 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 2,
+      "score": 3.675,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.028 / 美学 +0.116）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 3,
+      "score": 3.592,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.030 / 美学 +0.106）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 4,
+      "score": 3.789,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.030 / 美学 +0.105）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 5,
+      "score": 3.344,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.078 / 美学 +0.111）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 6,
+      "score": 3.723,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.045 / 美学 +0.108）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 7,
+      "score": 3.255,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.058 / 美学 +0.060）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 8,
+      "score": 2.73,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.35（技术 -0.066 / 美学 +0.000）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 9,
+      "score": 2.935,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.48（技术 -0.066 / 美学 +0.051）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 10,
+      "score": 2.214,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.41（技术 -0.055 / 美学 +0.016）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 11,
+      "score": 3.754,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.67（技术 -0.040 / 美学 +0.108）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 12,
+      "score": 3.045,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.45（技术 -0.068 / 美学 +0.042）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 13,
+      "score": 2.369,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.070 / 美学 +0.149）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 42）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 14,
+      "score": 3.216,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.049 / 美学 +0.110）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "时长仅 1.4s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 15,
+      "score": 0.211,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.35（技术 -0.100 / 美学 +0.025）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 7）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 16,
+      "score": 2.147,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.39（技术 -0.101 / 美学 +0.044）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 17,
+      "score": 2.853,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.078 / 美学 +0.112）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.5s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 18,
+      "score": 2.801,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.84（技术 -0.019 / 美学 +0.185）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 109）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 19,
+      "score": 3.29,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.082 / 美学 +0.107）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 20,
+      "score": 2.721,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.82（技术 -0.011 / 美学 +0.162）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 119）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 21,
+      "score": 4.33,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.85（技术 -0.014 / 美学 +0.188）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 22,
+      "score": 3.134,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.048 / 美学 +0.061）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 23,
+      "score": 2.804,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.063 / 美学 +0.033）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 24,
+      "score": 2.983,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.038 / 美学 +0.034）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 25,
+      "score": 2.465,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.43（技术 -0.054 / 美学 +0.021）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "时长仅 1.0s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 26,
+      "score": 3.193,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.72（技术 -0.046 / 美学 +0.133）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 27,
+      "score": 1.238,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.57（技术 -0.057 / 美学 +0.081）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 78）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 28,
+      "score": 2.109,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.22（技术 -0.087 / 美学 -0.046）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 29,
+      "score": 2.756,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.36（技术 -0.095 / 美学 +0.027）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 30,
+      "score": 3.109,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.060 / 美学 +0.068）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 31,
+      "score": 3.361,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.042 / 美学 +0.085）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 32,
+      "score": 3.901,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.78（技术 -0.022 / 美学 +0.147）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 33,
+      "score": 3.3,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.026 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 34,
+      "score": 3.958,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.80（技术 -0.010 / 美学 +0.148）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 35,
+      "score": 4.36,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.86（技术 -0.033 / 美学 +0.210）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 36,
+      "score": 4.062,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.77（技术 -0.027 / 美学 +0.144）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 37,
+      "score": 3.448,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.64（技术 -0.049 / 美学 +0.101）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 38,
+      "score": 2.597,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.094 / 美学 +0.005）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 39,
+      "score": 2.862,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.39（技术 -0.074 / 美学 +0.024）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 40,
+      "score": 1.869,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.55（技术 -0.045 / 美学 +0.063）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 57）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 41,
+      "score": 2.4,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.102 / 美学 +0.012）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 42,
+      "score": 3.618,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.63（技术 -0.034 / 美学 +0.085）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 43,
+      "score": 3.552,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.039 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 44,
+      "score": 2.827,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.45（技术 -0.089 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 45,
+      "score": 2.481,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.030 / 美学 +0.134）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 135）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 46,
+      "score": 3.504,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.60（技术 -0.039 / 美学 +0.075）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 47,
+      "score": 4.014,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.040 / 美学 +0.117）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 48,
+      "score": 3.483,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.050 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 49,
+      "score": 2.551,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.30（技术 -0.084 / 美学 -0.010）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 50,
+      "score": 2.387,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.088 / 美学 -0.001）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 51,
+      "score": -0.106,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.176 / 美学 -0.043）",
+        "VLM 精彩度 1/5（权重 20%）",
+        "画面偏糊（清晰度 0）"
+      ]
+    }
+  ]
+}

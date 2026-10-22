@@ -1,12 +1,50 @@
 # 视频切分、片段打标与剪辑建议 Demo
 
 本地验证"打标签 + 剪辑建议"链路的第一步：把视频切成片段，
-逐段打标签，再按规则给出剪辑建议。全部在本机离线运行。
+逐段打标签和美学打分，再按规则给出剪辑建议。全部在本机离线运行。
 
-- 结果报告：[out/report.html](out/report.html)（浏览器直接打开）
+- 结果报告（浏览器直接打开，两版格式相同，对照着看）：
+  - DOVER 美学打分版：[out/dover/report.html](out/dover/report.html)
+  - 基线版（VLM 精彩度打分，来自 `main`，冻结不再生成）：
+    [out/report.html](out/report.html)
 - 测试素材与署名：[data/raw/SOURCES.md](data/raw/SOURCES.md)
-- 前期调研：[AI视频剪辑与片段检索-调研.md](AI视频剪辑与片段检索-调研.md)
-- 目标方案（已定稿，暂停）：[目标方案-结构设计与检索填槽.md](目标方案-结构设计与检索填槽.md)
+- 前期调研：[docs/research/AI视频剪辑与片段检索-调研.md](docs/research/AI视频剪辑与片段检索-调研.md)
+- 向量检索原理笔记：[docs/research/向量检索与Embedding原理-讨论笔记.md](docs/research/向量检索与Embedding原理-讨论笔记.md)
+- 目标方案（已定稿，暂停）：[docs/plans/目标方案-结构设计与检索填槽.md](docs/plans/目标方案-结构设计与检索填槽.md)
+- 美学模型提案（issue 原文）：[docs/issues/片段美学模型.md](docs/issues/片段美学模型.md)
+
+## 目录结构
+
+```text
+Video/
+├── video_demo/          代码（python -m video_demo <阶段>）
+│   ├── cli.py           命令行入口与各阶段
+│   ├── media.py         解码、抽帧、写视频（PyAV）
+│   ├── segment.py       镜头切分与窗口切片
+│   ├── signals.py       亮度、清晰度、抖动等确定性信号
+│   ├── tag.py           Qwen3-VL-2B 打标签（llama-server）
+│   ├── aesthetic.py     DOVER 美学打分
+│   ├── runner.py        并发运行打标签与美学打分
+│   ├── suggest.py       片段打分与时间线填槽
+│   ├── evaluate.py      切点评测、秩相关
+│   ├── report.py        HTML 报告
+│   └── synth.py         合成评测视频
+├── tests/               pytest 测试
+├── docs/
+│   ├── research/        调研与原理笔记
+│   ├── plans/           方案设计
+│   └── issues/          提给 NAS 仓库的 issue 原文
+├── data/
+│   ├── raw/             原始视频（不入库，见 SOURCES.md）
+│   ├── synth/           合成评测视频（mp4 不入库）与真值
+│   └── work/<视频>/     切分、信号、标签、美学分、关键帧
+├── out/                 基线版报告与时间线、切分评测结果
+│   └── dover/           DOVER 版报告与时间线（suggest/render/report 默认写这里）
+│                        （两处的 previews/ 都不入库）
+├── third_party/DOVER/   DOVER 代码与权重（不入库）
+├── requirements.txt
+└── pyproject.toml
+```
 
 ## 结果（2026-10-22，本机实测）
 
@@ -17,6 +55,8 @@
 | 切分耗时 | 172 s，约为视频时长的 1/5 |
 | 打标签 | 平均 10.2 s/段（最长 15.3 s），合计 30 分钟 |
 | 打标签失败重试 | 1 次（03 片尾黑屏字幕，复读后重试通过） |
+| 美学打分（DOVER，CPU） | 平均 12.8 s/段（最长 24.9 s），合计 38 分钟 |
+| 打标签与美学打分并发 | 04 的 3 段：总用时 64 s，两步分开跑共 98 s |
 
 切分评测（合成视频，容差 ±0.5 s）：
 
@@ -56,6 +96,37 @@
    场景的连续横摇，相邻窗口标签高度重合，被去重后只剩 1–2 段。
    报告里如实标注"可用素材不足"，没有补凑。
 
+## 美学打分（分支 `feature/dover-aesthetic`）
+
+片段得分改为 1 + 4 ×（0.8 × DOVER 融合分 + 0.2 × VLM 精彩度归一化）
+− 画质扣分。VLM 的 `issues` 不再扣分，清晰度加分也去掉了
+（DOVER 的技术分支已经覆盖清晰度）。阈值 `DROP_SCORE` 没有改。
+基线结果在 `main` 分支。
+
+| 项 | 基线（VLM 精彩度） | DOVER 为主 |
+|---|---|---|
+| 得分取值 | 精彩度 156/177 为 3 或 4 | 融合分 0.11–0.86，177 段有 173 个不同值 |
+| 建议保留 | 153/177 | 147/177 |
+| 合集 13 段的来源 | 01×6、03×3、06×2、02×1、04×1 | 01×6、06×5、02×2 |
+
+1. **DOVER 能识别出 VLM 看不出的废片。**
+   最低两段是 02 片尾的"订阅按钮"画面（0.11，VLM 精彩度给了 4）
+   和 01 的全黑片段（0.12）。最高几段是清晰的特写：蜘蛛、冰淇淋、花朵。
+2. **两种分数基本不相关。** VLM 精彩度和 DOVER 融合分的
+   Spearman ρ = 0.03，说明两者衡量的不是同一件事。
+3. **DOVER 给夜景的分数偏低，合集里极光全部落选。**
+   夜晚片段中位数 0.46，白天 0.55；极光 03 的中位数 0.43，
+   其中 VLM 给 5 分的极光片段只得了 0.24。DOVER 是按网络 UGC 的
+   画质标注训练的，暗、细节少的画面会被判为低质量。
+   要不要按时段分别归一化（或者给夜景加补偿），需要决定。
+4. **CPU 上比作者给的数字慢。** 作者环境里是 3.6 s/视频；
+   本机 Core Ultra 5 225U 每段平均 12.8 s，177 段共 38 分钟。
+   并发时，打标签会占用部分 CPU，DOVER 每段会再慢一些。
+5. **结果可复现。** 固定了随机种子，重跑 04 得到的分数逐字节一致。
+   和官方 `evaluate_one_video.py` 比（同一个 H.264 文件；
+   官方脚本用 decord 读不了 VP9 的 webm）：官方两次为 0.412 和 0.410，
+   本适配器为 0.404。
+
 ## 下一步
 
 目标方案：**按用户要求先设计结构，再检索素材填槽。**
@@ -93,9 +164,11 @@
 | 切分 | `segment` | AdaptiveDetector 找硬切，线性混合检验找叠化；镜头内按 ≤8 s 切窗口，<1 s 碎片并入相邻片段 | `data/work/<视频>/segments.json` |
 | 画质信号 | `signals` | 4 fps 采样，算亮度、清晰度（Laplacian 方差）、运动、全局位移抖动；导出 2 张关键帧 | `signals.json`、`keyframes/` |
 | 打标签 | `tag` | 2 张关键帧送 Qwen3-VL-2B，按 JSON Schema 约束输出描述、场景、主体、动作、景别、时段、氛围、标签、精彩度、画面问题 | `tags.jsonl` |
-| 剪辑建议 | `suggest` | 精彩度减画质扣分得到片段分；按"开场全景 → 主体 → 收尾"填槽，同镜头和标签高度重合的去重 | `out/timelines/*.json` |
-| 预览 | `render` | 按时间线拼出预览视频（无音轨） | `out/previews/*.mp4` |
-| 报告 | `report` | 汇总评测、逐片段标签和建议 | `out/report.html` |
+| 美学打分 | `aesthetic` | 片段原分辨率帧送 DOVER（CPU），得到技术分、美学分和官方融合分（0–1）；固定随机种子，可复现 | `aesthetic.jsonl` |
+| 打标签 + 美学打分 | `analyze` | 先做开工检查，再并发运行上面两步（打标签用核显，DOVER 用 CPU），双进度条；可中断，重跑接着做 | 同上 |
+| 剪辑建议 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 美学分 + 0.2 × VLM 精彩度归一化）− 画质扣分；按"开场全景 → 主体 → 收尾"填槽，同镜头和标签高度重合的去重 | `out/dover/timelines/*.json` |
+| 预览 | `render` | 按时间线拼出预览视频（无音轨） | `out/dover/previews/*.mp4` |
+| 报告 | `report` | 汇总评测、逐片段标签和建议 | `out/dover/report.html`（`--out out` 可改输出目录） |
 | 评测 | `synth` / `eval` | 拼接已知切点的合成视频，算切点准确率、召回率、F1 | `out/synth_eval_*.json` |
 
 上海 vlog 只分析前 300 秒（`cli.py` 里的 `END_TIME`）。
@@ -110,13 +183,36 @@ python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements.txt
 ```
 
+安装 DOVER（torch CPU 版、代码和权重，权重约 240 MB）：
+
+```bash
+.venv/Scripts/python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+```bash
+git clone https://github.com/VQAssessment/DOVER.git third_party/DOVER
+```
+
+```bash
+curl -L -o third_party/DOVER/pretrained_weights/DOVER.pth --create-dirs https://github.com/QualityAssessment/DOVER/releases/download/v0.1.0/DOVER.pth
+```
+
+```bash
+.venv/Scripts/python -m pip install --no-deps -e third_party/DOVER
+```
+
+本次使用的 DOVER 提交为 `f1ddc96`（2024-08-12），权重 sha256 前缀
+`f4a42c0bbc94`。DOVER 采用 S-Lab 许可，仅限非商用，这里只做内部验证。
+
 先启动 llama-server（路径按本机 JoyAI 目录）：
 
 ```bash
 llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj mmproj-Qwen3VL-2B-Instruct-F16.gguf --host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1
 ```
 
-然后依次运行各阶段（`tag` 可中断，重跑会跳过已完成的片段）：
+然后依次运行各阶段。`analyze` 会同时打标签和做美学打分，
+可中断，重跑会跳过已完成的片段；如果标签已经全部完成，
+它就只做美学打分，这时不需要启动 llama-server：
 
 ```bash
 .venv/Scripts/python -m video_demo segment
@@ -127,7 +223,7 @@ llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj mmproj-Qwen3VL-2B-Instr
 ```
 
 ```bash
-.venv/Scripts/python -m video_demo tag
+.venv/Scripts/python -m video_demo analyze
 ```
 
 ```bash

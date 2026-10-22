@@ -9,6 +9,23 @@ scenedetect>=0.7
 pillow>=11.0
 # Client for the local llama-server (Qwen3-VL-2B tagging)
 requests>=2.32
+# DOVER video quality model (aesthetic + technical scores), CPU inference.
+# Install torch from the CPU index:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# then DOVER itself (cloned to third_party/DOVER, see README):
+#   pip install --no-deps -e third_party/DOVER
+torch>=2.0
+torchvision>=0.15
+# Imported by DOVER's dataset module at import time
+decord>=0.6
+scikit-video>=1.1
+# DOVER model backbones
+timm>=0.9
+einops>=0.7
+# Reads DOVER's dover.yml
+pyyaml>=6.0
+# Progress bars for the parallel `analyze` stage
+tqdm>=4.66
 # Dev tools
 pytest>=8.0
 ruff>=0.6

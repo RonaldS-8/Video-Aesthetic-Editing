@@ -1,0 +1,74 @@
+{
+  "name": "05_mbs_gondola",
+  "target_sec": 30.0,
+  "total_sec": 8.0,
+  "notes": [
+    "可用素材不足：去重后只凑到 8.0s，目标 30s"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "05_mbs_gondola.webm",
+      "index": 2,
+      "src_start": 17.074,
+      "src_end": 21.074,
+      "description": "室内购物中心水道上，游客乘坐小船在水中游览。",
+      "reason": "得分 3.1，全景，室内水上乐园、购物中心、旅游景点",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "收尾",
+      "video": "05_mbs_gondola.webm",
+      "index": 0,
+      "src_start": 1.815,
+      "src_end": 5.815,
+      "description": "商场水道上，红色小船在水中缓缓移动，岸边有行人驻足观看。",
+      "reason": "得分 2.9，远景，购物中心、水上小船、商业街",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 0,
+      "score": 2.925,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.48（技术 -0.057 / 美学 +0.043）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 1,
+      "score": 2.917,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.050 / 美学 +0.036）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 2,
+      "score": 3.101,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.058 / 美学 +0.040）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 3,
+      "score": 2.976,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.43（技术 -0.062 / 美学 +0.029）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    }
+  ]
+}

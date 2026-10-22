@@ -71,6 +71,42 @@ def sample_frames(
             yield t, frame.to_ndarray(format="rgb24")
 
 
+def segment_frames(
+    path: Path,
+    spans: list[tuple[float, float]],
+    end_time: float | None = None,
+) -> Iterator[tuple[int, list[np.ndarray]]]:
+    """Yield (span index, native-resolution RGB frames) in one sequential pass.
+
+    ``spans`` are sorted, non-overlapping [start, end) ranges; frames outside
+    them are skipped and each span's frames are released once yielded.
+    """
+    idx = 0
+    buf: list[np.ndarray] = []
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        stream.thread_type = "AUTO"
+        for frame in container.decode(stream):
+            if frame.time is None:
+                continue
+            t = float(frame.time)
+            if end_time is not None and t > end_time:
+                break
+            while idx < len(spans) and t >= spans[idx][1]:
+                yield idx, buf
+                buf = []
+                idx += 1
+            if idx >= len(spans):
+                break
+            if t >= spans[idx][0]:
+                buf.append(frame.to_ndarray(format="rgb24"))
+    # The last span usually ends where the video (or analysis) ends.
+    while idx < len(spans):
+        yield idx, buf
+        buf = []
+        idx += 1
+
+
 def read_clip(path: Path, start: float, duration: float) -> list[np.ndarray]:
     """Resample [start, start+duration) of ``path`` to OUT_FPS RGB frames."""
     n_out = round(duration * OUT_FPS)

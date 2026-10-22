@@ -1,0 +1,262 @@
+{
+  "name": "03_aurora_timelapse",
+  "target_sec": 30.0,
+  "total_sec": 12.0,
+  "notes": [
+    "可用素材不足：去重后只凑到 12.0s，目标 30s"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "03_aurora_timelapse.webm",
+      "index": 6,
+      "src_start": 36.284,
+      "src_end": 40.284,
+      "description": "夜空中绿色极光在湖面和森林上空舞动，月光洒在水面上。",
+      "reason": "得分 3.8，全景，极光、自然景观、夜景",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "主体",
+      "video": "03_aurora_timelapse.webm",
+      "index": 18,
+      "src_start": 117.159,
+      "src_end": 121.159,
+      "description": "绿色极光在夜空中舞动，天空中呈现出绚丽的绿色光带。",
+      "reason": "得分 3.1，远景，极光、自然景观、夜景",
+      "duration": 4.0
+    },
+    {
+      "order": 2,
+      "role": "收尾",
+      "video": "03_aurora_timelapse.webm",
+      "index": 16,
+      "src_start": 107.075,
+      "src_end": 111.075,
+      "description": "夜空中绿色极光舞动，湖面倒映着璀璨光芒，月光与极光交相辉映。",
+      "reason": "得分 3.6，远景，极光、自然景观、夜景",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 0,
+      "score": 2.791,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.095 / 美学 +0.005）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 1,
+      "score": 2.649,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.33（技术 -0.086 / 美学 +0.006）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 2,
+      "score": 2.788,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.37（技术 -0.089 / 美学 +0.026）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 3,
+      "score": 3.643,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.054 / 美学 +0.079）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 4,
+      "score": 3.523,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.059 / 美学 +0.069）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 5,
+      "score": 3.485,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.066 / 美学 +0.069）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 6,
+      "score": 3.778,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.036 / 美学 +0.082）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 7,
+      "score": 1.752,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.45（技术 -0.054 / 美学 +0.031）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "画面偏糊（清晰度 25）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 8,
+      "score": 1.842,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.48（技术 -0.060 / 美学 +0.047）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "画面偏糊（清晰度 25）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 9,
+      "score": 2.037,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.056 / 美学 +0.068）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "画面偏糊（清晰度 22）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 10,
+      "score": 1.673,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.43（技术 -0.079 / 美学 +0.042）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "画面偏糊（清晰度 21）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 11,
+      "score": 3.17,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.43（技术 -0.108 / 美学 +0.065）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 12,
+      "score": 3.374,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.103 / 美学 +0.085）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 13,
+      "score": 3.004,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.102 / 美学 +0.039）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 14,
+      "score": 1.443,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.42（技术 -0.101 / 美学 +0.056）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 20）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 15,
+      "score": 3.085,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.40（技术 -0.087 / 美学 +0.038）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 16,
+      "score": 3.558,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.062 / 美学 +0.075）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 17,
+      "score": 1.069,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.24（技术 -0.091 / 美学 -0.033）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "画面偏糊（清晰度 16）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 18,
+      "score": 3.106,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.41（技术 -0.072 / 美学 +0.028）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 19,
+      "score": 2.824,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.32（技术 -0.078 / 美学 -0.004）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 20,
+      "score": 1.394,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.44（技术 -0.049 / 美学 +0.020）",
+        "VLM 精彩度 1/5（权重 20%）",
+        "抖动明显"
+      ]
+    }
+  ]
+}

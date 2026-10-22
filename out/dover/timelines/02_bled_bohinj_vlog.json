@@ -1,0 +1,376 @@
+{
+  "name": "02_bled_bohinj_vlog",
+  "target_sec": 30.0,
+  "total_sec": 30.7,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 25,
+      "src_start": 147.115,
+      "src_end": 151.115,
+      "description": "湖面上一艘带遮阳篷的木船在平静水面上行驶",
+      "reason": "得分 4.0，远景，湖景、游船、水上活动",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 0,
+      "src_start": 1.512,
+      "src_end": 5.512,
+      "description": "一位女士站在湖边，背景是秋日山林和清澈的湖水。",
+      "reason": "得分 3.5，中景，湖边风景、秋日景色、自然风光",
+      "duration": 4.0
+    },
+    {
+      "order": 2,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 5,
+      "src_start": 32.796,
+      "src_end": 36.796,
+      "description": "湖面上几艘木船停靠在岸边，游客们正在准备登船或已上船。",
+      "reason": "得分 3.5，中景，湖边、水上活动、旅游",
+      "duration": 4.0
+    },
+    {
+      "order": 3,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 15,
+      "src_start": 95.656,
+      "src_end": 99.656,
+      "description": "宁静湖泊与群山倒影，水面有小船和水鸟。",
+      "reason": "得分 3.2，远景，风景、湖泊、自然",
+      "duration": 4.0
+    },
+    {
+      "order": 4,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 17,
+      "src_start": 104.315,
+      "src_end": 108.315,
+      "description": "从湖边木栏杆视角拍摄的秋日山景，水面平静，远处山脉层叠。",
+      "reason": "得分 3.3，远景，秋日风景、湖泊、山景",
+      "duration": 4.0
+    },
+    {
+      "order": 5,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 18,
+      "src_start": 108.442,
+      "src_end": 111.144,
+      "description": "湖光山色，秋日景色，水面平静。",
+      "reason": "得分 3.2，远景，自然风光、秋日景色、湖泊",
+      "duration": 2.702
+    },
+    {
+      "order": 6,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 24,
+      "src_start": 141.401,
+      "src_end": 145.401,
+      "description": "一艘载有游客的木船在湖上划行，船尾有人用桨划水。",
+      "reason": "得分 3.8，中景，湖上划船、水上活动、旅游景点",
+      "duration": 4.0
+    },
+    {
+      "order": 7,
+      "role": "收尾",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 12,
+      "src_start": 81.216,
+      "src_end": 85.216,
+      "description": "湖边秋日景色，山峦起伏，树木变色，有行人和骑车者。",
+      "reason": "得分 3.3，远景，秋景、湖边、自然风光",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 0,
+      "score": 3.539,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.071 / 美学 +0.105）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 1,
+      "score": 3.396,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.064 / 美学 +0.107）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 2,
+      "score": 1.398,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.31（技术 -0.080 / 美学 -0.006）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 3,
+      "score": 1.66,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.39（技术 -0.069 / 美学 +0.020）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 4,
+      "score": 3.465,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.037 / 美学 +0.068）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 5,
+      "score": 3.484,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.028 / 美学 +0.063）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 6,
+      "score": 3.264,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.033 / 美学 +0.065）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 7,
+      "score": 3.149,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.030 / 美学 +0.048）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 8,
+      "score": 3.165,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.027 / 美学 +0.048）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 9,
+      "score": 2.009,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.063 / 美学 +0.033）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 10,
+      "score": 3.085,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.049 / 美学 +0.056）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 11,
+      "score": 3.066,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.043 / 美学 +0.049）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 12,
+      "score": 3.317,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.039 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 13,
+      "score": 3.096,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.048 / 美学 +0.032）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 14,
+      "score": 2.044,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.45（技术 -0.055 / 美学 +0.031）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 15,
+      "score": 3.161,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.035 / 美学 +0.054）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 16,
+      "score": 3.247,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.51（技术 -0.054 / 美学 +0.055）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 17,
+      "score": 3.274,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.033 / 美学 +0.066）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 18,
+      "score": 3.166,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.033 / 美学 +0.053）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 19,
+      "score": 1.118,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.69（技术 -0.048 / 美学 +0.123）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 86）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 20,
+      "score": 1.253,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.27（技术 -0.114 / 美学 +0.000）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 21,
+      "score": 3.755,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.67（技术 -0.029 / 美学 +0.100）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 22,
+      "score": 3.788,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.040 / 美学 +0.113）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 23,
+      "score": 3.702,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.040 / 美学 +0.101）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 24,
+      "score": 3.803,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.027 / 美学 +0.105）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 25,
+      "score": 3.959,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.034 / 美学 +0.133）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 26,
+      "score": 1.454,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.11（技术 -0.115 / 美学 -0.103）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "时长仅 1.5s"
+      ]
+    }
+  ]
+}

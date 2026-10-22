@@ -1,0 +1,53 @@
+{
+  "name": "04_mbs_skypark",
+  "target_sec": 30.0,
+  "total_sec": 4.0,
+  "notes": [
+    "可用素材不足：去重后只凑到 4.0s，目标 30s"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "04_mbs_skypark.webm",
+      "index": 1,
+      "src_start": 6.339,
+      "src_end": 10.339,
+      "description": "夜晚的城市全景，高楼林立，灯火辉煌，水面上倒映着灯光，景色迷人。",
+      "reason": "得分 3.3，远景，城市夜景、高楼、城市",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "04_mbs_skypark.webm",
+      "index": 0,
+      "score": 3.266,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.059 / 美学 +0.062）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "04_mbs_skypark.webm",
+      "index": 1,
+      "score": 3.288,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.46（技术 -0.065 / 美学 +0.045）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "04_mbs_skypark.webm",
+      "index": 2,
+      "score": 3.059,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.46（技术 -0.057 / 美学 +0.035）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    }
+  ]
+}

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import date
 from html import escape
 from pathlib import Path
 from typing import Any
+
+from video_demo.evaluate import spearman
 
 FLAG_LABELS = {"low_light": "低照度", "blurry": "偏糊", "shaky": "抖动"}
 CUT_LABELS = {"hard": "硬切", "jump": "跳切", "dissolve": "叠化"}
@@ -126,7 +129,9 @@ def _clip_cards(clips: list[dict], seg_frames: dict[tuple[str, int], str]) -> st
     return f'<div class="clips">{"".join(cards)}</div>'
 
 
-def _video_section(root: Path, stem: str, n: int) -> tuple[str, dict, dict]:
+def _video_section(
+    root: Path, out_dir: Path, stem: str, n: int
+) -> tuple[str, dict, dict]:
     work = root / "data" / "work" / stem
     seg = _read_json(work / "segments.json")
     sig = _read_json(work / "signals.json")
@@ -134,11 +139,17 @@ def _video_section(root: Path, stem: str, n: int) -> tuple[str, dict, dict]:
         json.loads(x) for x in (work / "tags.jsonl").read_text("utf-8").splitlines()
     ]
     tags = {r["index"]: r for r in tag_rows}
-    tl = _read_json(root / "out" / "timelines" / f"{stem}.json")
+    quality = {
+        r["index"]: r
+        for r in map(
+            json.loads, (work / "aesthetic.jsonl").read_text("utf-8").splitlines()
+        )
+    }
+    tl = _read_json(out_dir / "timelines" / f"{stem}.json")
     assess = {a["index"]: a for a in tl["assessments"]}
     selected = {c["index"] for c in tl["clips"]}
     analysed = seg["analysed_until"]
-    rel = f"../data/work/{stem}/keyframes/"
+    rel = Path(os.path.relpath(work / "keyframes", out_dir)).as_posix() + "/"
     frames = {
         (seg["video"], s["index"]): rel + sig[s["index"]]["keyframes"][0]
         for s in seg["segments"]
@@ -163,6 +174,7 @@ def _video_section(root: Path, stem: str, n: int) -> tuple[str, dict, dict]:
         i = s["index"]
         t = tags[i]["tags"]
         a = assess[i]
+        q = quality[i]
         thumbs = "".join(f'<img src="{rel}{k}" alt="">' for k in sig[i]["keyframes"])
         chips = "".join(f'<span class="chip">{escape(x)}</span>' for x in t["tags"])
         flags = "、".join(FLAG_LABELS[f] for f in sig[i]["flags"]) or "—"
@@ -180,7 +192,10 @@ def _video_section(root: Path, stem: str, n: int) -> tuple[str, dict, dict]:
             f"<td>{escape(t['description'])}<br>{chips}<br><span class='muted'>"
             f"{escape(t['shot_size'])} · {escape(t['time_of_day'])} · "
             f"{escape(t['mood'])} · {escape(t['action'])}</span></td>"
-            f"<td>{t['highlight']}/5</td><td>{escape(flags)}<br><span class='muted'>"
+            f"<td><b>{q['fused']:.2f}</b><br><span class='muted'>"
+            f"技术 {q['technical']:+.3f}<br>美学 {q['aesthetic']:+.3f}<br>"
+            f"VLM {t['highlight']}/5</span></td>"
+            f"<td>{escape(flags)}<br><span class='muted'>"
             f"亮度 {sig[i]['brightness']:.0f} 清晰 {sig[i]['sharpness']:.0f} "
             f"抖动 {sig[i]['shake']:.1f}</span></td>"
             f"<td>{verdict}{star}<br>{a['score']:.1f}<br><span class='muted'>"
@@ -211,37 +226,60 @@ def _video_section(root: Path, stem: str, n: int) -> tuple[str, dict, dict]:
 {_clip_cards(tl['clips'], frames)}
 <h3>逐片段标签</h3>
 <div class="scroll"><table><tr><th>片段</th><th>时间</th><th>关键帧</th>
-<th>模型标签</th><th>精彩度</th><th>画质信号</th><th>建议</th></tr>
+<th>模型标签</th><th>美学分 / VLM 精彩度</th><th>画质信号</th><th>建议</th></tr>
 {''.join(rows)}</table></div></details>
 """
     stats = {
         "segments": len(seg["segments"]),
         "analysed": analysed,
         "tag_seconds": [r["seconds"] for r in tag_rows],
+        "quality_seconds": [r["seconds"] for r in quality.values()],
+        "highlight_vs_quality": [
+            (tags[i]["tags"]["highlight"], quality[i]["fused"]) for i in sorted(quality)
+        ],
         "detect_seconds": seg["detect_seconds"],
         "kept": kept,
     }
     return html, stats, frames
 
 
-def write(root: Path, stems: list[str], reel_name: str) -> Path:
-    out = root / "out"
-    evals = [_read_json(out / f"synth_eval_{name}.json") for name in SET_TITLES]
+def write(
+    root: Path, out_dir: Path, stems: list[str], reel_name: str, baseline: Path
+) -> Path:
+    """Write ``out_dir/report.html`` from the timelines in ``out_dir``.
+
+    ``baseline`` is the frozen VLM-only report kept for side-by-side review.
+    """
+    evals = [_read_json(root / "out" / f"synth_eval_{n}.json") for n in SET_TITLES]
     sections: list[str] = []
     all_frames: dict[tuple[str, int], str] = {}
-    totals = {"segments": 0, "analysed": 0.0, "tag": [], "detect": 0.0, "kept": 0}
+    totals = {
+        "segments": 0,
+        "analysed": 0.0,
+        "tag": [],
+        "quality": [],
+        "pairs": [],
+        "detect": 0.0,
+        "kept": 0,
+    }
     for n, stem in enumerate(stems):
-        html, stats, frames = _video_section(root, stem, n)
+        html, stats, frames = _video_section(root, out_dir, stem, n)
         sections.append(html)
         all_frames.update(frames)
         totals["segments"] += stats["segments"]
         totals["analysed"] += stats["analysed"]
         totals["tag"] += stats["tag_seconds"]
+        totals["quality"] += stats["quality_seconds"]
+        totals["pairs"] += stats["highlight_vs_quality"]
         totals["detect"] += stats["detect_seconds"]
         totals["kept"] += stats["kept"]
-    reel = _read_json(out / "timelines" / f"{reel_name}.json")
+    reel = _read_json(out_dir / "timelines" / f"{reel_name}.json")
     tag_times = totals["tag"]
     avg_tag = sum(tag_times) / len(tag_times)
+    q_times = totals["quality"]
+    avg_q = sum(q_times) / len(q_times)
+    rho = spearman([h for h, _ in totals["pairs"]], [q for _, q in totals["pairs"]])
+    baseline_link = Path(os.path.relpath(baseline, out_dir)).as_posix()
     cards = [
         ("视频", f"{len(stems)}", ""),
         ("分析时长", f"{totals['analysed'] / 60:.1f} 分钟", ""),
@@ -249,6 +287,8 @@ def write(root: Path, stems: list[str], reel_name: str) -> Path:
         ("建议保留", f"{totals['kept']}", ""),
         ("切分总耗时", f"{totals['detect']:.0f}s", ""),
         ("打标签", f"{avg_tag:.1f}s/段", f"合计 {sum(tag_times) / 60:.0f} 分钟"),
+        ("美学打分", f"{avg_q:.1f}s/段", f"合计 {sum(q_times) / 60:.1f} 分钟"),
+        ("VLM 精彩度 vs 美学分", f"ρ = {rho:.2f}", "Spearman 秩相关"),
     ]
     card_html = "".join(
         f'<div class="card"><span class="muted">{k}</span><b>{v}</b>'
@@ -257,19 +297,25 @@ def write(root: Path, stems: list[str], reel_name: str) -> Path:
     )
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>视频切分与剪辑建议</title><style>{CSS}</style></head><body><main>
-<h1>视频切分与剪辑建议 Demo</h1>
+<title>视频切分与剪辑建议（DOVER 美学打分版）</title><style>{CSS}</style></head>
+<body><main>
+<h1>视频切分与剪辑建议 Demo · DOVER 美学打分版</h1>
+<p class="muted">对照：<a href="{escape(baseline_link)}">基线版报告
+（VLM 精彩度打分）</a>。两版的切分、标签和画质信号相同，
+只有片段得分和由此产生的选片不同。</p>
 <p class="muted">{date.today().isoformat()} · 本机 Core Ultra 5 225U / 15.4 GB，无独显 ·
 切分 PySceneDetect AdaptiveDetector + 叠化检测 · 打标签 Qwen3-VL-2B Q4_K_M（llama.cpp
-Vulkan）· 剪辑建议为规则打分 + 槽位填充</p>
+Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
+剪辑建议为规则打分 + 槽位填充</p>
 <div class="cards">{card_html}</div>
 <h2>1. 切分评测（合成视频，切点已知）</h2>
 <p class="muted">两层切分：PySceneDetect AdaptiveDetector 找硬切 + 线性混合检验找叠化，
 镜头内再按 ≤8 秒切窗口，短于 1 秒的碎片并入相邻片段。</p>
 {''.join(_eval_section(ev) for ev in evals)}{EVAL_NOTE}
 <h2>2. 跨视频精华合集（{reel['total_sec']}s / 目标 {reel['target_sec']:.0f}s）</h2>
-<p class="muted">从全部片段里按得分取素材（模型精彩度 + 相对清晰度 ±0.5 − 画质扣分，
-与文件名和输入顺序无关），去掉同一镜头相邻窗口和标签高度重合的片段；
+<p class="muted">从全部片段里按得分取素材（1–5 分：DOVER 美学分占 80%、
+VLM 精彩度占 20%，再减画质扣分；与文件名和输入顺序无关），
+去掉同一镜头相邻窗口和标签高度重合的片段；
 按“开场全景 → 主体（白天 → 黄昏 → 夜晚）→ 收尾”排列。</p>
 <video src="previews/{escape(reel_name)}.mp4" controls preload="metadata"></video>
 {_clip_cards(reel['clips'], all_frames)}
@@ -278,6 +324,6 @@ Vulkan）· 剪辑建议为规则打分 + 槽位填充</p>
 <p class="muted">素材来自 Wikimedia Commons（CC BY / CC BY-SA 3.0），
 署名见 data/raw/SOURCES.md。</p>
 </main></body></html>"""
-    path = out / "report.html"
+    path = out_dir / "report.html"
     path.write_text(page, encoding="utf-8")
     return path

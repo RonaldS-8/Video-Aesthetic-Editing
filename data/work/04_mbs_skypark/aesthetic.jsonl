@@ -1,0 +1,3 @@
+{"index": 0, "technical": -0.05945, "aesthetic": 0.06193, "fused": 0.5206, "n_frames": 334, "seconds": 10.48, "model": "DOVER", "weights_sha256": "f4a42c0bbc94c94dd7409e7f40887d44c5c30314d1d09e7edf03cc35813b4838", "seed": 0}
+{"index": 1, "technical": -0.06544, "aesthetic": 0.04513, "fused": 0.4649, "n_frames": 333, "seconds": 10.54, "model": "DOVER", "weights_sha256": "f4a42c0bbc94c94dd7409e7f40887d44c5c30314d1d09e7edf03cc35813b4838", "seed": 0}
+{"index": 2, "technical": -0.05704, "aesthetic": 0.03485, "fused": 0.4559, "n_frames": 329, "seconds": 11.05, "model": "DOVER", "weights_sha256": "f4a42c0bbc94c94dd7409e7f40887d44c5c30314d1d09e7edf03cc35813b4838", "seed": 0}
