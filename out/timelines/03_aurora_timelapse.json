@@ -1,0 +1,273 @@
+{
+  "name": "03_aurora_timelapse",
+  "target_sec": 30.0,
+  "total_sec": 14.97,
+  "notes": [
+    "可用素材不足：去重后只凑到 15.0s，目标 30s"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "03_aurora_timelapse.webm",
+      "index": 5,
+      "src_start": 29.117,
+      "src_end": 33.117,
+      "description": "夜空中绿色极光在湖面上舞动，月光与云彩交相辉映。",
+      "reason": "得分 5.5，远景，极光、自然景观、夜景",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "主体",
+      "video": "03_aurora_timelapse.webm",
+      "index": 10,
+      "src_start": 64.133,
+      "src_end": 68.133,
+      "description": "夜空中绿色极光在云层间舞动，下方是静谧的湖面和树林。",
+      "reason": "得分 3.0，远景，极光、自然风光、天空",
+      "duration": 4.0
+    },
+    {
+      "order": 2,
+      "role": "主体",
+      "video": "03_aurora_timelapse.webm",
+      "index": 19,
+      "src_start": 121.267,
+      "src_end": 124.233,
+      "description": "绿色极光在夜空中舞动，照亮了森林和河流",
+      "reason": "得分 5.1，全景，极光、自然景观、夜景",
+      "duration": 2.966
+    },
+    {
+      "order": 3,
+      "role": "收尾",
+      "video": "03_aurora_timelapse.webm",
+      "index": 0,
+      "src_start": 0.872,
+      "src_end": 4.872,
+      "description": "夜空中绿色极光在森林上空舞动",
+      "reason": "得分 5.5，全景，极光、自然景观、夜景",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 0,
+      "score": 5.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 2.65 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 1,
+      "score": 4.329,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.58 倍（+0.33）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 2,
+      "score": 4.184,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.29 倍（+0.18）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 3,
+      "score": 5.143,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 1.22 倍（+0.14）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 4,
+      "score": 5.097,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 1.14 倍（+0.10）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 5,
+      "score": 5.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 2.86 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 6,
+      "score": 5.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 2.48 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 7,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.45 倍（-0.50）",
+        "画面偏糊（清晰度 25）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 8,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.46 倍（-0.50）",
+        "画面偏糊（清晰度 25）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 9,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.41 倍（-0.50）",
+        "画面偏糊（清晰度 22）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 10,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.39 倍（-0.50）",
+        "画面偏糊（清晰度 21）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 11,
+      "score": 4.881,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.85 倍（-0.12）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 12,
+      "score": 4.959,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.95 倍（-0.04）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 13,
+      "score": 4.604,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.58 倍（-0.40）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 14,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.36 倍（-0.50）",
+        "画面偏糊（清晰度 20）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 15,
+      "score": 4.88,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.85 倍（-0.12）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 16,
+      "score": 5.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 1.00 倍（+0.00）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 17,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.29 倍（-0.50）",
+        "画面偏糊（清晰度 16）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 18,
+      "score": 5.148,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 1.23 倍（+0.15）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 19,
+      "score": 5.098,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 1.15 倍（+0.10）"
+      ]
+    },
+    {
+      "video": "03_aurora_timelapse.webm",
+      "index": 20,
+      "score": 0.5,
+      "keep": false,
+      "reasons": [
+        "精彩度 1/5",
+        "清晰度为本片中位数的 13.89 倍（+0.50）",
+        "抖动明显"
+      ]
+    }
+  ]
+}

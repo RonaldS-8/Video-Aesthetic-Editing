@@ -1,0 +1,647 @@
+{
+  "name": "01_lion_city_singapore",
+  "target_sec": 30.0,
+  "total_sec": 31.21,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "01_lion_city_singapore.webm",
+      "index": 47,
+      "src_start": 157.93,
+      "src_end": 161.93,
+      "description": "新加坡鱼尾狮雕像喷水，背景是现代化高楼大厦。",
+      "reason": "得分 5.0，远景，鱼尾狮、新加坡、城市景观",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 4,
+      "src_start": 11.22,
+      "src_end": 13.847,
+      "description": "红色灯笼和中国结悬挂在建筑外，营造出喜庆的节日氛围。",
+      "reason": "得分 4.5，近景，春节、节日装饰、灯笼",
+      "duration": 2.627
+    },
+    {
+      "order": 2,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 6,
+      "src_start": 16.975,
+      "src_end": 19.603,
+      "description": "镜头展示一座色彩斑斓的印度教寺庙建筑，一只白色神兽雕像卧在神庙顶部。",
+      "reason": "得分 4.5，特写，印度教、寺庙、神兽",
+      "duration": 2.628
+    },
+    {
+      "order": 3,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 7,
+      "src_start": 19.605,
+      "src_end": 23.605,
+      "description": "一座色彩斑斓的印度教神庙的塔庙，展示了其精美的雕刻和多层结构。",
+      "reason": "得分 4.4，远景，印度教、神庙、宗教",
+      "duration": 4.0
+    },
+    {
+      "order": 4,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 8,
+      "src_start": 23.607,
+      "src_end": 25.567,
+      "description": "一座色彩斑斓的印度教寺庙神庙顶部，布满精美的雕像和装饰，展示了丰富的宗教艺术。",
+      "reason": "得分 4.5，特写，宗教、印度、神庙",
+      "duration": 1.96
+    },
+    {
+      "order": 5,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 29,
+      "src_start": 71.761,
+      "src_end": 75.761,
+      "description": "一名女子背对镜头，从绿色的森林步道桥上走过。",
+      "reason": "得分 4.5，中景，森林、步道、女性",
+      "duration": 4.0
+    },
+    {
+      "order": 6,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 36,
+      "src_start": 106.567,
+      "src_end": 110.567,
+      "description": "热带植物的红色花朵在不同时间点的特写",
+      "reason": "得分 4.3，特写，热带植物、花朵、特写",
+      "duration": 4.0
+    },
+    {
+      "order": 7,
+      "role": "主体",
+      "video": "01_lion_city_singapore.webm",
+      "index": 49,
+      "src_start": 168.191,
+      "src_end": 172.191,
+      "description": "夜晚的鱼尾狮雕像喷水，背景是城市灯光。",
+      "reason": "得分 4.5，远景，鱼尾狮、夜间、城市景观",
+      "duration": 4.0
+    },
+    {
+      "order": 8,
+      "role": "收尾",
+      "video": "01_lion_city_singapore.webm",
+      "index": 38,
+      "src_start": 114.095,
+      "src_end": 118.095,
+      "description": "一只白天的白天白鹅在水面上游动，留下涟漪。",
+      "reason": "得分 4.5，远景，天鹅、水、自然",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 0,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 2.72 倍（+0.50）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 1,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 3.35 倍（+0.50）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 2,
+      "score": 2.758,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.71 倍（-0.24）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 3,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 3.10 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 4,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 2.82 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 5,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.41 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 6,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 2.60 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 7,
+      "score": 4.437,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.83 倍（+0.44）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 8,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 3.08 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 9,
+      "score": 3.087,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.13 倍（+0.09）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 10,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.85 倍（+0.50）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 11,
+      "score": 3.873,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.84 倍（-0.13）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 12,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.32 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 13,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.09 倍（-0.50）",
+        "画面偏糊（清晰度 42）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 14,
+      "score": 3.096,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.57 倍（-0.40）",
+        "时长仅 1.4s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 15,
+      "score": 1.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.01 倍（-0.50）",
+        "画面偏糊（清晰度 7）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 16,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.49 倍（-0.50）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 17,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.41 倍（-0.50）",
+        "时长仅 1.5s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 18,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.23 倍（-0.50）",
+        "画面偏糊（清晰度 109）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 19,
+      "score": 2.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.33 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 20,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.25 倍（-0.50）",
+        "画面偏糊（清晰度 119）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 21,
+      "score": 3.902,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.87 倍（-0.10）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 22,
+      "score": 3.017,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.02 倍（+0.02）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 23,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.34 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 24,
+      "score": 3.39,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.72 倍（+0.39）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 25,
+      "score": 3.96,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.89 倍（+0.46）",
+        "时长仅 1.0s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 26,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.68 倍（+0.50）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 27,
+      "score": 0.5,
+      "keep": false,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.16 倍（-0.50）",
+        "画面偏糊（清晰度 78）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 28,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.11 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 29,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 4.80 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 30,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 6.36 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 31,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 3.23 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 32,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.70 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 33,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 4.03 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 34,
+      "score": 3.026,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.04 倍（+0.03）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 35,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.34 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 36,
+      "score": 4.318,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.55 倍（+0.32）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 37,
+      "score": 2.826,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.79 倍（-0.17）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 38,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 2.35 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 39,
+      "score": 3.908,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.88 倍（-0.09）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 40,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.12 倍（-0.50）",
+        "画面偏糊（清晰度 57）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 41,
+      "score": 2.704,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.66 倍（-0.30）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 42,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.44 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 43,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.46 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 44,
+      "score": 2.933,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.91 倍（-0.07）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 45,
+      "score": 2.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.28 倍（-0.50）",
+        "画面偏糊（清晰度 135）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 46,
+      "score": 4.254,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.42 倍（+0.25）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 47,
+      "score": 4.983,
+      "keep": true,
+      "reasons": [
+        "精彩度 5/5",
+        "清晰度为本片中位数的 0.98 倍（-0.02）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 48,
+      "score": 3.914,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.89 倍（-0.09）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 49,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 2.02 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 50,
+      "score": 2.979,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.97 倍（-0.02）"
+      ]
+    },
+    {
+      "video": "01_lion_city_singapore.webm",
+      "index": 51,
+      "score": -1.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 1/5",
+        "清晰度为本片中位数的 0.00 倍（-0.50）",
+        "画面偏糊（清晰度 0）"
+      ]
+    }
+  ]
+}

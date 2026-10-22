@@ -1,0 +1,15 @@
+# Environment and tool caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Large media that can be re-downloaded (data/raw/SOURCES.md) or regenerated
+data/raw/*.webm
+data/synth/*.mp4
+out/previews/
+
+# Third-party code and model weights (see README for versions)
+third_party/
+*.pth

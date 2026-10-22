@@ -1,0 +1,106 @@
+{
+  "set": "holdout",
+  "video": "synth_holdout.mp4",
+  "duration": 33.5,
+  "clips": [
+    {
+      "source": "06_shanghai_24h_vlog.webm",
+      "start": 55.5,
+      "duration": 5.5,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "02_bled_bohinj_vlog.webm",
+      "start": 61.5,
+      "duration": 5.5,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "06_shanghai_24h_vlog.webm",
+      "start": 103.5,
+      "duration": 5.5,
+      "dissolve_in": 1.0
+    },
+    {
+      "source": "01_lion_city_singapore.webm",
+      "start": 132.5,
+      "duration": 5.5,
+      "dissolve_in": 0.5
+    },
+    {
+      "source": "06_shanghai_24h_vlog.webm",
+      "start": 149.5,
+      "duration": 5.5,
+      "dissolve_in": 1.5
+    },
+    {
+      "source": "02_bled_bohinj_vlog.webm",
+      "start": 123.0,
+      "duration": 5.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "06_shanghai_24h_vlog.webm",
+      "start": 196.5,
+      "duration": 5.0,
+      "dissolve_in": 1.0
+    }
+  ],
+  "tolerance": 0.5,
+  "truth": [
+    {
+      "time": 5.5,
+      "type": "hard"
+    },
+    {
+      "time": 10.5,
+      "type": "dissolve"
+    },
+    {
+      "time": 15.25,
+      "type": "dissolve"
+    },
+    {
+      "time": 19.75,
+      "type": "dissolve"
+    },
+    {
+      "time": 24.5,
+      "type": "hard"
+    },
+    {
+      "time": 29.0,
+      "type": "dissolve"
+    }
+  ],
+  "predicted": [
+    {
+      "time": 5.5,
+      "kind": "hard"
+    },
+    {
+      "time": 24.5,
+      "kind": "hard"
+    }
+  ],
+  "precision": 1.0,
+  "recall": 0.333,
+  "f1": 0.5,
+  "matched": [
+    [
+      5.5,
+      5.5
+    ],
+    [
+      24.5,
+      24.5
+    ]
+  ],
+  "missed": [
+    10.5,
+    15.25,
+    19.75,
+    29.0
+  ],
+  "false_alarms": []
+}

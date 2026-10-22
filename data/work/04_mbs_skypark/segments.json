@@ -1,0 +1,36 @@
+{
+  "video": "04_mbs_skypark.webm",
+  "duration": 16.679,
+  "analysed_until": 16.679,
+  "fps": 59.94006309148265,
+  "has_audio": true,
+  "detect_seconds": 6.44,
+  "cuts": [],
+  "raw_shot_count": 1,
+  "shots": [
+    [
+      0.0,
+      16.679
+    ]
+  ],
+  "segments": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 5.56,
+      "shot": 0
+    },
+    {
+      "index": 1,
+      "start": 5.56,
+      "end": 11.119,
+      "shot": 0
+    },
+    {
+      "index": 2,
+      "start": 11.119,
+      "end": 16.679,
+      "shot": 0
+    }
+  ]
+}

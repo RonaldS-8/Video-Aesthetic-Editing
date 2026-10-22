@@ -1,0 +1,42 @@
+{
+  "video": "05_mbs_gondola.webm",
+  "duration": 30.519,
+  "analysed_until": 30.519,
+  "fps": 59.94006309148265,
+  "has_audio": true,
+  "detect_seconds": 11.49,
+  "cuts": [],
+  "raw_shot_count": 1,
+  "shots": [
+    [
+      0.0,
+      30.519
+    ]
+  ],
+  "segments": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 7.63,
+      "shot": 0
+    },
+    {
+      "index": 1,
+      "start": 7.63,
+      "end": 15.259,
+      "shot": 0
+    },
+    {
+      "index": 2,
+      "start": 15.259,
+      "end": 22.889,
+      "shot": 0
+    },
+    {
+      "index": 3,
+      "start": 22.889,
+      "end": 30.519,
+      "shot": 0
+    }
+  ]
+}

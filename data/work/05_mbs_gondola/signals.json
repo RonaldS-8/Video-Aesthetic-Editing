@@ -1,0 +1,54 @@
+[
+  {
+    "index": 0,
+    "brightness": 100.6,
+    "sharpness": 905.6,
+    "motion": 30.24,
+    "pan_speed": 21.62,
+    "shake": 9.64,
+    "flags": [],
+    "keyframes": [
+      "seg000_0.jpg",
+      "seg000_1.jpg"
+    ]
+  },
+  {
+    "index": 1,
+    "brightness": 94.0,
+    "sharpness": 1063.5,
+    "motion": 22.15,
+    "pan_speed": 2.73,
+    "shake": 0.85,
+    "flags": [],
+    "keyframes": [
+      "seg001_0.jpg",
+      "seg001_1.jpg"
+    ]
+  },
+  {
+    "index": 2,
+    "brightness": 101.4,
+    "sharpness": 1104.4,
+    "motion": 26.98,
+    "pan_speed": 7.67,
+    "shake": 1.82,
+    "flags": [],
+    "keyframes": [
+      "seg002_0.jpg",
+      "seg002_1.jpg"
+    ]
+  },
+  {
+    "index": 3,
+    "brightness": 104.9,
+    "sharpness": 1184.4,
+    "motion": 18.94,
+    "pan_speed": 2.7,
+    "shake": 0.41,
+    "flags": [],
+    "keyframes": [
+      "seg003_0.jpg",
+      "seg003_1.jpg"
+    ]
+  }
+]

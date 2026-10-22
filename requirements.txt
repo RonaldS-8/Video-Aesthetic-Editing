@@ -1,0 +1,15 @@
+# Video decoding / encoding (bundles FFmpeg libraries; no ffmpeg.exe needed)
+av>=18.0
+# Frame math and image signals
+numpy>=2.0
+opencv-python-headless>=4.10
+# Shot boundary detection (AdaptiveDetector, PyAV backend)
+scenedetect>=0.7
+# Keyframe JPEG export
+pillow>=11.0
+# Client for the local llama-server (Qwen3-VL-2B tagging)
+requests>=2.32
+# Dev tools
+pytest>=8.0
+ruff>=0.6
+black>=24.0

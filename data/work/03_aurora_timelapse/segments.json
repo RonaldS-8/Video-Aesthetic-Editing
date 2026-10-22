@@ -1,0 +1,209 @@
+{
+  "video": "03_aurora_timelapse.webm",
+  "duration": 128.2,
+  "analysed_until": 128.2,
+  "fps": 30.0,
+  "has_audio": false,
+  "detect_seconds": 25.88,
+  "cuts": [
+    {
+      "time": 17.233,
+      "kind": "hard"
+    },
+    {
+      "time": 27.533,
+      "kind": "hard"
+    },
+    {
+      "time": 41.867,
+      "kind": "hard"
+    },
+    {
+      "time": 69.6,
+      "kind": "hard"
+    },
+    {
+      "time": 97.8,
+      "kind": "hard"
+    },
+    {
+      "time": 112.833,
+      "kind": "hard"
+    },
+    {
+      "time": 121.267,
+      "kind": "hard"
+    },
+    {
+      "time": 124.233,
+      "kind": "hard"
+    }
+  ],
+  "raw_shot_count": 9,
+  "shots": [
+    [
+      0.0,
+      17.233
+    ],
+    [
+      17.233,
+      27.533
+    ],
+    [
+      27.533,
+      41.867
+    ],
+    [
+      41.867,
+      69.6
+    ],
+    [
+      69.6,
+      97.8
+    ],
+    [
+      97.8,
+      112.833
+    ],
+    [
+      112.833,
+      121.267
+    ],
+    [
+      121.267,
+      124.233
+    ],
+    [
+      124.233,
+      128.2
+    ]
+  ],
+  "segments": [
+    {
+      "index": 0,
+      "start": 0.0,
+      "end": 5.744,
+      "shot": 0
+    },
+    {
+      "index": 1,
+      "start": 5.744,
+      "end": 11.489,
+      "shot": 0
+    },
+    {
+      "index": 2,
+      "start": 11.489,
+      "end": 17.233,
+      "shot": 0
+    },
+    {
+      "index": 3,
+      "start": 17.233,
+      "end": 22.383,
+      "shot": 1
+    },
+    {
+      "index": 4,
+      "start": 22.383,
+      "end": 27.533,
+      "shot": 1
+    },
+    {
+      "index": 5,
+      "start": 27.533,
+      "end": 34.7,
+      "shot": 2
+    },
+    {
+      "index": 6,
+      "start": 34.7,
+      "end": 41.867,
+      "shot": 2
+    },
+    {
+      "index": 7,
+      "start": 41.867,
+      "end": 48.8,
+      "shot": 3
+    },
+    {
+      "index": 8,
+      "start": 48.8,
+      "end": 55.733,
+      "shot": 3
+    },
+    {
+      "index": 9,
+      "start": 55.733,
+      "end": 62.667,
+      "shot": 3
+    },
+    {
+      "index": 10,
+      "start": 62.667,
+      "end": 69.6,
+      "shot": 3
+    },
+    {
+      "index": 11,
+      "start": 69.6,
+      "end": 76.65,
+      "shot": 4
+    },
+    {
+      "index": 12,
+      "start": 76.65,
+      "end": 83.7,
+      "shot": 4
+    },
+    {
+      "index": 13,
+      "start": 83.7,
+      "end": 90.75,
+      "shot": 4
+    },
+    {
+      "index": 14,
+      "start": 90.75,
+      "end": 97.8,
+      "shot": 4
+    },
+    {
+      "index": 15,
+      "start": 97.8,
+      "end": 105.316,
+      "shot": 5
+    },
+    {
+      "index": 16,
+      "start": 105.316,
+      "end": 112.833,
+      "shot": 5
+    },
+    {
+      "index": 17,
+      "start": 112.833,
+      "end": 117.05,
+      "shot": 6
+    },
+    {
+      "index": 18,
+      "start": 117.05,
+      "end": 121.267,
+      "shot": 6
+    },
+    {
+      "index": 19,
+      "start": 121.267,
+      "end": 124.233,
+      "shot": 7
+    },
+    {
+      "index": 20,
+      "start": 124.233,
+      "end": 128.2,
+      "shot": 8
+    }
+  ]
+}

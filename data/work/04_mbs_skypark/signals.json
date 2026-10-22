@@ -1,0 +1,41 @@
+[
+  {
+    "index": 0,
+    "brightness": 50.2,
+    "sharpness": 1252.8,
+    "motion": 18.11,
+    "pan_speed": 10.22,
+    "shake": 0.68,
+    "flags": [],
+    "keyframes": [
+      "seg000_0.jpg",
+      "seg000_1.jpg"
+    ]
+  },
+  {
+    "index": 1,
+    "brightness": 48.5,
+    "sharpness": 1110.4,
+    "motion": 16.84,
+    "pan_speed": 10.64,
+    "shake": 0.56,
+    "flags": [],
+    "keyframes": [
+      "seg001_0.jpg",
+      "seg001_1.jpg"
+    ]
+  },
+  {
+    "index": 2,
+    "brightness": 44.1,
+    "sharpness": 1043.7,
+    "motion": 9.3,
+    "pan_speed": 2.83,
+    "shake": 0.25,
+    "flags": [],
+    "keyframes": [
+      "seg002_0.jpg",
+      "seg002_1.jpg"
+    ]
+  }
+]

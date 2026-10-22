@@ -1,0 +1,74 @@
+{
+  "name": "05_mbs_gondola",
+  "target_sec": 30.0,
+  "total_sec": 8.0,
+  "notes": [
+    "可用素材不足：去重后只凑到 8.0s，目标 30s"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "05_mbs_gondola.webm",
+      "index": 3,
+      "src_start": 24.704,
+      "src_end": 28.704,
+      "description": "室内购物中心水池中，人们乘坐小船在水上游玩。",
+      "reason": "得分 4.1，全景，室内水上乐园、购物中心、儿童游乐",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "收尾",
+      "video": "05_mbs_gondola.webm",
+      "index": 0,
+      "src_start": 1.815,
+      "src_end": 5.815,
+      "description": "商场水道上，红色小船在水中缓缓移动，岸边有行人驻足观看。",
+      "reason": "得分 2.9，远景，购物中心、水上小船、商业街",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 0,
+      "score": 2.87,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.84 倍（-0.13）"
+      ]
+    },
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 1,
+      "score": 2.986,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.98 倍（-0.01）"
+      ]
+    },
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 2,
+      "score": 4.013,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.02 倍（+0.01）"
+      ]
+    },
+    {
+      "video": "05_mbs_gondola.webm",
+      "index": 3,
+      "score": 4.064,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.09 倍（+0.06）"
+      ]
+    }
+  ]
+}

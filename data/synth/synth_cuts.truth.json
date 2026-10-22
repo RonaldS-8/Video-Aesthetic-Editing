@@ -1,0 +1,84 @@
+{
+  "video": "synth_cuts.mp4",
+  "duration": 40.5,
+  "clips": [
+    {
+      "source": "04_mbs_skypark.webm",
+      "start": 0.5,
+      "duration": 5.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "04_mbs_skypark.webm",
+      "start": 10.0,
+      "duration": 5.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "05_mbs_gondola.webm",
+      "start": 1.0,
+      "duration": 6.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "03_aurora_timelapse.webm",
+      "start": 3.0,
+      "duration": 5.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "05_mbs_gondola.webm",
+      "start": 16.0,
+      "duration": 5.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "03_aurora_timelapse.webm",
+      "start": 50.0,
+      "duration": 5.0,
+      "dissolve_in": 0.0
+    },
+    {
+      "source": "03_aurora_timelapse.webm",
+      "start": 80.0,
+      "duration": 6.0,
+      "dissolve_in": 1.0
+    },
+    {
+      "source": "05_mbs_gondola.webm",
+      "start": 24.0,
+      "duration": 5.5,
+      "dissolve_in": 1.0
+    }
+  ],
+  "cuts": [
+    {
+      "time": 5.0,
+      "type": "jump"
+    },
+    {
+      "time": 10.0,
+      "type": "hard"
+    },
+    {
+      "time": 16.0,
+      "type": "hard"
+    },
+    {
+      "time": 21.0,
+      "type": "hard"
+    },
+    {
+      "time": 26.0,
+      "type": "hard"
+    },
+    {
+      "time": 30.5,
+      "type": "dissolve"
+    },
+    {
+      "time": 35.5,
+      "type": "dissolve"
+    }
+  ]
+}

@@ -1,0 +1,376 @@
+{
+  "name": "02_bled_bohinj_vlog",
+  "target_sec": 30.0,
+  "total_sec": 32.0,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "开场",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 12,
+      "src_start": 81.216,
+      "src_end": 85.216,
+      "description": "湖边秋日景色，山峦起伏，树木变色，有行人和骑车者。",
+      "reason": "得分 4.1，远景，秋景、湖边、自然风光",
+      "duration": 4.0
+    },
+    {
+      "order": 1,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 0,
+      "src_start": 1.512,
+      "src_end": 5.512,
+      "description": "一位女士站在湖边，背景是秋日山林和清澈的湖水。",
+      "reason": "得分 4.4，中景，湖边风景、秋日景色、自然风光",
+      "duration": 4.0
+    },
+    {
+      "order": 2,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 5,
+      "src_start": 32.796,
+      "src_end": 36.796,
+      "description": "湖面上几艘木船停靠在岸边，游客们正在准备登船或已上船。",
+      "reason": "得分 4.5，中景，湖边、水上活动、旅游",
+      "duration": 4.0
+    },
+    {
+      "order": 3,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 10,
+      "src_start": 68.446,
+      "src_end": 72.446,
+      "description": "湖面平静，远处山脉连绵，岸边秋色斑斓。",
+      "reason": "得分 2.5，远景，风景、湖泊、秋景",
+      "duration": 4.0
+    },
+    {
+      "order": 4,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 14,
+      "src_start": 91.102,
+      "src_end": 95.102,
+      "description": "镜头从一个乡村房屋和山坡上的秋林开始，逐渐拉远至湖景和远处山脉。",
+      "reason": "得分 2.5，远景，自然风光、秋日景色、湖景",
+      "duration": 4.0
+    },
+    {
+      "order": 5,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 16,
+      "src_start": 100.061,
+      "src_end": 104.061,
+      "description": "湖光山色，秋日森林与远山倒映在平静水面上",
+      "reason": "得分 3.7，远景，自然风光、秋日景色、湖泊",
+      "duration": 4.0
+    },
+    {
+      "order": 6,
+      "role": "主体",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 21,
+      "src_start": 121.531,
+      "src_end": 125.531,
+      "description": "一艘载有游客的木船在湖上划行，船夫正在用长桨划水。",
+      "reason": "得分 4.4，中景，湖上划船、旅游、水上活动",
+      "duration": 4.0
+    },
+    {
+      "order": 7,
+      "role": "收尾",
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 25,
+      "src_start": 147.115,
+      "src_end": 151.115,
+      "description": "湖面上一艘带遮阳篷的木船在平静水面上行驶",
+      "reason": "得分 4.0，远景，湖景、游船、水上活动",
+      "duration": 4.0
+    }
+  ],
+  "assessments": [
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 0,
+      "score": 4.353,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.63 倍（+0.35）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 1,
+      "score": 3.341,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.60 倍（+0.34）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 2,
+      "score": 1.776,
+      "keep": false,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.73 倍（-0.22）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 3,
+      "score": 2.291,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.50 倍（+0.29）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 4,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 2.94 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 5,
+      "score": 4.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 3.69 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 6,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.74 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 7,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.76 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 8,
+      "score": 3.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 2.30 倍（+0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 9,
+      "score": 2.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.49 倍（-0.50）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 10,
+      "score": 2.55,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.54 倍（-0.45）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 11,
+      "score": 3.036,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 1.05 倍（+0.04）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 12,
+      "score": 4.142,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.22 倍（+0.14）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 13,
+      "score": 4.0,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.00 倍（+0.00）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 14,
+      "score": 2.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.38 倍（-0.50）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 15,
+      "score": 2.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.32 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 16,
+      "score": 3.655,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.62 倍（-0.35）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 17,
+      "score": 2.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.43 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 18,
+      "score": 2.5,
+      "keep": true,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.35 倍（-0.50）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 19,
+      "score": 0.0,
+      "keep": false,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.27 倍（-0.50）",
+        "画面偏糊（清晰度 86）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 20,
+      "score": 1.614,
+      "keep": false,
+      "reasons": [
+        "精彩度 3/5",
+        "清晰度为本片中位数的 0.59 倍（-0.39）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 21,
+      "score": 4.404,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.75 倍（+0.40）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 22,
+      "score": 4.118,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.18 倍（+0.12）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 23,
+      "score": 3.858,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.82 倍（-0.14）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 24,
+      "score": 4.059,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 1.09 倍（+0.06）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 25,
+      "score": 3.95,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.93 倍（-0.05）"
+      ]
+    },
+    {
+      "video": "02_bled_bohinj_vlog.webm",
+      "index": 26,
+      "score": 3.151,
+      "keep": true,
+      "reasons": [
+        "精彩度 4/5",
+        "清晰度为本片中位数的 0.62 倍（-0.35）",
+        "时长仅 1.5s"
+      ]
+    }
+  ]
+}
