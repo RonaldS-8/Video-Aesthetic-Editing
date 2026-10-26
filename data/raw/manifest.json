@@ -43,6 +43,20 @@
       "file": "vlog/06_shanghai_24h_vlog.webm",
       "size": 131888016,
       "mtime_ns": 1792651317749176500
+    },
+    {
+      "id": "b0f6010d8cdbbc67",
+      "sha256": "b0f6010d8cdbbc6758706ac6f3a12d767d5a603e4c839d7878944f94fac040a3",
+      "file": "long/edinburgh_walk.webm",
+      "size": 2275393810,
+      "mtime_ns": 1793014184558495700
+    },
+    {
+      "id": "6df16449b8eade84",
+      "sha256": "6df16449b8eade84f5342550d0ebd395bbcc0304d042f9e4d5b5016a8e2edabc",
+      "file": "long/slovenia_forest_cooking.webm",
+      "size": 3329556991,
+      "mtime_ns": 1793016528866195900
     }
   ],
   "duplicates": []
