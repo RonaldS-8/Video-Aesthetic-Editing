@@ -12,6 +12,8 @@
 - 向量检索原理笔记：[docs/research/向量检索与Embedding原理-讨论笔记.md](docs/research/向量检索与Embedding原理-讨论笔记.md)
 - 目标方案（已定稿，暂停）：[docs/plans/目标方案-结构设计与检索填槽.md](docs/plans/目标方案-结构设计与检索填槽.md)
 - 美学模型提案（issue 原文）：[docs/issues/片段美学模型.md](docs/issues/片段美学模型.md)
+- 质量模型实测对比（DOVER、DOVER-Mobile、UVQ 1.5，含运行方法）：
+  [docs/research/质量模型对比-DOVER-UVQ.md](docs/research/质量模型对比-DOVER-UVQ.md)
 
 ## 目录结构
 
@@ -22,8 +24,11 @@ Video/
 │   ├── media.py         解码、抽帧、写视频（PyAV）
 │   ├── segment.py       镜头切分与窗口切片
 │   ├── signals.py       亮度、清晰度、抖动等确定性信号
+│   ├── layout.py        视频 ID（内容哈希）、清单、各类文件路径
 │   ├── tag.py           Qwen3-VL-2B 打标签（llama-server）
-│   ├── aesthetic.py     DOVER 美学打分
+│   ├── aesthetic.py     DOVER / DOVER-Mobile 美学打分
+│   ├── uvq.py           UVQ 1.5 质量打分（仅模型对比用）
+│   ├── quality.py       质量模型对比统计（仅模型对比用）
 │   ├── runner.py        并发运行打标签与美学打分
 │   ├── suggest.py       片段打分与时间线填槽
 │   ├── evaluate.py      切点评测、秩相关
@@ -35,13 +40,14 @@ Video/
 │   ├── plans/           方案设计
 │   └── issues/          提给 NAS 仓库的 issue 原文
 ├── data/
-│   ├── raw/             原始视频（不入库，见 SOURCES.md）
+│   ├── raw/             原始视频（原名，不入库）、清单 manifest.json、SOURCES.md
 │   ├── synth/           合成评测视频（mp4 不入库）与真值
-│   └── work/<视频>/     切分、信号、标签、美学分、关键帧
+│   └── work/            按类型分目录：切分、信号、关键帧、标签、美学分（见"流水线"）
 ├── out/                 基线版报告与时间线、切分评测结果
 │   └── dover/           DOVER 版报告与时间线（suggest/render/report 默认写这里）
 │                        （两处的 previews/ 都不入库）
 ├── third_party/DOVER/   DOVER 代码与权重（不入库）
+├── third_party/uvq/     UVQ 1.5 代码与权重（不入库，仅模型对比用）
 ├── requirements.txt
 └── pyproject.toml
 ```
@@ -153,27 +159,185 @@ Video/
 - 机器：Core Ultra 5 225U（12 核）、15.4 GB 内存、Intel 核显，无独显。
 - Python 3.11 虚拟环境 `.venv`，依赖见 `requirements.txt`。
   PyAV 自带 FFmpeg 库，不需要单独安装 ffmpeg。
-- 打标签模型：Qwen3-VL-2B-Instruct Q4_K_M（GGUF，约 1 GB）
-  加 F16 视觉投影，复用 JoyAI 目录里的文件，由 llama.cpp
-  Vulkan 版 `llama-server` 提供 OpenAI 兼容接口（端口 8091）。
+- 打标签模型：Qwen3-VL-2B-Instruct Q4_K_M（GGUF，约 1.1 GB）
+  加 F16 视觉投影（约 0.8 GB），复用 JoyAI 目录
+  `D:\users\018574\work\JoyAI\JoyAI-VL-Interaction-llamacpp\models\gguf\`
+  里的文件，由 llama.cpp Vulkan 版 `llama-server` 提供 OpenAI 兼容
+  接口（端口 8091）。
+- 美学打分模型：DOVER，代码与权重放在 `third_party/DOVER/`，不入库。
 
-## 流水线
+## 流水线：切分 → 描述 → 打分 → 剪辑
 
-| 阶段 | 命令 | 做什么 | 产出 |
-|---|---|---|---|
-| 切分 | `segment` | AdaptiveDetector 找硬切，线性混合检验找叠化；镜头内按 ≤8 s 切窗口，<1 s 碎片并入相邻片段 | `data/work/<视频>/segments.json` |
-| 画质信号 | `signals` | 4 fps 采样，算亮度、清晰度（Laplacian 方差）、运动、全局位移抖动；导出 2 张关键帧 | `signals.json`、`keyframes/` |
-| 打标签 | `tag` | 2 张关键帧送 Qwen3-VL-2B，按 JSON Schema 约束输出描述、场景、主体、动作、景别、时段、氛围、标签、精彩度、画面问题 | `tags.jsonl` |
-| 美学打分 | `aesthetic` | 片段原分辨率帧送 DOVER（CPU），得到技术分、美学分和官方融合分（0–1）；固定随机种子，可复现 | `aesthetic.jsonl` |
-| 打标签 + 美学打分 | `analyze` | 先做开工检查，再并发运行上面两步（打标签用核显，DOVER 用 CPU），双进度条；可中断，重跑接着做 | 同上 |
-| 剪辑建议 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 美学分 + 0.2 × VLM 精彩度归一化）− 画质扣分；按"开场全景 → 主体 → 收尾"填槽，同镜头和标签高度重合的去重 | `out/dover/timelines/*.json` |
-| 预览 | `render` | 按时间线拼出预览视频（无音轨） | `out/dover/previews/*.mp4` |
-| 报告 | `report` | 汇总评测、逐片段标签和建议 | `out/dover/report.html`（`--out out` 可改输出目录） |
-| 评测 | `synth` / `eval` | 拼接已知切点的合成视频，算切点准确率、召回率、F1 | `out/synth_eval_*.json` |
+### 视频 ID 与命名
 
-上海 vlog 只分析前 300 秒（`cli.py` 里的 `END_TIME`）。
+- **视频 ID = 视频文件内容 SHA-256 的前 16 位**（如 `330ff4c78eabf568`），
+  与文件名无关。改名不影响 ID；内容相同的两个文件得到同一个 ID，
+  只处理一次。
+- **原始视频保留原名、原位置，不复制、不改名**，以节约空间。
+  ID 与原文件名的对应关系记在清单 `data/raw/manifest.json` 里。
+- 每个派生文件放在按类型分的目录里，文件名统一为 `<类型>_<ID>`，
+  如 `data/work/tags/tag_330ff4c78eabf568.jsonl`。单个文件拿出来也能
+  认出属于哪条视频。
 
-## 复现
+### 数据流
+
+```text
+data/raw/*.webm（原名）
+  │
+  ├─ ⓪ ingest     登记新视频、去重 → data/raw/manifest.json
+  │                并对新视频执行 ① ②
+  ├─ ① segment    切分            → data/work/segments/segment_<ID>.json
+  ├─ ② signals    画质信号与关键帧 → data/work/signals/signal_<ID>.json
+  │                                  data/work/keyframes/keyframe_<ID>/
+  ├─ ③ tag        画面描述与标签   → data/work/tags/tag_<ID>.jsonl
+  ├─ ④ aesthetic  美学打分         → data/work/aesthetic/aesthetic_<ID>.jsonl
+  │      ③④ 可用 analyze 一起跑：打标签用核显，DOVER 用 CPU
+  ├─ ⑤ suggest    片段评分与填槽   → out/dover/timelines/timeline_<ID>.json
+  │                                  out/dover/timelines/timeline_all_videos_reel.json
+  ├─ ⑥ render     预览视频         → out/dover/previews/preview_<ID>.mp4
+  └─ ⑦ report     汇总报告         → out/dover/report.html
+```
+
+| 阶段 | 命令 | 做什么 | 读 | 写 |
+|---|---|---|---|---|
+| ⓪ 导入 | `ingest` | 扫描 `data/raw/*.webm`，只对新增或大小、修改时间变了的文件算哈希；新内容登记为新视频，与已有视频内容相同的记为重复并跳过；然后对还没有切分结果的视频执行 ①②，已处理的视频不动 | 原视频、清单 | 清单、①② 的产出 |
+| ① 切分 | `segment` | 先核对文件哈希与清单一致；AdaptiveDetector 找硬切，线性混合检验找叠化；<1 s 的碎镜头并入相邻镜头，镜头内再按 ≤8 s 切成片段 | 原视频 | `segment_<ID>.json` |
+| ② 画质信号 | `signals` | 4 fps 采样（长边 448 px），算亮度、清晰度（Laplacian 方差）、运动、全局位移抖动并给出问题标记；在片段 30%、70% 处各存 1 张关键帧 | 原视频、`segment_<ID>.json` | `signal_<ID>.json`、`keyframe_<ID>/` |
+| ③ 描述 | `tag` | 2 张关键帧送 Qwen3-VL-2B，按 JSON Schema 约束输出描述、场景、主体、动作、景别、时段、氛围、标签、精彩度、画面问题；复读或格式不符时重试，最多尝试 3 次，仍失败就报错 | `segment_<ID>.json`、`signal_<ID>.json`、`keyframe_<ID>/` | `tag_<ID>.jsonl` |
+| ④ 打分 | `aesthetic` | 片段原分辨率帧送 DOVER（CPU），得到技术分、美学分和官方融合分（0–1）；固定随机种子，可复现 | 原视频、`segment_<ID>.json` | `aesthetic_<ID>.jsonl` |
+| ③+④ | `analyze` | 先做开工检查（输入文件、llama-server、DOVER 权重），再并发运行 ③ 和 ④，双进度条 | 同上 | 同上 |
+| ⑤ 剪辑 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 融合分 + 0.2 × 精彩度归一化）− 画质扣分；按"开场全景 → 主体 → 收尾"填槽，每段最多取 4 s，同镜头相邻片段和标签高度重合的去重 | ①②③④ 的产出 | `timeline_<ID>.json` |
+| ⑥ 预览 | `render` | 按时间线从原视频截取并拼接（854×480、30 fps、无音轨） | 时间线、清单、原视频 | `preview_<ID>.mp4` |
+| ⑦ 报告 | `report` | 汇总切分评测、逐片段标签与分数、剪辑建议 | 以上全部 | `report.html` |
+
+⑤⑥⑦ 默认写到 `out/dover/`，用 `--out <目录>` 可以改。
+`segment`、`signals` 默认跳过已有结果的视频，`--force` 才会重做。
+
+### 存放路径
+
+```text
+data/
+├── raw/                                   输入
+│   ├── <原文件名>.webm                     原始视频（原名，不入库）
+│   ├── manifest.json                       清单：ID ↔ 原文件名（入库）
+│   └── SOURCES.md                          每条视频的来源、作者、许可
+└── work/                                  中间结果（入库）
+    ├── segments/segment_<ID>.json          ① 切分
+    ├── signals/signal_<ID>.json            ② 画质信号
+    ├── keyframes/keyframe_<ID>/seg<NNN>_<k>.jpg   ② 关键帧，k = 0、1
+    ├── tags/tag_<ID>.jsonl                 ③ 描述与标签
+    └── aesthetic/aesthetic_<ID>.jsonl      ④ 美学分
+out/dover/                                 输出
+├── timelines/timeline_<ID>.json            ⑤ 单条视频的时间线
+├── timelines/timeline_all_videos_reel.json ⑤ 全部视频的合集
+├── previews/preview_<ID>.mp4               ⑥ 预览（不入库）
+└── report.html                             ⑦ 报告
+```
+
+`data/work/quality/` 下是模型对比用的分数（DOVER-Mobile、UVQ 1.5），
+不参与剪辑建议，见评估文档。
+
+### 输入要求
+
+- 视频放进 `data/raw/`，扩展名必须是 `.webm`（只扫描 `*.webm`），
+  编码不限，PyAV 能解码即可；容器要能报出时长。
+- 文件名随意，但建议沿用"两位序号_英文小写"（如
+  `01_lion_city_singapore.webm`）方便人看；程序只认内容哈希。
+- 放进去后运行 `ingest`。内容与已有视频相同的文件会被标为重复并
+  提示，可以删掉以节约空间；程序不会自动删除任何文件。
+- 新视频要在 `data/raw/SOURCES.md` 里登记来源、作者和许可。
+- 只分析前一段时长时，在 `video_demo/cli.py` 的 `END_TIME` 里按
+  视频 ID 设秒数（上海 vlog 只取前 300 s）。
+- 音轨目前不使用，只在切分结果里记录有没有音轨。
+
+### 清单 `data/raw/manifest.json`
+
+| 字段 | 含义 |
+|---|---|
+| `hash`、`id_length` | 固定为 `sha256`、`16` |
+| `videos` | 每条视频：`id`、`sha256`（完整 64 位）、`file`（原文件名）、`size`（字节）、`mtime_ns`（修改时间，只用来判断要不要重算哈希） |
+| `duplicates` | 重复文件：`file`、`same_as`（与之内容相同的视频 ID）、`size`、`mtime_ns` |
+
+各阶段运行前都会核对清单：清单里的文件不见了或大小变了，或
+`data/raw` 里有没登记的视频，就报错并提示先运行 `ingest`。
+原文件内容变了会得到新 ID，旧 ID 的结果保留不动。
+
+### 文件格式
+
+通用约定：
+
+- 文件之间靠**视频 ID** 关联；同一视频的所有文件名里都是同一个 ID。
+- 时间一律是**相对原视频开头的秒数**。
+- 片段 `index` 从 0 开始连续编号，是同一视频各文件之间关联片段的键。
+- `.jsonl` 每行一个片段，处理完一段追加一行；中断后重跑会按
+  `index` 跳过已完成的片段。
+- 任何一步失败都直接报错并停在那一段，不写默认值。
+- **用 `--force` 重新切分后，必须先删掉该视频的 `signal_<ID>.json`、
+  `keyframe_<ID>/`、`tag_<ID>.jsonl`、`aesthetic_<ID>.jsonl` 再往下跑**：
+  续跑只认 `index`，不会发现片段边界已经变了。
+
+`segment_<ID>.json`（一个对象）：
+
+| 字段 | 含义 |
+|---|---|
+| `video_id`、`sha256` | 视频 ID、完整哈希 |
+| `video` | 原视频文件名（仅供人看） |
+| `duration` / `analysed_until` | 视频时长 / 实际分析到的秒数 |
+| `fps`、`has_audio` | 帧率、有没有音轨 |
+| `detect_seconds` | 切分耗时 |
+| `cuts` | 切点列表：`time`（秒）、`kind`（`hard` 硬切 / `dissolve` 叠化） |
+| `raw_shot_count`、`shots` | 合并前的镜头数；合并后的镜头 `[起, 止]` 列表 |
+| `segments` | 片段列表：`index`、`start`、`end`、`shot`（所属镜头序号） |
+
+`signal_<ID>.json`（数组，每个片段一项）：
+
+| 字段 | 含义 |
+|---|---|
+| `index` | 片段序号 |
+| `brightness` | 平均亮度，0–255 |
+| `sharpness` | 清晰度，Laplacian 方差的中位数 |
+| `motion`、`pan_speed`、`shake` | 相邻采样帧差、平均全局位移、位移变化的标准差 |
+| `flags` | 问题标记，取值 `low_light`（亮度 < 40）、`blurry`（清晰度 < 30 或低于本视频中位数的 30%）、`shaky`（抖动 > 12） |
+| `keyframes` | 2 张关键帧的文件名（在 `keyframe_<ID>/` 下） |
+
+`tag_<ID>.jsonl`（每行一个片段）：
+
+| 字段 | 含义 |
+|---|---|
+| `index`、`seconds` | 片段序号、打标签耗时 |
+| `tags.description` | 一句话描述，不超过 40 字 |
+| `tags.scene`、`tags.action`、`tags.mood` | 场景、动作或镜头运动、氛围 |
+| `tags.subjects` | 主要主体，最多 5 个 |
+| `tags.shot_size` | 景别：远景 / 全景 / 中景 / 近景 / 特写 |
+| `tags.time_of_day` | 时段：白天 / 黄昏 / 夜晚 / 室内 / 不确定 |
+| `tags.tags` | 检索标签，3–8 个 |
+| `tags.highlight` | 精彩度，1–5 的整数 |
+| `tags.issues` | 画面问题：模糊 / 过暗 / 过曝 / 抖动 / 遮挡 / 无明显问题 |
+| `raw` | 模型原始输出 |
+| `failed_attempts` | 被拒绝的重试记录（较早的数据没有这个字段） |
+
+`aesthetic_<ID>.jsonl`（每行一个片段）：
+
+| 字段 | 含义 |
+|---|---|
+| `index` | 片段序号 |
+| `technical`、`aesthetic` | DOVER 技术分支、美学分支的原始输出 |
+| `fused` | 官方融合分，0–1，剪辑评分用的就是它 |
+| `n_frames`、`seconds` | 送入的帧数、推理耗时 |
+| `model`、`weights_sha256`、`seed` | 模型名、权重 sha256、随机种子 |
+
+`timeline_<ID>.json`：
+
+| 字段 | 含义 |
+|---|---|
+| `name`、`target_sec`、`total_sec` | 时间线名、目标时长（单条 30 s，合集 45 s）、实际时长 |
+| `notes` | 说明，如"可用素材不足" |
+| `clips` | 按播放顺序的片段：`order`、`role`（开场 / 主体 / 收尾）、`video`（视频 ID）、`index`、`src_start`、`src_end`、`duration`（≤4 s）、`description`、`reason` |
+| `assessments` | 每个片段的评估：`video`（视频 ID）、`index`、`score`（1–5）、`keep`（`score` > 2 才可选）、`reasons` |
+
+## 运行
+
+### 安装（只需一次）
 
 ```bash
 python -m venv .venv
@@ -183,7 +347,7 @@ python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements.txt
 ```
 
-安装 DOVER（torch CPU 版、代码和权重，权重约 240 MB）：
+DOVER（torch CPU 版、代码和权重，权重约 240 MB）：
 
 ```bash
 .venv/Scripts/python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
@@ -204,27 +368,37 @@ curl -L -o third_party/DOVER/pretrained_weights/DOVER.pth --create-dirs https://
 本次使用的 DOVER 提交为 `f1ddc96`（2024-08-12），权重 sha256 前缀
 `f4a42c0bbc94`。DOVER 采用 S-Lab 许可，仅限非商用，这里只做内部验证。
 
-先启动 llama-server（路径按本机 JoyAI 目录）：
+### 依次运行
+
+都在项目根目录执行。
+
+⓪ 导入：把新视频放进 `data/raw/` 后运行。它会更新清单、标出重复
+文件，并只对新视频做 ① 切分和 ② 画质信号（不需要模型）：
 
 ```bash
-llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj mmproj-Qwen3VL-2B-Instruct-F16.gguf --host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1
+.venv/Scripts/python -m video_demo ingest
 ```
 
-然后依次运行各阶段。`analyze` 会同时打标签和做美学打分，
-可中断，重跑会跳过已完成的片段；如果标签已经全部完成，
-它就只做美学打分，这时不需要启动 llama-server：
+需要重做某一步时，可以单独运行 `segment` 或 `signals`，加 `--force`
+重做已有结果的视频。
 
-```bash
-.venv/Scripts/python -m video_demo segment
-```
+③ 描述 + ④ 打分。先在另一个终端启动 llama-server，并保持运行：
 
 ```bash
-.venv/Scripts/python -m video_demo signals
+llama-server -m D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf --host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1
 ```
+
+然后并发跑打标签和美学打分。可中断，重跑会跳过已完成的片段，
+所以新导入视频后直接再跑一次即可；标签全部完成后它只做美学打分，
+这时不需要 llama-server：
 
 ```bash
 .venv/Scripts/python -m video_demo analyze
 ```
+
+也可以分开跑：`tag` 只打标签，`aesthetic` 只做美学打分。
+
+⑤ 剪辑建议、⑥ 预览、⑦ 报告（每次都覆盖全部视频重新生成）：
 
 ```bash
 .venv/Scripts/python -m video_demo suggest
@@ -238,7 +412,14 @@ llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj mmproj-Qwen3VL-2B-Instr
 .venv/Scripts/python -m video_demo report
 ```
 
-评测：
+`tag`、`aesthetic`、`analyze` 都支持 `--only <前缀>`（视频 ID 或原文件名
+的前缀，如 `--only 04` 或 `--only 330ff4`）和 `--limit <段数>`
+（每条视频最多处理几段），调试时用。
+
+### 切分评测
+
+合成已知切点的视频，再算切点的准确率、召回率、F1；
+`--set` 可选 `main`（调参集）或 `holdout`（留出集）：
 
 ```bash
 .venv/Scripts/python -m video_demo synth --set holdout
@@ -248,7 +429,7 @@ llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj mmproj-Qwen3VL-2B-Instr
 .venv/Scripts/python -m video_demo eval --set holdout
 ```
 
-测试与代码检查：
+### 测试与代码检查
 
 ```bash
 .venv/Scripts/python -m pytest
@@ -256,4 +437,8 @@ llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj mmproj-Qwen3VL-2B-Instr
 
 ```bash
 .venv/Scripts/ruff check video_demo tests
+```
+
+```bash
+.venv/Scripts/black --check .
 ```

@@ -1,0 +1,49 @@
+{
+  "hash": "sha256",
+  "id_length": 16,
+  "videos": [
+    {
+      "id": "330ff4c78eabf568",
+      "sha256": "330ff4c78eabf568819498ccdeda9a41db3459dc4cf50fd54a9f0b03b78971da",
+      "file": "01_lion_city_singapore.webm",
+      "size": 19576476,
+      "mtime_ns": 1792650943631850700
+    },
+    {
+      "id": "dd0df77c6142e62f",
+      "sha256": "dd0df77c6142e62fdc33f46994824727892496d664297a8658ee8c8024055b7c",
+      "file": "02_bled_bohinj_vlog.webm",
+      "size": 20941893,
+      "mtime_ns": 1792650990711631700
+    },
+    {
+      "id": "7940fd1f6e740589",
+      "sha256": "7940fd1f6e7405891d9cee1154e9bdced154d83c0958de56207734f36e62d7ee",
+      "file": "03_aurora_timelapse.webm",
+      "size": 6514949,
+      "mtime_ns": 1792651006709654000
+    },
+    {
+      "id": "18e16a82dbdc9c38",
+      "sha256": "18e16a82dbdc9c383e06c52792b4292dd6f5a181c33f5b464aa4fec19a0e6322",
+      "file": "04_mbs_skypark.webm",
+      "size": 2973730,
+      "mtime_ns": 1792651014893656200
+    },
+    {
+      "id": "c951de956573afbc",
+      "sha256": "c951de956573afbc79c1587f435bca1116110cbf7acde825b4eb9bb4ef00b69f",
+      "file": "05_mbs_gondola.webm",
+      "size": 6077420,
+      "mtime_ns": 1792651029751591800
+    },
+    {
+      "id": "2c36abc81b285d57",
+      "sha256": "2c36abc81b285d575cf3b66ab97125732e877c019a9a67c2b9f70286f47c83c1",
+      "file": "06_shanghai_24h_vlog.webm",
+      "size": 131888016,
+      "mtime_ns": 1792651317749176500
+    }
+  ],
+  "duplicates": []
+}

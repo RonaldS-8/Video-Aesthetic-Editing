@@ -9,6 +9,7 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
+from video_demo import layout
 from video_demo.evaluate import spearman
 
 FLAG_LABELS = {"low_light": "低照度", "blurry": "偏糊", "shaky": "抖动"}
@@ -113,7 +114,12 @@ EVAL_NOTE = """
 """
 
 
-def _clip_cards(clips: list[dict], seg_frames: dict[tuple[str, int], str]) -> str:
+def _clip_cards(
+    clips: list[dict],
+    seg_frames: dict[tuple[str, int], str],
+    files: dict[str, str],
+) -> str:
+    """``files`` maps video ids to raw file names for the captions."""
     cards = []
     for c in clips:
         img = seg_frames.get((c["video"], c["index"]), "")
@@ -121,7 +127,7 @@ def _clip_cards(clips: list[dict], seg_frames: dict[tuple[str, int], str]) -> st
             f'<div class="clip"><img src="{escape(img)}" alt="">'
             f"<b>{c['order'] + 1}. {escape(c['role'])}</b> "
             f"<span class='muted'>{c['duration']:.1f}s</span><br>"
-            f"<span class='muted'>{escape(c['video'][:24])} "
+            f"<span class='muted'>{escape(files[c['video']][:24])} "
             f"{_fmt(c['src_start'])}–{_fmt(c['src_end'])}</span><br>"
             f"{escape(c['description'])}<br>"
             f"<span class='muted'>{escape(c['reason'])}</span></div>"
@@ -130,28 +136,32 @@ def _clip_cards(clips: list[dict], seg_frames: dict[tuple[str, int], str]) -> st
 
 
 def _video_section(
-    root: Path, out_dir: Path, stem: str, n: int
+    root: Path, out_dir: Path, video: layout.Video, n: int
 ) -> tuple[str, dict, dict]:
-    work = root / "data" / "work" / stem
-    seg = _read_json(work / "segments.json")
-    sig = _read_json(work / "signals.json")
+    work = root / "data" / "work"
+    vid = video.id
+    seg = _read_json(layout.segments_path(work, vid))
+    sig = _read_json(layout.signals_path(work, vid))
     tag_rows = [
-        json.loads(x) for x in (work / "tags.jsonl").read_text("utf-8").splitlines()
+        json.loads(x)
+        for x in layout.tags_path(work, vid).read_text("utf-8").splitlines()
     ]
     tags = {r["index"]: r for r in tag_rows}
     quality = {
         r["index"]: r
         for r in map(
-            json.loads, (work / "aesthetic.jsonl").read_text("utf-8").splitlines()
+            json.loads,
+            layout.aesthetic_path(work, vid).read_text("utf-8").splitlines(),
         )
     }
-    tl = _read_json(out_dir / "timelines" / f"{stem}.json")
+    tl = _read_json(layout.timeline_path(out_dir, vid))
     assess = {a["index"]: a for a in tl["assessments"]}
     selected = {c["index"] for c in tl["clips"]}
     analysed = seg["analysed_until"]
-    rel = Path(os.path.relpath(work / "keyframes", out_dir)).as_posix() + "/"
+    keyframes = layout.keyframes_dir(work, vid)
+    rel = Path(os.path.relpath(keyframes, out_dir)).as_posix() + "/"
     frames = {
-        (seg["video"], s["index"]): rel + sig[s["index"]]["keyframes"][0]
+        (vid, s["index"]): rel + sig[s["index"]]["keyframes"][0]
         for s in seg["segments"]
     }
 
@@ -211,7 +221,7 @@ def _video_section(
         else ""
     )
     audio = "有音轨" if seg["has_audio"] else "无音轨"
-    title = escape(seg["video"] + partial)
+    title = escape(f"{video.file}（{vid}）{partial}")
     html = f"""
 <details{' open' if n == 0 else ''}><summary>{title}</summary>
 <p class="muted">{_fmt(analysed)} · {seg['fps']:.2f} fps · {audio} ·
@@ -222,8 +232,9 @@ def _video_section(
 <p class="muted">色条：绿色越深得分越高，红色为建议删除，
 蓝框为入选建议时间线的片段。</p>
 <h3>建议时间线（{tl['total_sec']}s / 目标 {tl['target_sec']:.0f}s）</h3>{note}
-<video src="previews/{escape(stem)}.mp4" controls preload="metadata"></video>
-{_clip_cards(tl['clips'], frames)}
+<video src="{escape(_rel(layout.preview_path(out_dir, vid), out_dir))}" controls
+preload="metadata"></video>
+{_clip_cards(tl['clips'], frames, {vid: video.file})}
 <h3>逐片段标签</h3>
 <div class="scroll"><table><tr><th>片段</th><th>时间</th><th>关键帧</th>
 <th>模型标签</th><th>美学分 / VLM 精彩度</th><th>画质信号</th><th>建议</th></tr>
@@ -243,8 +254,16 @@ def _video_section(
     return html, stats, frames
 
 
+def _rel(path: Path, start: Path) -> str:
+    return Path(os.path.relpath(path, start)).as_posix()
+
+
 def write(
-    root: Path, out_dir: Path, stems: list[str], reel_name: str, baseline: Path
+    root: Path,
+    out_dir: Path,
+    videos: list[layout.Video],
+    reel_name: str,
+    baseline: Path,
 ) -> Path:
     """Write ``out_dir/report.html`` from the timelines in ``out_dir``.
 
@@ -262,8 +281,8 @@ def write(
         "detect": 0.0,
         "kept": 0,
     }
-    for n, stem in enumerate(stems):
-        html, stats, frames = _video_section(root, out_dir, stem, n)
+    for n, video in enumerate(videos):
+        html, stats, frames = _video_section(root, out_dir, video, n)
         sections.append(html)
         all_frames.update(frames)
         totals["segments"] += stats["segments"]
@@ -273,7 +292,7 @@ def write(
         totals["pairs"] += stats["highlight_vs_quality"]
         totals["detect"] += stats["detect_seconds"]
         totals["kept"] += stats["kept"]
-    reel = _read_json(out_dir / "timelines" / f"{reel_name}.json")
+    reel = _read_json(layout.timeline_path(out_dir, reel_name))
     tag_times = totals["tag"]
     avg_tag = sum(tag_times) / len(tag_times)
     q_times = totals["quality"]
@@ -281,7 +300,7 @@ def write(
     rho = spearman([h for h, _ in totals["pairs"]], [q for _, q in totals["pairs"]])
     baseline_link = Path(os.path.relpath(baseline, out_dir)).as_posix()
     cards = [
-        ("视频", f"{len(stems)}", ""),
+        ("视频", f"{len(videos)}", ""),
         ("分析时长", f"{totals['analysed'] / 60:.1f} 分钟", ""),
         ("片段", f"{totals['segments']}", ""),
         ("建议保留", f"{totals['kept']}", ""),
@@ -317,8 +336,9 @@ Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 VLM 精彩度占 20%，再减画质扣分；与文件名和输入顺序无关），
 去掉同一镜头相邻窗口和标签高度重合的片段；
 按“开场全景 → 主体（白天 → 黄昏 → 夜晚）→ 收尾”排列。</p>
-<video src="previews/{escape(reel_name)}.mp4" controls preload="metadata"></video>
-{_clip_cards(reel['clips'], all_frames)}
+<video src="{escape(_rel(layout.preview_path(out_dir, reel_name), out_dir))}" controls
+preload="metadata"></video>
+{_clip_cards(reel['clips'], all_frames, {v.id: v.file for v in videos})}
 <h2>3. 逐视频结果</h2>
 {''.join(sections)}
 <p class="muted">素材来自 Wikimedia Commons（CC BY / CC BY-SA 3.0），

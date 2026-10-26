@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from video_demo import cli, runner
+from video_demo import cli, layout, runner
 
 
 def _stage(name: str, fn: runner.StageFn, total: int = 2) -> runner.Stage:
@@ -59,21 +59,27 @@ def test_done_indices_resume(tmp_path: Path) -> None:
     assert runner.done_indices(path) == {0, 2}
 
 
-def _workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signals: bool) -> None:
+def _workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signals: bool) -> str:
+    """One registered video with 3 segments; returns its id."""
     raw, work = tmp_path / "raw", tmp_path / "work"
     raw.mkdir()
-    (raw / "01_demo.webm").write_bytes(b"")
-    stem_dir = work / "01_demo"
-    stem_dir.mkdir(parents=True)
+    (raw / "01_demo.webm").write_bytes(b"demo")
+    manifest, _ = layout.update_manifest(raw)
+    layout.write_manifest(raw, manifest)
+    vid = manifest.videos[0].id
     segments = [
         {"index": i, "start": i * 4.0, "end": i * 4.0 + 4.0, "shot": 0}
         for i in range(3)
     ]
-    (stem_dir / "segments.json").write_text(
-        json.dumps({"segments": segments}), encoding="utf-8"
+    path = layout.segments_path(work, vid)
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        json.dumps({"video_id": vid, "segments": segments}), encoding="utf-8"
     )
     if signals:
-        (stem_dir / "signals.json").write_text("[]", encoding="utf-8")
+        path = layout.signals_path(work, vid)
+        path.parent.mkdir(parents=True)
+        path.write_text("[]", encoding="utf-8")
     monkeypatch.setattr(cli, "RAW_DIR", raw)
     monkeypatch.setattr(cli, "WORK_DIR", work)
     monkeypatch.setattr(cli, "DOVER_ROOT", tmp_path / "no_dover")
@@ -82,6 +88,7 @@ def _workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signals: bool) -
         raise AssertionError("stages must not start when preflight fails")
 
     monkeypatch.setattr(runner, "run_parallel", must_not_run)
+    return vid
 
 
 def _args() -> object:
@@ -119,9 +126,73 @@ def test_analyze_reports_server_and_weights_together(
 def test_analyze_skips_when_everything_is_done(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    _workspace(tmp_path, monkeypatch, signals=True)
-    for name in (cli.TAGS_FILE, cli.QUALITY_FILE):
+    vid = _workspace(tmp_path, monkeypatch, signals=True)
+    for out in (layout.tags_path, layout.aesthetic_path):
         for i in range(3):
-            runner.append_record(cli.WORK_DIR / "01_demo" / name, {"index": i})
+            runner.append_record(out(cli.WORK_DIR, vid), {"index": i})
     cli.cmd_analyze(_args())
     assert "无需重跑" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("model", "hint"), [("dover-mobile", "DOVER-Mobile.pth"), ("uvq", "google/uvq")]
+)
+def test_quality_explains_missing_weights(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, model: str, hint: str
+) -> None:
+    _workspace(tmp_path, monkeypatch, signals=True)
+    monkeypatch.setattr(cli, "UVQ_ROOT", tmp_path / "no_uvq")
+
+    class Args:
+        only = ""
+        limit = 0
+        threads = 0
+
+    Args.model = model
+    with pytest.raises(SystemExit, match=hint):
+        cli.cmd_quality(Args())
+
+
+def test_compare_quality_names_the_missing_scores(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    vid = _workspace(tmp_path, monkeypatch, signals=True)
+    for out in (layout.tags_path, layout.aesthetic_path):
+        for i in range(3):
+            runner.append_record(out(cli.WORK_DIR, vid), {"index": i, "tags": {}})
+
+    class Args:
+        out = tmp_path / "out"
+
+    with pytest.raises(RuntimeError, match=f"quality_dover_mobile_{vid}.jsonl"):
+        cli.cmd_compare_quality(Args())
+
+
+def test_ingest_registers_and_segments_only_new_videos(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    old = _workspace(tmp_path, monkeypatch, signals=True)
+    (cli.RAW_DIR / "02_new.webm").write_bytes(b"new video")
+    (cli.RAW_DIR / "02_new_copy.webm").write_bytes(b"new video")
+    segmented: list[str] = []
+    monkeypatch.setattr(cli, "_segment", lambda vs: segmented.extend(v.id for v in vs))
+    monkeypatch.setattr(cli, "_signals", lambda vs: None)
+    cli.cmd_ingest(_args())
+    videos = layout.load_videos(cli.RAW_DIR)
+    assert [v.file for v in videos] == ["01_demo.webm", "02_new.webm"]
+    assert segmented == [videos[1].id] and old not in segmented
+    out = capsys.readouterr().out
+    assert "新视频" in out and "02_new_copy.webm" in out and "重复" in out
+
+
+def test_ingest_without_new_videos_does_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _workspace(tmp_path, monkeypatch, signals=True)
+
+    def must_not_segment(*_: object) -> None:
+        raise AssertionError("nothing new to segment")
+
+    monkeypatch.setattr(cli, "_segment", must_not_segment)
+    cli.cmd_ingest(_args())
+    assert "没有需要切分的新视频" in capsys.readouterr().out

@@ -1,5 +1,5 @@
 {
-  "name": "03_aurora_timelapse",
+  "name": "7940fd1f6e740589",
   "target_sec": 30.0,
   "total_sec": 12.0,
   "notes": [
@@ -9,7 +9,7 @@
     {
       "order": 0,
       "role": "开场",
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 6,
       "src_start": 36.284,
       "src_end": 40.284,
@@ -20,7 +20,7 @@
     {
       "order": 1,
       "role": "主体",
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 18,
       "src_start": 117.159,
       "src_end": 121.159,
@@ -31,7 +31,7 @@
     {
       "order": 2,
       "role": "收尾",
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 16,
       "src_start": 107.075,
       "src_end": 111.075,
@@ -42,7 +42,7 @@
   ],
   "assessments": [
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 0,
       "score": 2.791,
       "keep": true,
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 1,
       "score": 2.649,
       "keep": true,
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 2,
       "score": 2.788,
       "keep": true,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 3,
       "score": 3.643,
       "keep": true,
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 4,
       "score": 3.523,
       "keep": true,
@@ -92,7 +92,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 5,
       "score": 3.485,
       "keep": true,
@@ -102,7 +102,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 6,
       "score": 3.778,
       "keep": true,
@@ -112,7 +112,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 7,
       "score": 1.752,
       "keep": false,
@@ -123,7 +123,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 8,
       "score": 1.842,
       "keep": false,
@@ -134,7 +134,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 9,
       "score": 2.037,
       "keep": true,
@@ -145,7 +145,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 10,
       "score": 1.673,
       "keep": false,
@@ -156,7 +156,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 11,
       "score": 3.17,
       "keep": true,
@@ -166,7 +166,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 12,
       "score": 3.374,
       "keep": true,
@@ -176,7 +176,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 13,
       "score": 3.004,
       "keep": true,
@@ -186,7 +186,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 14,
       "score": 1.443,
       "keep": false,
@@ -197,7 +197,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 15,
       "score": 3.085,
       "keep": true,
@@ -207,7 +207,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 16,
       "score": 3.558,
       "keep": true,
@@ -217,7 +217,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 17,
       "score": 1.069,
       "keep": false,
@@ -228,7 +228,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 18,
       "score": 3.106,
       "keep": true,
@@ -238,7 +238,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 19,
       "score": 2.824,
       "keep": true,
@@ -248,7 +248,7 @@
       ]
     },
     {
-      "video": "03_aurora_timelapse.webm",
+      "video": "7940fd1f6e740589",
       "index": 20,
       "score": 1.394,
       "keep": false,

@@ -1,0 +1,305 @@
+{
+  "segments": 177,
+  "night_segments": 39,
+  "cost": {
+    "DOVER": {
+      "segments": 177,
+      "footage_seconds": 809.5,
+      "decode_seconds": 0.0,
+      "infer_seconds": 2271.8,
+      "mean_infer_seconds": 12.84,
+      "cpu_hours_per_footage_hour": 2.81,
+      "peak_memory_mib": null,
+      "threads": null
+    },
+    "dover-mobile": {
+      "segments": 177,
+      "footage_seconds": 809.5,
+      "decode_seconds": 169.3,
+      "infer_seconds": 530.5,
+      "mean_infer_seconds": 3.0,
+      "cpu_hours_per_footage_hour": 0.86,
+      "peak_memory_mib": 1997,
+      "threads": 2
+    },
+    "uvq": {
+      "segments": 177,
+      "footage_seconds": 809.5,
+      "decode_seconds": 19.6,
+      "infer_seconds": 799.9,
+      "mean_infer_seconds": 4.52,
+      "cpu_hours_per_footage_hour": 1.01,
+      "peak_memory_mib": 1080,
+      "threads": 2
+    }
+  },
+  "spearman": {
+    "DOVER technical": {
+      "DOVER technical": 1.0,
+      "DOVER aesthetic": 0.64,
+      "DOVER fused": 0.81,
+      "DOVER-Mobile technical": 0.79,
+      "DOVER-Mobile aesthetic": 0.68,
+      "DOVER-Mobile fused": 0.73,
+      "UVQ 1.5": 0.65,
+      "VLM highlight": -0.0,
+      "brightness": 0.27
+    },
+    "DOVER aesthetic": {
+      "DOVER technical": 0.64,
+      "DOVER aesthetic": 1.0,
+      "DOVER fused": 0.96,
+      "DOVER-Mobile technical": 0.66,
+      "DOVER-Mobile aesthetic": 0.66,
+      "DOVER-Mobile fused": 0.68,
+      "UVQ 1.5": 0.58,
+      "VLM highlight": 0.06,
+      "brightness": 0.41
+    },
+    "DOVER fused": {
+      "DOVER technical": 0.81,
+      "DOVER aesthetic": 0.96,
+      "DOVER fused": 1.0,
+      "DOVER-Mobile technical": 0.76,
+      "DOVER-Mobile aesthetic": 0.73,
+      "DOVER-Mobile fused": 0.76,
+      "UVQ 1.5": 0.64,
+      "VLM highlight": 0.03,
+      "brightness": 0.4
+    },
+    "DOVER-Mobile technical": {
+      "DOVER technical": 0.79,
+      "DOVER aesthetic": 0.66,
+      "DOVER fused": 0.76,
+      "DOVER-Mobile technical": 1.0,
+      "DOVER-Mobile aesthetic": 0.78,
+      "DOVER-Mobile fused": 0.86,
+      "UVQ 1.5": 0.74,
+      "VLM highlight": -0.07,
+      "brightness": 0.38
+    },
+    "DOVER-Mobile aesthetic": {
+      "DOVER technical": 0.68,
+      "DOVER aesthetic": 0.66,
+      "DOVER fused": 0.73,
+      "DOVER-Mobile technical": 0.78,
+      "DOVER-Mobile aesthetic": 1.0,
+      "DOVER-Mobile fused": 0.99,
+      "UVQ 1.5": 0.69,
+      "VLM highlight": -0.12,
+      "brightness": 0.37
+    },
+    "DOVER-Mobile fused": {
+      "DOVER technical": 0.73,
+      "DOVER aesthetic": 0.68,
+      "DOVER fused": 0.76,
+      "DOVER-Mobile technical": 0.86,
+      "DOVER-Mobile aesthetic": 0.99,
+      "DOVER-Mobile fused": 1.0,
+      "UVQ 1.5": 0.73,
+      "VLM highlight": -0.11,
+      "brightness": 0.38
+    },
+    "UVQ 1.5": {
+      "DOVER technical": 0.65,
+      "DOVER aesthetic": 0.58,
+      "DOVER fused": 0.64,
+      "DOVER-Mobile technical": 0.74,
+      "DOVER-Mobile aesthetic": 0.69,
+      "DOVER-Mobile fused": 0.73,
+      "UVQ 1.5": 1.0,
+      "VLM highlight": -0.14,
+      "brightness": 0.43
+    },
+    "VLM highlight": {
+      "DOVER technical": -0.0,
+      "DOVER aesthetic": 0.06,
+      "DOVER fused": 0.03,
+      "DOVER-Mobile technical": -0.07,
+      "DOVER-Mobile aesthetic": -0.12,
+      "DOVER-Mobile fused": -0.11,
+      "UVQ 1.5": -0.14,
+      "VLM highlight": 1.0,
+      "brightness": -0.21
+    },
+    "brightness": {
+      "DOVER technical": 0.27,
+      "DOVER aesthetic": 0.41,
+      "DOVER fused": 0.4,
+      "DOVER-Mobile technical": 0.38,
+      "DOVER-Mobile aesthetic": 0.37,
+      "DOVER-Mobile fused": 0.38,
+      "UVQ 1.5": 0.43,
+      "VLM highlight": -0.21,
+      "brightness": 1.0
+    }
+  },
+  "night_bias": {
+    "DOVER technical": {
+      "night_median": 0.3446327683615819,
+      "day_median": 0.5847457627118644,
+      "night_in_top": 0
+    },
+    "DOVER aesthetic": {
+      "night_median": 0.3615819209039548,
+      "day_median": 0.5451977401129944,
+      "night_in_top": 0
+    },
+    "DOVER fused": {
+      "night_median": 0.3333333333333333,
+      "day_median": 0.5847457627118644,
+      "night_in_top": 0
+    },
+    "DOVER-Mobile technical": {
+      "night_median": 0.2542372881355932,
+      "day_median": 0.596045197740113,
+      "night_in_top": 0
+    },
+    "DOVER-Mobile aesthetic": {
+      "night_median": 0.21468926553672316,
+      "day_median": 0.57909604519774,
+      "night_in_top": 2
+    },
+    "DOVER-Mobile fused": {
+      "night_median": 0.22033898305084745,
+      "day_median": 0.57909604519774,
+      "night_in_top": 0
+    },
+    "UVQ 1.5": {
+      "night_median": 0.1751412429378531,
+      "day_median": 0.5988700564971752,
+      "night_in_top": 1
+    }
+  },
+  "worst_ranks": [
+    {
+      "segment": "330ff4c78eabf568#9",
+      "file": "01_lion_city_singapore.webm",
+      "description": "室内市场或建筑的街景，显示街道4和5的指示牌。",
+      "flags": [],
+      "DOVER fused": 69,
+      "DOVER-Mobile fused": 3,
+      "UVQ 1.5": 52
+    },
+    {
+      "segment": "330ff4c78eabf568#28",
+      "file": "01_lion_city_singapore.webm",
+      "description": "森林中树木茂密，光线斑驳，画面从暗处逐渐亮起，呈现自然环境的静谧感。",
+      "flags": [],
+      "DOVER fused": 3,
+      "DOVER-Mobile fused": 16,
+      "UVQ 1.5": 3
+    },
+    {
+      "segment": "330ff4c78eabf568#50",
+      "file": "01_lion_city_singapore.webm",
+      "description": "夜晚的城市天际线，高楼大厦灯火通明，其中HSBC大楼亮着招牌。",
+      "flags": [
+        "low_light"
+      ],
+      "DOVER fused": 11,
+      "DOVER-Mobile fused": 11,
+      "UVQ 1.5": 1
+    },
+    {
+      "segment": "330ff4c78eabf568#51",
+      "file": "01_lion_city_singapore.webm",
+      "description": "视频片段为完全黑屏，无任何可见内容。",
+      "flags": [
+        "low_light",
+        "blurry"
+      ],
+      "DOVER fused": 2,
+      "DOVER-Mobile fused": 1,
+      "UVQ 1.5": 41
+    },
+    {
+      "segment": "dd0df77c6142e62f#20",
+      "file": "02_bled_bohinj_vlog.webm",
+      "description": "一个户外公园场景，一名男子在路边弹奏乐器，背景有其他人和树木。",
+      "flags": [
+        "shaky"
+      ],
+      "DOVER fused": 6,
+      "DOVER-Mobile fused": 38,
+      "UVQ 1.5": 2
+    },
+    {
+      "segment": "dd0df77c6142e62f#26",
+      "file": "02_bled_bohinj_vlog.webm",
+      "description": "一个粉色的订阅按钮在白色背景上，右侧出现铃铛图标。",
+      "flags": [],
+      "DOVER fused": 1,
+      "DOVER-Mobile fused": 8,
+      "UVQ 1.5": 15
+    },
+    {
+      "segment": "7940fd1f6e740589#0",
+      "file": "03_aurora_timelapse.webm",
+      "description": "夜空中绿色极光在森林上空舞动",
+      "flags": [],
+      "DOVER fused": 12,
+      "DOVER-Mobile fused": 5,
+      "UVQ 1.5": 20
+    },
+    {
+      "segment": "7940fd1f6e740589#1",
+      "file": "03_aurora_timelapse.webm",
+      "description": "夜空下绿色极光在森林上空舞动",
+      "flags": [],
+      "DOVER fused": 17,
+      "DOVER-Mobile fused": 2,
+      "UVQ 1.5": 31
+    },
+    {
+      "segment": "7940fd1f6e740589#10",
+      "file": "03_aurora_timelapse.webm",
+      "description": "夜空中绿色极光在云层间舞动，下方是静谧的湖面和树林。",
+      "flags": [
+        "blurry"
+      ],
+      "DOVER fused": 46,
+      "DOVER-Mobile fused": 24,
+      "UVQ 1.5": 5
+    },
+    {
+      "segment": "7940fd1f6e740589#14",
+      "file": "03_aurora_timelapse.webm",
+      "description": "夜空下绿色极光在湖面上舞动，倒映着梦幻的光芒。",
+      "flags": [
+        "blurry"
+      ],
+      "DOVER fused": 41,
+      "DOVER-Mobile fused": 4,
+      "UVQ 1.5": 13
+    },
+    {
+      "segment": "7940fd1f6e740589#17",
+      "file": "03_aurora_timelapse.webm",
+      "description": "夜空中绿色极光在天空中舞动，下方是树林剪影",
+      "flags": [
+        "low_light",
+        "blurry"
+      ],
+      "DOVER fused": 4,
+      "DOVER-Mobile fused": 11,
+      "UVQ 1.5": 4
+    },
+    {
+      "segment": "2c36abc81b285d57#51",
+      "file": "06_shanghai_24h_vlog.webm",
+      "description": "一个男人在地下通道外行走，远处是上海城市天际线。",
+      "flags": [
+        "shaky"
+      ],
+      "DOVER fused": 5,
+      "DOVER-Mobile fused": 17,
+      "UVQ 1.5": 46
+    }
+  ],
+  "uvq_frame_spread": {
+    "segments_with_3_frames": 153,
+    "median_max_minus_min": 0.313,
+    "sd_across_segments": 0.332
+  }
+}

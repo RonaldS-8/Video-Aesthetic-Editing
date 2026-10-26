@@ -1,5 +1,5 @@
 {
-  "name": "01_lion_city_singapore",
+  "name": "330ff4c78eabf568",
   "target_sec": 30.0,
   "total_sec": 32.89,
   "notes": [],
@@ -7,7 +7,7 @@
     {
       "order": 0,
       "role": "开场",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 47,
       "src_start": 157.93,
       "src_end": 161.93,
@@ -18,7 +18,7 @@
     {
       "order": 1,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 4,
       "src_start": 11.22,
       "src_end": 13.847,
@@ -29,7 +29,7 @@
     {
       "order": 2,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 6,
       "src_start": 16.975,
       "src_end": 19.603,
@@ -40,7 +40,7 @@
     {
       "order": 3,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 11,
       "src_start": 28.362,
       "src_end": 30.405,
@@ -51,7 +51,7 @@
     {
       "order": 4,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 21,
       "src_start": 49.675,
       "src_end": 53.095,
@@ -62,7 +62,7 @@
     {
       "order": 5,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 32,
       "src_start": 86.651,
       "src_end": 90.651,
@@ -73,7 +73,7 @@
     {
       "order": 6,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 35,
       "src_start": 101.291,
       "src_end": 105.291,
@@ -84,7 +84,7 @@
     {
       "order": 7,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 36,
       "src_start": 106.567,
       "src_end": 110.567,
@@ -95,7 +95,7 @@
     {
       "order": 8,
       "role": "主体",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 42,
       "src_start": 132.468,
       "src_end": 136.468,
@@ -106,7 +106,7 @@
     {
       "order": 9,
       "role": "收尾",
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 2,
       "src_start": 5.756,
       "src_end": 7.925,
@@ -117,7 +117,7 @@
   ],
   "assessments": [
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 0,
       "score": 2.24,
       "keep": true,
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 1,
       "score": 2.611,
       "keep": true,
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 2,
       "score": 3.675,
       "keep": true,
@@ -149,7 +149,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 3,
       "score": 3.592,
       "keep": true,
@@ -159,7 +159,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 4,
       "score": 3.789,
       "keep": true,
@@ -169,7 +169,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 5,
       "score": 3.344,
       "keep": true,
@@ -179,7 +179,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 6,
       "score": 3.723,
       "keep": true,
@@ -189,7 +189,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 7,
       "score": 3.255,
       "keep": true,
@@ -199,7 +199,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 8,
       "score": 2.73,
       "keep": true,
@@ -209,7 +209,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 9,
       "score": 2.935,
       "keep": true,
@@ -219,7 +219,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 10,
       "score": 2.214,
       "keep": true,
@@ -230,7 +230,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 11,
       "score": 3.754,
       "keep": true,
@@ -240,7 +240,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 12,
       "score": 3.045,
       "keep": true,
@@ -250,7 +250,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 13,
       "score": 2.369,
       "keep": true,
@@ -261,7 +261,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 14,
       "score": 3.216,
       "keep": true,
@@ -272,7 +272,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 15,
       "score": 0.211,
       "keep": false,
@@ -284,7 +284,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 16,
       "score": 2.147,
       "keep": true,
@@ -295,7 +295,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 17,
       "score": 2.853,
       "keep": true,
@@ -306,7 +306,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 18,
       "score": 2.801,
       "keep": true,
@@ -317,7 +317,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 19,
       "score": 3.29,
       "keep": true,
@@ -327,7 +327,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 20,
       "score": 2.721,
       "keep": true,
@@ -338,7 +338,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 21,
       "score": 4.33,
       "keep": true,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 22,
       "score": 3.134,
       "keep": true,
@@ -358,7 +358,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 23,
       "score": 2.804,
       "keep": true,
@@ -368,7 +368,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 24,
       "score": 2.983,
       "keep": true,
@@ -378,7 +378,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 25,
       "score": 2.465,
       "keep": true,
@@ -389,7 +389,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 26,
       "score": 3.193,
       "keep": true,
@@ -400,7 +400,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 27,
       "score": 1.238,
       "keep": false,
@@ -412,7 +412,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 28,
       "score": 2.109,
       "keep": true,
@@ -422,7 +422,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 29,
       "score": 2.756,
       "keep": true,
@@ -432,7 +432,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 30,
       "score": 3.109,
       "keep": true,
@@ -442,7 +442,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 31,
       "score": 3.361,
       "keep": true,
@@ -452,7 +452,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 32,
       "score": 3.901,
       "keep": true,
@@ -462,7 +462,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 33,
       "score": 3.3,
       "keep": true,
@@ -472,7 +472,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 34,
       "score": 3.958,
       "keep": true,
@@ -482,7 +482,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 35,
       "score": 4.36,
       "keep": true,
@@ -492,7 +492,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 36,
       "score": 4.062,
       "keep": true,
@@ -502,7 +502,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 37,
       "score": 3.448,
       "keep": true,
@@ -512,7 +512,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 38,
       "score": 2.597,
       "keep": true,
@@ -522,7 +522,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 39,
       "score": 2.862,
       "keep": true,
@@ -532,7 +532,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 40,
       "score": 1.869,
       "keep": false,
@@ -543,7 +543,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 41,
       "score": 2.4,
       "keep": true,
@@ -553,7 +553,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 42,
       "score": 3.618,
       "keep": true,
@@ -563,7 +563,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 43,
       "score": 3.552,
       "keep": true,
@@ -573,7 +573,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 44,
       "score": 2.827,
       "keep": true,
@@ -583,7 +583,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 45,
       "score": 2.481,
       "keep": true,
@@ -594,7 +594,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 46,
       "score": 3.504,
       "keep": true,
@@ -604,7 +604,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 47,
       "score": 4.014,
       "keep": true,
@@ -614,7 +614,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 48,
       "score": 3.483,
       "keep": true,
@@ -624,7 +624,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 49,
       "score": 2.551,
       "keep": true,
@@ -634,7 +634,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 50,
       "score": 2.387,
       "keep": true,
@@ -644,7 +644,7 @@
       ]
     },
     {
-      "video": "01_lion_city_singapore.webm",
+      "video": "330ff4c78eabf568",
       "index": 51,
       "score": -0.106,
       "keep": false,

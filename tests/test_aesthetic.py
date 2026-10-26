@@ -93,3 +93,17 @@ def test_load_reports_missing_config_and_weights(tmp_path: Path) -> None:
     )
     with pytest.raises(FileNotFoundError, match="weights"):
         aesthetic.DoverAdapter.load(tmp_path)
+
+
+def test_load_reads_the_named_config_for_dover_mobile(tmp_path: Path) -> None:
+    (tmp_path / "dover.yml").write_text(
+        "test_load_path: ./pretrained_weights/DOVER.pth\n", encoding="utf-8"
+    )
+    (tmp_path / "dover-mobile.yml").write_text(
+        "test_load_path: ./pretrained_weights/DOVER-Mobile.pth\n", encoding="utf-8"
+    )
+    assert aesthetic.weights_path(tmp_path, "dover-mobile.yml").name == (
+        "DOVER-Mobile.pth"
+    )
+    with pytest.raises(FileNotFoundError, match="DOVER-Mobile.pth"):
+        aesthetic.DoverAdapter.load(tmp_path, config_name="dover-mobile.yml")

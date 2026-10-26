@@ -57,6 +57,7 @@ def done_indices(jsonl_path: Path) -> set[int]:
 
 
 def append_record(jsonl_path: Path, record: dict) -> None:
+    jsonl_path.parent.mkdir(parents=True, exist_ok=True)
     with jsonl_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 

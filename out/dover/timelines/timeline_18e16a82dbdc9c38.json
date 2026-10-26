@@ -1,5 +1,5 @@
 {
-  "name": "04_mbs_skypark",
+  "name": "18e16a82dbdc9c38",
   "target_sec": 30.0,
   "total_sec": 4.0,
   "notes": [
@@ -9,7 +9,7 @@
     {
       "order": 0,
       "role": "开场",
-      "video": "04_mbs_skypark.webm",
+      "video": "18e16a82dbdc9c38",
       "index": 1,
       "src_start": 6.339,
       "src_end": 10.339,
@@ -20,7 +20,7 @@
   ],
   "assessments": [
     {
-      "video": "04_mbs_skypark.webm",
+      "video": "18e16a82dbdc9c38",
       "index": 0,
       "score": 3.266,
       "keep": true,
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "video": "04_mbs_skypark.webm",
+      "video": "18e16a82dbdc9c38",
       "index": 1,
       "score": 3.288,
       "keep": true,
@@ -40,7 +40,7 @@
       ]
     },
     {
-      "video": "04_mbs_skypark.webm",
+      "video": "18e16a82dbdc9c38",
       "index": 2,
       "score": 3.059,
       "keep": true,

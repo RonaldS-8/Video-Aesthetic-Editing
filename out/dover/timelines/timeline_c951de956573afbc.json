@@ -1,5 +1,5 @@
 {
-  "name": "05_mbs_gondola",
+  "name": "c951de956573afbc",
   "target_sec": 30.0,
   "total_sec": 8.0,
   "notes": [
@@ -9,7 +9,7 @@
     {
       "order": 0,
       "role": "开场",
-      "video": "05_mbs_gondola.webm",
+      "video": "c951de956573afbc",
       "index": 2,
       "src_start": 17.074,
       "src_end": 21.074,
@@ -20,7 +20,7 @@
     {
       "order": 1,
       "role": "收尾",
-      "video": "05_mbs_gondola.webm",
+      "video": "c951de956573afbc",
       "index": 0,
       "src_start": 1.815,
       "src_end": 5.815,
@@ -31,7 +31,7 @@
   ],
   "assessments": [
     {
-      "video": "05_mbs_gondola.webm",
+      "video": "c951de956573afbc",
       "index": 0,
       "score": 2.925,
       "keep": true,
@@ -41,7 +41,7 @@
       ]
     },
     {
-      "video": "05_mbs_gondola.webm",
+      "video": "c951de956573afbc",
       "index": 1,
       "score": 2.917,
       "keep": true,
@@ -51,7 +51,7 @@
       ]
     },
     {
-      "video": "05_mbs_gondola.webm",
+      "video": "c951de956573afbc",
       "index": 2,
       "score": 3.101,
       "keep": true,
@@ -61,7 +61,7 @@
       ]
     },
     {
-      "video": "05_mbs_gondola.webm",
+      "video": "c951de956573afbc",
       "index": 3,
       "score": 2.976,
       "keep": true,

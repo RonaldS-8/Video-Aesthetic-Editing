@@ -107,6 +107,55 @@ def segment_frames(
         idx += 1
 
 
+def segment_frames_every(
+    path: Path,
+    spans: list[tuple[float, float]],
+    step: float,
+    size: tuple[int, int],
+    end_time: float | None = None,
+) -> Iterator[tuple[int, list[np.ndarray]]]:
+    """Yield (span index, RGB frames at start, start + step, ...) in one pass.
+
+    Each span gets the first frame at or after every target time before its
+    end, scaled to ``size`` (width, height) with bicubic interpolation, so a
+    span of d seconds has ceil(d / step) frames. ``spans`` are sorted and do
+    not overlap.
+    """
+    if step <= 0:
+        raise ValueError("step must be positive")
+    idx, k = 0, 0
+    buf: list[np.ndarray] = []
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        stream.thread_type = "AUTO"
+        for frame in container.decode(stream):
+            if frame.time is None:
+                continue
+            t = float(frame.time)
+            if end_time is not None and t > end_time:
+                break
+            while idx < len(spans) and (
+                t >= spans[idx][1] or spans[idx][0] + k * step >= spans[idx][1]
+            ):
+                yield idx, buf
+                buf, idx, k = [], idx + 1, 0
+            if idx >= len(spans):
+                break
+            if t + 1e-6 >= spans[idx][0] + k * step:
+                buf.append(
+                    frame.reformat(
+                        width=size[0],
+                        height=size[1],
+                        format="rgb24",
+                        interpolation="BICUBIC",
+                    ).to_ndarray()
+                )
+                k += 1
+    while idx < len(spans):
+        yield idx, buf
+        buf, idx = [], idx + 1
+
+
 def read_clip(path: Path, start: float, duration: float) -> list[np.ndarray]:
     """Resample [start, start+duration) of ``path`` to OUT_FPS RGB frames."""
     n_out = round(duration * OUT_FPS)

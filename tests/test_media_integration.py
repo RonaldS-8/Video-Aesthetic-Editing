@@ -12,6 +12,7 @@ from video_demo.media import (
     probe,
     read_clip,
     sample_frames,
+    segment_frames_every,
     write_video,
 )
 from video_demo.segment import detect_cuts
@@ -47,3 +48,16 @@ def test_sampling_rate_and_clip_reading(tmp_path: Path) -> None:
     assert all(b - a >= 0.49 for a, b in zip(times, times[1:], strict=False))
     clip = read_clip(video, 1.0, 2.0)
     assert len(clip) == 2 * OUT_FPS and clip[0].shape == (OUT_SIZE[1], OUT_SIZE[0], 3)
+
+
+def test_frames_every_second_per_span(tmp_path: Path) -> None:
+    video = tmp_path / "blocks.mp4"
+    _block_video(video)
+    spans = [(0.0, 2.5), (2.5, 3.0), (4.2, 6.0)]
+    got = dict(segment_frames_every(video, spans, 1.0, (64, 36)))
+    # ceil(duration) frames: 0, 1, 2 s / 2.5 s / 4.2, 5.2 s.
+    assert [len(got[i]) for i in range(3)] == [3, 1, 2]
+    assert got[0][0].shape == (36, 64, 3)
+    # Frames come from the right block: 0-2 s, 2-4 s and 4-6 s differ.
+    assert not np.array_equal(got[0][0], got[2][0])
+    assert np.abs(got[0][0].astype(int) - got[0][1].astype(int)).mean() < 2

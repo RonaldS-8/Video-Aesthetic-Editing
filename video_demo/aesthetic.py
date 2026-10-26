@@ -4,6 +4,7 @@ DOVER (ICCV 2023, https://github.com/VQAssessment/DOVER) is licensed under the
 S-Lab License for non-commercial use only; this demo uses it for internal
 evaluation. View sampling and normalisation follow the official
 ``evaluate_one_video.py``; only frame decoding differs (PyAV, per segment).
+DOVER-Mobile loads through the same adapter from ``dover-mobile.yml``.
 """
 
 from __future__ import annotations
@@ -82,8 +83,8 @@ def build_samplers(sample_types: dict[str, Any]) -> dict[str, UnifiedFrameSample
     return samplers
 
 
-def weights_path(dover_root: Path) -> Path:
-    config = yaml.safe_load((dover_root / "dover.yml").read_text("utf-8"))
+def weights_path(dover_root: Path, config_name: str = "dover.yml") -> Path:
+    config = yaml.safe_load((dover_root / config_name).read_text("utf-8"))
     return (dover_root / config["test_load_path"]).resolve()
 
 
@@ -105,12 +106,14 @@ class DoverAdapter:
         self.seed = SEED
 
     @classmethod
-    def load(cls, dover_root: Path, device: str = "cpu") -> DoverAdapter:
-        config_path = dover_root / "dover.yml"
+    def load(
+        cls, dover_root: Path, device: str = "cpu", config_name: str = "dover.yml"
+    ) -> DoverAdapter:
+        config_path = dover_root / config_name
         if not config_path.exists():
             raise FileNotFoundError(f"DOVER config not found: {config_path}")
         config = yaml.safe_load(config_path.read_text("utf-8"))
-        weights = weights_path(dover_root)
+        weights = weights_path(dover_root, config_name)
         if not weights.exists():
             raise FileNotFoundError(f"DOVER weights not found: {weights}")
         # DOVER prints its backbone set-up ("Setting backbone: ...") on build.
