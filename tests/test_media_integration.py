@@ -5,14 +5,17 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from video_demo.media import (
     OUT_FPS,
     OUT_SIZE,
+    count_frames,
     probe,
     read_clip,
     sample_frames,
     segment_frames_every,
+    segment_frames_picked,
     write_video,
 )
 from video_demo.segment import detect_cuts
@@ -61,3 +64,30 @@ def test_frames_every_second_per_span(tmp_path: Path) -> None:
     # Frames come from the right block: 0-2 s, 2-4 s and 4-6 s differ.
     assert not np.array_equal(got[0][0], got[2][0])
     assert np.abs(got[0][0].astype(int) - got[0][1].astype(int)).mean() < 2
+
+
+def test_picked_frames_match_counts_and_are_bounded(tmp_path: Path) -> None:
+    video = tmp_path / "blocks.mp4"
+    _block_video(video)
+    spans = [(0.0, 2.0), (2.0, 4.0), (4.0, 6.0)]
+    counts = count_frames(video, spans)
+    assert counts == [2 * OUT_FPS] * 3
+    picks = [{0, 5}, set(), {59}]
+    got = list(segment_frames_picked(video, spans, picks, max_side=96))
+    assert [(i, sorted(f), seen) for i, f, seen in got] == [
+        (0, [0, 5], 60),
+        (1, [], 60),
+        (2, [59], 60),
+    ]
+    # 854x480 scaled to a 96-pixel long side, even dimensions.
+    assert got[0][1][0].shape == (52, 96, 3)
+
+
+def test_clip_running_to_the_end_of_the_video(tmp_path: Path) -> None:
+    video = tmp_path / "blocks.mp4"
+    _block_video(video)
+    duration = probe(video).duration
+    clip = read_clip(video, 4.0, duration - 4.0)
+    assert len(clip) == round((duration - 4.0) * OUT_FPS)
+    with pytest.raises(ValueError, match="needed"):
+        read_clip(video, 4.0, duration - 4.0 + 1.0)

@@ -26,17 +26,17 @@ ISSUES = ["模糊", "过暗", "过曝", "抖动", "遮挡", "无明显问题"]
 TAG_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
-        "description": {"type": "string", "maxLength": 60},
-        "scene": {"type": "string", "maxLength": 20},
+        "description": {"type": "string", "minLength": 1, "maxLength": 60},
+        "scene": {"type": "string", "minLength": 1, "maxLength": 20},
         "subjects": {
             "type": "array",
             "items": {"type": "string", "maxLength": 12},
             "maxItems": 5,
         },
-        "action": {"type": "string", "maxLength": 20},
+        "action": {"type": "string", "minLength": 1, "maxLength": 20},
         "shot_size": {"type": "string", "enum": SHOT_SIZES},
         "time_of_day": {"type": "string", "enum": TIMES_OF_DAY},
-        "mood": {"type": "string", "maxLength": 20},
+        "mood": {"type": "string", "minLength": 1, "maxLength": 20},
         "tags": {
             "type": "array",
             "items": {"type": "string", "maxLength": 12},
@@ -66,7 +66,9 @@ SYSTEM_PROMPT = (
 )
 
 USER_PROMPT = (
-    "下面两张图是同一个视频片段（{duration:.1f} 秒）中先后两个时刻的画面。"
+    "下面 {count} 张图是同一个视频片段（{duration:.1f} 秒）中按时间先后、"
+    "约每 2 秒一张的画面。画面内容如果有变化（换了场景、主体或镜头方向），"
+    "description 要概括全部内容，不要只写其中一张。"
     "请输出 JSON：description 用一句话（不超过 40 字）描述片段内容；"
     "scene 是场景；subjects 是主要主体；action 是主体动作或镜头运动；"
     "shot_size 是景别；time_of_day 是时段；mood 是氛围；tags 是 3-8 个检索标签；"
@@ -164,7 +166,12 @@ def _request(
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": USER_PROMPT.format(duration=duration)},
+                    {
+                        "type": "text",
+                        "text": USER_PROMPT.format(
+                            count=len(images), duration=duration
+                        ),
+                    },
                     *images,
                 ],
             },

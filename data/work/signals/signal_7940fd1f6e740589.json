@@ -1,45 +1,52 @@
 [
   {
     "index": 0,
-    "brightness": 54.3,
-    "sharpness": 144.7,
-    "motion": 5.38,
-    "pan_speed": 1.32,
-    "shake": 0.14,
+    "brightness": 49.4,
+    "sharpness": 90.6,
+    "motion": 4.51,
+    "pan_speed": 1.34,
+    "shake": 0.12,
     "flags": [],
     "keyframes": [
       "seg000_0.jpg",
-      "seg000_1.jpg"
+      "seg000_1.jpg",
+      "seg000_2.jpg",
+      "seg000_3.jpg",
+      "seg000_4.jpg"
+    ],
+    "keyframe_times": [
+      1.667,
+      1.933,
+      3.6,
+      5.5,
+      6.9
     ]
   },
   {
     "index": 1,
-    "brightness": 42.5,
-    "sharpness": 86.3,
-    "motion": 3.41,
-    "pan_speed": 1.34,
-    "shake": 0.13,
+    "brightness": 45.6,
+    "sharpness": 75.1,
+    "motion": 3.78,
+    "pan_speed": 1.39,
+    "shake": 0.16,
     "flags": [],
     "keyframes": [
       "seg001_0.jpg",
-      "seg001_1.jpg"
+      "seg001_1.jpg",
+      "seg001_2.jpg",
+      "seg001_3.jpg",
+      "seg001_4.jpg"
+    ],
+    "keyframe_times": [
+      9.3,
+      11.467,
+      13.6,
+      14.133,
+      15.733
     ]
   },
   {
     "index": 2,
-    "brightness": 45.9,
-    "sharpness": 70.6,
-    "motion": 3.72,
-    "pan_speed": 1.44,
-    "shake": 0.16,
-    "flags": [],
-    "keyframes": [
-      "seg002_0.jpg",
-      "seg002_1.jpg"
-    ]
-  },
-  {
-    "index": 3,
     "brightness": 72.7,
     "sharpness": 66.7,
     "motion": 4.0,
@@ -47,12 +54,18 @@
     "shake": 0.11,
     "flags": [],
     "keyframes": [
-      "seg003_0.jpg",
-      "seg003_1.jpg"
+      "seg002_0.jpg",
+      "seg002_1.jpg",
+      "seg002_2.jpg"
+    ],
+    "keyframe_times": [
+      18.4,
+      19.2,
+      21.333
     ]
   },
   {
-    "index": 4,
+    "index": 3,
     "brightness": 66.6,
     "sharpness": 62.6,
     "motion": 3.57,
@@ -60,12 +73,18 @@
     "shake": 0.15,
     "flags": [],
     "keyframes": [
-      "seg004_0.jpg",
-      "seg004_1.jpg"
+      "seg003_0.jpg",
+      "seg003_1.jpg",
+      "seg003_2.jpg"
+    ],
+    "keyframe_times": [
+      24.0,
+      25.333,
+      26.667
     ]
   },
   {
-    "index": 5,
+    "index": 4,
     "brightness": 60.6,
     "sharpness": 156.7,
     "motion": 6.59,
@@ -73,12 +92,20 @@
     "shake": 0.2,
     "flags": [],
     "keyframes": [
-      "seg005_0.jpg",
-      "seg005_1.jpg"
+      "seg004_0.jpg",
+      "seg004_1.jpg",
+      "seg004_2.jpg",
+      "seg004_3.jpg"
+    ],
+    "keyframe_times": [
+      27.533,
+      29.933,
+      31.267,
+      33.4
     ]
   },
   {
-    "index": 6,
+    "index": 5,
     "brightness": 57.8,
     "sharpness": 135.8,
     "motion": 6.11,
@@ -86,126 +113,166 @@
     "shake": 0.15,
     "flags": [],
     "keyframes": [
+      "seg005_0.jpg",
+      "seg005_1.jpg",
+      "seg005_2.jpg",
+      "seg005_3.jpg"
+    ],
+    "keyframe_times": [
+      35.033,
+      37.433,
+      38.8,
+      40.167
+    ]
+  },
+  {
+    "index": 6,
+    "brightness": 44.2,
+    "sharpness": 25.1,
+    "motion": 4.16,
+    "pan_speed": 0.82,
+    "shake": 0.12,
+    "flags": [
+      "blurry"
+    ],
+    "keyframes": [
       "seg006_0.jpg",
-      "seg006_1.jpg"
+      "seg006_1.jpg",
+      "seg006_2.jpg",
+      "seg006_3.jpg",
+      "seg006_4.jpg"
+    ],
+    "keyframe_times": [
+      43.667,
+      45.533,
+      45.8,
+      47.933,
+      50.633
     ]
   },
   {
     "index": 7,
-    "brightness": 42.8,
-    "sharpness": 24.7,
-    "motion": 3.9,
-    "pan_speed": 0.83,
-    "shake": 0.13,
-    "flags": [
-      "blurry"
-    ],
-    "keyframes": [
-      "seg007_0.jpg",
-      "seg007_1.jpg"
-    ]
-  },
-  {
-    "index": 8,
-    "brightness": 48.4,
-    "sharpness": 25.0,
-    "motion": 5.0,
-    "pan_speed": 0.98,
-    "shake": 0.15,
-    "flags": [
-      "blurry"
-    ],
-    "keyframes": [
-      "seg008_0.jpg",
-      "seg008_1.jpg"
-    ]
-  },
-  {
-    "index": 9,
-    "brightness": 41.4,
-    "sharpness": 22.5,
-    "motion": 4.16,
+    "brightness": 44.9,
+    "sharpness": 23.1,
+    "motion": 4.47,
     "pan_speed": 0.98,
     "shake": 0.22,
     "flags": [
       "blurry"
     ],
     "keyframes": [
-      "seg009_0.jpg",
-      "seg009_1.jpg"
+      "seg007_0.jpg",
+      "seg007_1.jpg",
+      "seg007_2.jpg",
+      "seg007_3.jpg",
+      "seg007_4.jpg"
+    ],
+    "keyframe_times": [
+      51.167,
+      54.433,
+      54.967,
+      57.933,
+      59.8
     ]
   },
   {
-    "index": 10,
-    "brightness": 40.3,
-    "sharpness": 21.4,
-    "motion": 4.29,
-    "pan_speed": 1.02,
+    "index": 8,
+    "brightness": 40.4,
+    "sharpness": 21.9,
+    "motion": 4.34,
+    "pan_speed": 1.05,
     "shake": 0.14,
     "flags": [
       "blurry"
     ],
     "keyframes": [
+      "seg008_0.jpg",
+      "seg008_1.jpg",
+      "seg008_2.jpg",
+      "seg008_3.jpg",
+      "seg008_4.jpg"
+    ],
+    "keyframe_times": [
+      62.2,
+      62.467,
+      64.067,
+      67.533,
+      68.333
+    ]
+  },
+  {
+    "index": 9,
+    "brightness": 62.1,
+    "sharpness": 45.8,
+    "motion": 5.23,
+    "pan_speed": 0.1,
+    "shake": 0.1,
+    "flags": [],
+    "keyframes": [
+      "seg009_0.jpg",
+      "seg009_1.jpg",
+      "seg009_2.jpg",
+      "seg009_3.jpg",
+      "seg009_4.jpg"
+    ],
+    "keyframe_times": [
+      71.3,
+      71.833,
+      73.433,
+      76.133,
+      78.8
+    ]
+  },
+  {
+    "index": 10,
+    "brightness": 68.2,
+    "sharpness": 46.1,
+    "motion": 6.75,
+    "pan_speed": 0.1,
+    "shake": 0.09,
+    "flags": [],
+    "keyframes": [
       "seg010_0.jpg",
-      "seg010_1.jpg"
+      "seg010_1.jpg",
+      "seg010_2.jpg",
+      "seg010_3.jpg",
+      "seg010_4.jpg"
+    ],
+    "keyframe_times": [
+      79.6,
+      80.933,
+      83.4,
+      85.267,
+      87.933
     ]
   },
   {
     "index": 11,
-    "brightness": 58.4,
-    "sharpness": 46.4,
-    "motion": 4.38,
-    "pan_speed": 0.11,
-    "shake": 0.11,
-    "flags": [],
-    "keyframes": [
-      "seg011_0.jpg",
-      "seg011_1.jpg"
-    ]
-  },
-  {
-    "index": 12,
-    "brightness": 75.0,
-    "sharpness": 51.7,
-    "motion": 8.08,
-    "pan_speed": 0.11,
-    "shake": 0.1,
-    "flags": [],
-    "keyframes": [
-      "seg012_0.jpg",
-      "seg012_1.jpg"
-    ]
-  },
-  {
-    "index": 13,
-    "brightness": 58.5,
-    "sharpness": 31.6,
-    "motion": 4.63,
-    "pan_speed": 0.08,
-    "shake": 0.07,
-    "flags": [],
-    "keyframes": [
-      "seg013_0.jpg",
-      "seg013_1.jpg"
-    ]
-  },
-  {
-    "index": 14,
-    "brightness": 46.1,
-    "sharpness": 19.6,
-    "motion": 2.6,
+    "brightness": 48.6,
+    "sharpness": 22.0,
+    "motion": 2.92,
     "pan_speed": 0.07,
-    "shake": 0.07,
+    "shake": 0.08,
     "flags": [
       "blurry"
     ],
     "keyframes": [
-      "seg014_0.jpg",
-      "seg014_1.jpg"
+      "seg011_0.jpg",
+      "seg011_1.jpg",
+      "seg011_2.jpg",
+      "seg011_3.jpg",
+      "seg011_4.jpg"
+    ],
+    "keyframe_times": [
+      88.467,
+      91.933,
+      92.2,
+      94.133,
+      96.267
     ]
   },
   {
-    "index": 15,
+    "index": 12,
     "brightness": 34.4,
     "sharpness": 46.3,
     "motion": 5.94,
@@ -215,12 +282,20 @@
       "low_light"
     ],
     "keyframes": [
-      "seg015_0.jpg",
-      "seg015_1.jpg"
+      "seg012_0.jpg",
+      "seg012_1.jpg",
+      "seg012_2.jpg",
+      "seg012_3.jpg"
+    ],
+    "keyframe_times": [
+      99.467,
+      101.333,
+      101.633,
+      104.367
     ]
   },
   {
-    "index": 16,
+    "index": 13,
     "brightness": 44.2,
     "sharpness": 54.7,
     "motion": 8.26,
@@ -228,41 +303,45 @@
     "shake": 0.54,
     "flags": [],
     "keyframes": [
-      "seg016_0.jpg",
-      "seg016_1.jpg"
+      "seg013_0.jpg",
+      "seg013_1.jpg",
+      "seg013_2.jpg",
+      "seg013_3.jpg"
+    ],
+    "keyframe_times": [
+      106.767,
+      108.4,
+      110.8,
+      112.4
     ]
   },
   {
-    "index": 17,
-    "brightness": 22.5,
-    "sharpness": 15.6,
-    "motion": 5.36,
-    "pan_speed": 0.44,
-    "shake": 0.19,
+    "index": 14,
+    "brightness": 38.7,
+    "sharpness": 50.6,
+    "motion": 7.33,
+    "pan_speed": 0.51,
+    "shake": 0.16,
     "flags": [
-      "low_light",
-      "blurry"
+      "low_light"
     ],
     "keyframes": [
-      "seg017_0.jpg",
-      "seg017_1.jpg"
+      "seg014_0.jpg",
+      "seg014_1.jpg",
+      "seg014_2.jpg",
+      "seg014_3.jpg",
+      "seg014_4.jpg"
+    ],
+    "keyframe_times": [
+      112.967,
+      116.2,
+      117.0,
+      118.133,
+      119.8
     ]
   },
   {
-    "index": 18,
-    "brightness": 55.9,
-    "sharpness": 67.2,
-    "motion": 9.15,
-    "pan_speed": 0.57,
-    "shake": 0.12,
-    "flags": [],
-    "keyframes": [
-      "seg018_0.jpg",
-      "seg018_1.jpg"
-    ]
-  },
-  {
-    "index": 19,
+    "index": 15,
     "brightness": 61.6,
     "sharpness": 62.7,
     "motion": 15.01,
@@ -270,12 +349,16 @@
     "shake": 0.13,
     "flags": [],
     "keyframes": [
-      "seg019_0.jpg",
-      "seg019_1.jpg"
+      "seg015_0.jpg",
+      "seg015_1.jpg"
+    ],
+    "keyframe_times": [
+      122.733,
+      124.1
     ]
   },
   {
-    "index": 20,
+    "index": 16,
     "brightness": 1.5,
     "sharpness": 760.0,
     "motion": 0.33,
@@ -286,8 +369,12 @@
       "shaky"
     ],
     "keyframes": [
-      "seg020_0.jpg",
-      "seg020_1.jpg"
+      "seg016_0.jpg",
+      "seg016_1.jpg"
+    ],
+    "keyframe_times": [
+      125.733,
+      126.567
     ]
   }
 ]

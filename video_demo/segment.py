@@ -11,7 +11,9 @@ from scenedetect import AdaptiveDetector, detect
 
 from video_demo.media import sample_frames
 
-MAX_SEGMENT_SEC = 8.0
+# Raised from 8 s for hour-long raw footage (2026-10-26); videos segmented
+# before keep their 8 s windows.
+MAX_SEGMENT_SEC = 10.0
 MIN_SEGMENT_SEC = 1.0
 
 # Dissolve detector: grayscale frames at 10 fps, compared 0.5 s either side.

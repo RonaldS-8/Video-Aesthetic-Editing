@@ -11,6 +11,8 @@ from typing import Any
 
 from video_demo import layout
 from video_demo.evaluate import spearman
+from video_demo.segment import MAX_SEGMENT_SEC
+from video_demo.signals import KEYFRAME_STEP_SEC
 
 FLAG_LABELS = {"low_light": "低照度", "blurry": "偏糊", "shaky": "抖动"}
 CUT_LABELS = {"hard": "硬切", "jump": "跳切", "dissolve": "叠化"}
@@ -232,6 +234,7 @@ def _video_section(
 <p class="muted">色条：绿色越深得分越高，红色为建议删除，
 蓝框为入选建议时间线的片段。</p>
 <h3>建议时间线（{tl['total_sec']}s / 目标 {tl['target_sec']:.0f}s）</h3>{note}
+{outline_table(tl)}
 <video src="{escape(_rel(layout.preview_path(out_dir, vid), out_dir))}" controls
 preload="metadata"></video>
 {_clip_cards(tl['clips'], frames, {vid: video.file})}
@@ -254,6 +257,56 @@ preload="metadata"></video>
     return html, stats, frames
 
 
+def summary_heading(mode: str, timeline: dict) -> str:
+    """Section 2 title and rules for the collection-wide timeline."""
+    total, target = timeline["total_sec"], timeline["target_sec"]
+    minutes = f"全集合 {total / 60:.1f} 分钟 / 目标 {target / 60:.1f} 分钟"
+    if mode == "highlights":
+        return f"""<h2>2. 精彩瞬间（{minutes}）</h2>
+<p class="muted">先由 Qwen3.5-4B 读按时间排列的场景列表，生成大纲：每部分的标题、
+内容和对应的场景范围；再在每部分的场景里，按片段得分（DOVER 美学分占 80%、
+VLM 精彩度占 20%，美学分在同一时段内取百分位）加关键词匹配整段选片，
+60 秒内标签高度重合的只留一段；按拍摄时间排列。</p>
+{outline_table(timeline)}"""
+    if mode == "ranked":
+        return f"""<h2>2. 精彩瞬间 · 只按得分（{minutes}）</h2>
+<p class="muted">对照基线，不用大纲：以切分片段为单位整段选入（1–5 分：DOVER 美学分占
+80%、VLM 精彩度占 20%，再减画质扣分；美学分先在同一时段内取百分位）；
+每 5 分钟至少选一段，60 秒内标签高度重合的只留一段；按拍摄时间排列。</p>"""
+    return f"""<h2>2. 跨视频精华合集（{total}s / 目标 {target:.0f}s）</h2>
+<p class="muted">从全部片段里按得分取素材（1–5 分：DOVER 美学分占 80%、
+VLM 精彩度占 20%，再减画质扣分；与文件名和输入顺序无关），
+去掉同一镜头相邻窗口和标签高度重合的片段；
+按“开场全景 → 主体（白天 → 黄昏 → 夜晚）→ 收尾”排列。</p>"""
+
+
+def outline_table(timeline: dict) -> str:
+    """The model's outline with each part's scenes, target and filled length."""
+    plan = timeline.get("outline")
+    if not plan:
+        return ""
+    scenes = {sc["number"]: sc for sc in timeline["scenes"]}
+    filled: dict[str, float] = {}
+    for c in timeline["clips"]:
+        filled[c["role"]] = filled.get(c["role"], 0.0) + c["duration"]
+    rows = "".join(
+        f"<tr><td>{k}. {escape(p['name'])}</td><td>{escape(p['summary'])}</td>"
+        f"<td>场景 {p['first_scene']}–{p['last_scene']}<br><span class='muted'>"
+        f"{_fmt(scenes[p['first_scene']]['start'])}–"
+        f"{_fmt(scenes[p['last_scene']]['end'])}</span></td>"
+        f"<td>{p['duration_sec']}s</td><td>{filled.get(p['name'], 0.0):.1f}s</td>"
+        f"<td>{escape('、'.join(p['keywords']))}</td></tr>"
+        for k, p in enumerate(plan["parts"], start=1)
+    )
+    tries = len(timeline.get("outline_failed_attempts", []))
+    retry = f"，重试 {tries} 次" if tries else ""
+    return f"""<p><b>大纲：{escape(plan.get('title', ''))}</b>
+<span class="muted">（{len(timeline['scenes'])} 个场景，生成用时
+{timeline.get('outline_seconds', 0)}s{retry}）</span></p>
+<div class="scroll"><table><tr><th>部分</th><th>内容</th><th>场景</th>
+<th>目标</th><th>选到</th><th>关键词</th></tr>{rows}</table></div>"""
+
+
 def _rel(path: Path, start: Path) -> str:
     return Path(os.path.relpath(path, start)).as_posix()
 
@@ -264,6 +317,7 @@ def write(
     videos: list[layout.Video],
     reel_name: str,
     baseline: Path,
+    mode: str = "reel",
 ) -> Path:
     """Write ``out_dir/report.html`` from the timelines in ``out_dir``.
 
@@ -320,8 +374,9 @@ def write(
 <body><main>
 <h1>视频切分与剪辑建议 Demo · DOVER 美学打分版</h1>
 <p class="muted">对照：<a href="{escape(baseline_link)}">基线版报告
-（VLM 精彩度打分）</a>。两版的切分、标签和画质信号相同，
-只有片段得分和由此产生的选片不同。</p>
+（VLM 精彩度打分）</a>。基线版用 ≤8 秒切分、每段 2 张关键帧，按 VLM 精彩度
+选片；本版切分 ≤{MAX_SEGMENT_SEC:.0f} 秒（2026-10-26 前切分的视频仍是 ≤8 秒）、
+关键帧每 {KEYFRAME_STEP_SEC:.0f} 秒一张，片段得分以 DOVER 美学分为主。</p>
 <p class="muted">{date.today().isoformat()} · 本机 Core Ultra 5 225U / 15.4 GB，无独显 ·
 切分 PySceneDetect AdaptiveDetector + 叠化检测 · 打标签 Qwen3-VL-2B Q4_K_M（llama.cpp
 Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
@@ -329,13 +384,9 @@ Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 <div class="cards">{card_html}</div>
 <h2>1. 切分评测（合成视频，切点已知）</h2>
 <p class="muted">两层切分：PySceneDetect AdaptiveDetector 找硬切 + 线性混合检验找叠化，
-镜头内再按 ≤8 秒切窗口，短于 1 秒的碎片并入相邻片段。</p>
+镜头内再按 ≤{MAX_SEGMENT_SEC:.0f} 秒切窗口，短于 1 秒的碎片并入相邻片段。</p>
 {''.join(_eval_section(ev) for ev in evals)}{EVAL_NOTE}
-<h2>2. 跨视频精华合集（{reel['total_sec']}s / 目标 {reel['target_sec']:.0f}s）</h2>
-<p class="muted">从全部片段里按得分取素材（1–5 分：DOVER 美学分占 80%、
-VLM 精彩度占 20%，再减画质扣分；与文件名和输入顺序无关），
-去掉同一镜头相邻窗口和标签高度重合的片段；
-按“开场全景 → 主体（白天 → 黄昏 → 夜晚）→ 收尾”排列。</p>
+{summary_heading(mode, reel)}
 <video src="{escape(_rel(layout.preview_path(out_dir, reel_name), out_dir))}" controls
 preload="metadata"></video>
 {_clip_cards(reel['clips'], all_frames, {v.id: v.file for v in videos})}

@@ -10,7 +10,7 @@ from video_demo import layout
 
 
 def _video(raw: Path, name: str, content: bytes, mtime: int | None = None) -> Path:
-    raw.mkdir(exist_ok=True)
+    raw.mkdir(parents=True, exist_ok=True)
     path = raw / name
     path.write_bytes(content)
     if mtime is not None:
@@ -88,7 +88,7 @@ def test_id_prefix_collision_is_an_error(
 
 def test_empty_raw_dir_is_an_error(tmp_path: Path) -> None:
     (tmp_path / "raw").mkdir()
-    with pytest.raises(FileNotFoundError, match="webm"):
+    with pytest.raises(FileNotFoundError, match="No video files"):
         layout.update_manifest(tmp_path / "raw")
 
 
@@ -142,3 +142,28 @@ def test_derived_files_are_named_kind_underscore_id(tmp_path: Path) -> None:
         f"out/timelines/timeline_{vid}.json",
         f"out/previews/preview_{vid}.mp4",
     ]
+
+
+def test_videos_in_collection_folders_any_container(tmp_path: Path) -> None:
+    raw = tmp_path / "raw"
+    _video(raw / "tvsum", "a.MP4", b"alpha")
+    _video(raw / "long", "b.mov", b"beta")
+    _video(raw, "c.webm", b"gamma")
+    _video(raw, "notes.txt", b"not a video")
+    manifest, _ = layout.update_manifest(raw)
+    got = {v.file: v.collection for v in manifest.videos}
+    assert got == {"tvsum/a.MP4": "tvsum", "long/b.mov": "long", "c.webm": ""}
+
+
+def test_moving_a_file_keeps_its_id(tmp_path: Path) -> None:
+    raw = tmp_path / "raw"
+    _video(raw, "a.webm", b"alpha")
+    layout.write_manifest(raw, layout.update_manifest(raw)[0])
+    (raw / "vlog").mkdir()
+    (raw / "a.webm").rename(raw / "vlog" / "a.webm")
+    manifest, changes = layout.update_manifest(raw)
+    assert [(old.file, new.file) for old, new in changes.moved] == [
+        ("a.webm", "vlog/a.webm")
+    ]
+    assert not changes.added and not changes.removed
+    assert [v.id for v in manifest.videos] == [_id(b"alpha")]

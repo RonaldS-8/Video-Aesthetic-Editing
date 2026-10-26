@@ -8,6 +8,7 @@
   - 基线版（VLM 精彩度打分，来自 `main`，冻结不再生成）：
     [out/report.html](out/report.html)
 - 测试素材与署名：[data/raw/SOURCES.md](data/raw/SOURCES.md)
+- 在基线上做的改进（逐项记录）：[docs/改进记录.md](docs/改进记录.md)
 - 前期调研：[docs/research/AI视频剪辑与片段检索-调研.md](docs/research/AI视频剪辑与片段检索-调研.md)
 - 向量检索原理笔记：[docs/research/向量检索与Embedding原理-讨论笔记.md](docs/research/向量检索与Embedding原理-讨论笔记.md)
 - 目标方案（已定稿，暂停）：[docs/plans/目标方案-结构设计与检索填槽.md](docs/plans/目标方案-结构设计与检索填槽.md)
@@ -36,6 +37,7 @@ Video/
 │   └── synth.py         合成评测视频
 ├── tests/               pytest 测试
 ├── docs/
+│   ├── 改进记录.md      在基线上做的改进，逐项记录
 │   ├── research/        调研与原理笔记
 │   ├── plans/           方案设计
 │   └── issues/          提给 NAS 仓库的 issue 原文
@@ -178,11 +180,14 @@ Video/
 - 每个派生文件放在按类型分的目录里，文件名统一为 `<类型>_<ID>`，
   如 `data/work/tags/tag_330ff4c78eabf568.jsonl`。单个文件拿出来也能
   认出属于哪条视频。
+- **集合**：`data/raw/` 下的第一层文件夹就是一个数据集合，如 `vlog/`
+  （现有 6 条 vlog）、`tvsum/`、`summe/`、`long/`。中间结果按 ID 共用，
+  剪辑建议、预览和报告按集合分别输出。
 
 ### 数据流
 
 ```text
-data/raw/*.webm（原名）
+data/raw/<集合>/*（原名）
   │
   ├─ ⓪ ingest     登记新视频、去重 → data/raw/manifest.json
   │                并对新视频执行 ① ②
@@ -192,44 +197,56 @@ data/raw/*.webm（原名）
   ├─ ③ tag        画面描述与标签   → data/work/tags/tag_<ID>.jsonl
   ├─ ④ aesthetic  美学打分         → data/work/aesthetic/aesthetic_<ID>.jsonl
   │      ③④ 可用 analyze 一起跑：打标签用核显，DOVER 用 CPU
-  ├─ ⑤ suggest    片段评分与填槽   → out/dover/timelines/timeline_<ID>.json
-  │                                  out/dover/timelines/timeline_all_videos_reel.json
-  ├─ ⑥ render     预览视频         → out/dover/previews/preview_<ID>.mp4
-  └─ ⑦ report     汇总报告         → out/dover/report.html
+  ├─ ⑤ suggest    片段评分与选片   → out/<集合>/timelines/timeline_<ID>.json
+  │                                  out/<集合>/timelines/timeline_<合集名>.json
+  ├─ ⑥ render     预览视频         → out/<集合>/previews/preview_<ID>.mp4
+  └─ ⑦ report     汇总报告         → out/<集合>/report.html
 ```
 
 | 阶段 | 命令 | 做什么 | 读 | 写 |
 |---|---|---|---|---|
-| ⓪ 导入 | `ingest` | 扫描 `data/raw/*.webm`，只对新增或大小、修改时间变了的文件算哈希；新内容登记为新视频，与已有视频内容相同的记为重复并跳过；然后对还没有切分结果的视频执行 ①②，已处理的视频不动 | 原视频、清单 | 清单、①② 的产出 |
-| ① 切分 | `segment` | 先核对文件哈希与清单一致；AdaptiveDetector 找硬切，线性混合检验找叠化；<1 s 的碎镜头并入相邻镜头，镜头内再按 ≤8 s 切成片段 | 原视频 | `segment_<ID>.json` |
-| ② 画质信号 | `signals` | 4 fps 采样（长边 448 px），算亮度、清晰度（Laplacian 方差）、运动、全局位移抖动并给出问题标记；在片段 30%、70% 处各存 1 张关键帧 | 原视频、`segment_<ID>.json` | `signal_<ID>.json`、`keyframe_<ID>/` |
-| ③ 描述 | `tag` | 2 张关键帧送 Qwen3-VL-2B，按 JSON Schema 约束输出描述、场景、主体、动作、景别、时段、氛围、标签、精彩度、画面问题；复读或格式不符时重试，最多尝试 3 次，仍失败就报错 | `segment_<ID>.json`、`signal_<ID>.json`、`keyframe_<ID>/` | `tag_<ID>.jsonl` |
-| ④ 打分 | `aesthetic` | 片段原分辨率帧送 DOVER（CPU），得到技术分、美学分和官方融合分（0–1）；固定随机种子，可复现 | 原视频、`segment_<ID>.json` | `aesthetic_<ID>.jsonl` |
+| ⓪ 导入 | `ingest` | 扫描 `data/raw/` 及其子文件夹里的视频文件，只对新增或大小、修改时间变了的文件算哈希；新内容登记为新视频，与已有视频内容相同的记为重复并跳过；然后对还没有切分结果的视频执行 ①②，已处理的视频不动 | 原视频、清单 | 清单、①② 的产出 |
+| ① 切分 | `segment` | 先核对文件哈希与清单一致；AdaptiveDetector 找硬切，线性混合检验找叠化；<1 s 的碎镜头并入相邻镜头，镜头内再按 ≤10 s 切成片段（2026-10-26 前切分的视频是 ≤8 s） | 原视频 | `segment_<ID>.json` |
+| ② 画质信号 | `signals` | 4 fps 采样（长边 448 px），算亮度、清晰度（Laplacian 方差）、运动、全局位移抖动并给出问题标记；关键帧按每 2 s 一个时间窗、每窗选清晰度最高的一帧（10 s 片段 5 张，≤2 s 的片段 1 张） | 原视频、`segment_<ID>.json` | `signal_<ID>.json`、`keyframe_<ID>/` |
+| ③ 描述 | `tag` | 片段的全部关键帧按时间顺序送 Qwen3-VL-2B，要求描述覆盖片段内出现的全部内容，按 JSON Schema 约束输出描述、场景、主体、动作、景别、时段、氛围、标签、精彩度、画面问题；复读或格式不符时重试，最多尝试 3 次，仍失败就报错 | `segment_<ID>.json`、`signal_<ID>.json`、`keyframe_<ID>/` | `tag_<ID>.jsonl` |
+| ④ 打分 | `aesthetic` | 先按时间戳数出片段帧数，按 DOVER 的采样规则选出要用的帧（每段最多约 130 帧），只解码这些帧送 DOVER（CPU），长边超过 1920 的先缩小；得到技术分、美学分和官方融合分（0–1）；固定随机种子，可复现，与改造前逐项一致 | 原视频、`segment_<ID>.json` | `aesthetic_<ID>.jsonl` |
 | ③+④ | `analyze` | 先做开工检查（输入文件、llama-server、DOVER 权重），再并发运行 ③ 和 ④，双进度条 | 同上 | 同上 |
-| ⑤ 剪辑 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 融合分 + 0.2 × 精彩度归一化）− 画质扣分；按"开场全景 → 主体 → 收尾"填槽，每段最多取 4 s，同镜头相邻片段和标签高度重合的去重 | ①②③④ 的产出 | `timeline_<ID>.json` |
+| ⑤ 剪辑 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 融合分 + 0.2 × 精彩度归一化）− 画质扣分。两种模式见下 | ①②③④ 的产出 | `timeline_<ID>.json` |
 | ⑥ 预览 | `render` | 按时间线从原视频截取并拼接（854×480、30 fps、无音轨） | 时间线、清单、原视频 | `preview_<ID>.mp4` |
 | ⑦ 报告 | `report` | 汇总切分评测、逐片段标签与分数、剪辑建议 | 以上全部 | `report.html` |
 
-⑤⑥⑦ 默认写到 `out/dover/`，用 `--out <目录>` 可以改。
+⑤⑥⑦ 用 `--collection <集合>` 选数据（默认 `vlog`），输出到
+`out/<集合>/`；`vlog` 集合沿用 `out/dover/`。`--out <目录>` 可以改。
 `segment`、`signals` 默认跳过已有结果的视频，`--force` 才会重做。
+
+剪辑建议的三种模式（`suggest --mode`，`render`、`report` 也要给同样的
+`--mode`）：
+
+| 模式 | 用途 | 规则 |
+|---|---|---|
+| `reel`（默认） | 短片：每条视频 30 s，全集合 45 s | 按"开场全景 → 主体 → 收尾"填槽，每段最多取 4 s；同镜头相邻片段和标签高度重合的去重 |
+| `highlights` | 精彩瞬间：从长素材里挑出约 1/6（1 小时 → 10 分钟）供用户再剪 | ① 把相邻、标签相近的片段归成场景（只给模型看，输出仍是片段）；② Qwen3.5-4B 读场景列表生成大纲：2–8 个部分（不超过场景数），每部分有标题、内容说明、对应场景范围、分量（1–10）和关键词，程序校验（场景有效、按时间不重叠），按分量分配各部分秒数（每部分至少 10 s，总和等于目标），不合格重试，全部失败报错；③ 每部分只在自己的场景里，按片段得分 + 关键词匹配整段选片，60 s 内标签高度重合的只留一段；按拍摄时间排序。美学分先在同一时段内取百分位。需要 4B 服务（端口 8092）。每条视频一条时间线，另有全集合的 `timeline_highlights.json`；`--ratio` 改比例 |
+| `ranked` | 精彩瞬间的对照基线，不用大纲 | 只按得分整段选片；每 5 分钟的时间窗口至少选一段；其余同 `highlights` |
 
 ### 存放路径
 
 ```text
 data/
 ├── raw/                                   输入
-│   ├── <原文件名>.webm                     原始视频（原名，不入库）
+│   ├── <集合>/<原文件名>                   原始视频（原名，不入库）
 │   ├── manifest.json                       清单：ID ↔ 原文件名（入库）
 │   └── SOURCES.md                          每条视频的来源、作者、许可
 └── work/                                  中间结果（入库）
     ├── segments/segment_<ID>.json          ① 切分
     ├── signals/signal_<ID>.json            ② 画质信号
-    ├── keyframes/keyframe_<ID>/seg<NNN>_<k>.jpg   ② 关键帧，k = 0、1
+    ├── keyframes/keyframe_<ID>/seg<NNN>_<k>.jpg   ② 关键帧，k 从 0 起按时间顺序
     ├── tags/tag_<ID>.jsonl                 ③ 描述与标签
     └── aesthetic/aesthetic_<ID>.jsonl      ④ 美学分
-out/dover/                                 输出
+out/<集合>/                                输出（vlog 集合为 out/dover/）
 ├── timelines/timeline_<ID>.json            ⑤ 单条视频的时间线
-├── timelines/timeline_all_videos_reel.json ⑤ 全部视频的合集
+├── timelines/timeline_all_videos_reel.json ⑤ 全集合合集（reel 模式）
+├── highlights/、ranked/                    ⑤–⑦ 精彩瞬间两种模式的输出，结构同上；
+│                                          全集合时间线为 timeline_highlights.json
 ├── previews/preview_<ID>.mp4               ⑥ 预览（不入库）
 └── report.html                             ⑦ 报告
 ```
@@ -239,10 +256,10 @@ out/dover/                                 输出
 
 ### 输入要求
 
-- 视频放进 `data/raw/`，扩展名必须是 `.webm`（只扫描 `*.webm`），
+- 视频放进 `data/raw/<集合>/`。支持的扩展名（不分大小写）：
+  mp4、mov、m4v、3gp、mkv、webm、avi、mts、m2ts，与 A-NAS 相册一致；
   编码不限，PyAV 能解码即可；容器要能报出时长。
-- 文件名随意，但建议沿用"两位序号_英文小写"（如
-  `01_lion_city_singapore.webm`）方便人看；程序只认内容哈希。
+- 文件名随意，建议用英文、不含空格，方便人看；程序只认内容哈希。
 - 放进去后运行 `ingest`。内容与已有视频相同的文件会被标为重复并
   提示，可以删掉以节约空间；程序不会自动删除任何文件。
 - 新视频要在 `data/raw/SOURCES.md` 里登记来源、作者和许可。
@@ -255,12 +272,13 @@ out/dover/                                 输出
 | 字段 | 含义 |
 |---|---|
 | `hash`、`id_length` | 固定为 `sha256`、`16` |
-| `videos` | 每条视频：`id`、`sha256`（完整 64 位）、`file`（原文件名）、`size`（字节）、`mtime_ns`（修改时间，只用来判断要不要重算哈希） |
+| `videos` | 每条视频：`id`、`sha256`（完整 64 位）、`file`（相对 `data/raw` 的路径，第一层文件夹即集合）、`size`（字节）、`mtime_ns`（修改时间，只用来判断要不要重算哈希） |
 | `duplicates` | 重复文件：`file`、`same_as`（与之内容相同的视频 ID）、`size`、`mtime_ns` |
 
 各阶段运行前都会核对清单：清单里的文件不见了或大小变了，或
 `data/raw` 里有没登记的视频，就报错并提示先运行 `ingest`。
-原文件内容变了会得到新 ID，旧 ID 的结果保留不动。
+原文件内容变了会得到新 ID，旧 ID 的结果保留不动；文件只是移动或
+改名时 ID 不变，结果沿用。
 
 ### 文件格式
 
@@ -298,7 +316,7 @@ out/dover/                                 输出
 | `sharpness` | 清晰度，Laplacian 方差的中位数 |
 | `motion`、`pan_speed`、`shake` | 相邻采样帧差、平均全局位移、位移变化的标准差 |
 | `flags` | 问题标记，取值 `low_light`（亮度 < 40）、`blurry`（清晰度 < 30 或低于本视频中位数的 30%）、`shaky`（抖动 > 12） |
-| `keyframes` | 2 张关键帧的文件名（在 `keyframe_<ID>/` 下） |
+| `keyframes`、`keyframe_times` | 关键帧文件名（在 `keyframe_<ID>/` 下）和对应时间（秒）；2026-10-26 前生成的只有 2 张、没有时间 |
 
 `tag_<ID>.jsonl`（每行一个片段）：
 
@@ -323,16 +341,18 @@ out/dover/                                 输出
 | `index` | 片段序号 |
 | `technical`、`aesthetic` | DOVER 技术分支、美学分支的原始输出 |
 | `fused` | 官方融合分，0–1，剪辑评分用的就是它 |
-| `n_frames`、`seconds` | 送入的帧数、推理耗时 |
+| `n_frames`、`decoded_frames`、`seconds` | 片段帧数、实际解码的采样帧数（改造后才有）、推理耗时 |
 | `model`、`weights_sha256`、`seed` | 模型名、权重 sha256、随机种子 |
 
 `timeline_<ID>.json`：
 
 | 字段 | 含义 |
 |---|---|
-| `name`、`target_sec`、`total_sec` | 时间线名、目标时长（单条 30 s，合集 45 s）、实际时长 |
+| `name`、`target_sec`、`total_sec` | 时间线名、目标时长（reel：单条 30 s，合集 45 s；highlights：输入时长 × 比例）、实际时长 |
+| `mode` | `highlights` 或 `ranked`（reel 模式不写这个字段） |
+| `outline`、`outline_raw`、`outline_seconds`、`outline_failed_attempts`、`scenes` | 仅 highlights：模型给出的大纲（`title`，`parts` 里每部分 `name`、`summary`、`first_scene`、`last_scene`、`weight`、`keywords`，以及程序算出的 `duration_sec`）、原始输出、用时、被拒绝的尝试，以及每个场景的编号、起止和所含片段 |
 | `notes` | 说明，如"可用素材不足" |
-| `clips` | 按播放顺序的片段：`order`、`role`（开场 / 主体 / 收尾）、`video`（视频 ID）、`index`、`src_start`、`src_end`、`duration`（≤4 s）、`description`、`reason` |
+| `clips` | 按播放顺序的片段：`order`、`role`（reel：开场 / 主体 / 收尾；highlights：所属大纲部分的标题；ranked：覆盖 / 精彩）、`video`（视频 ID）、`index`、`src_start`、`src_end`、`duration`（reel ≤4 s；highlights 为整段）、`description`、`reason` |
 | `assessments` | 每个片段的评估：`video`（视频 ID）、`index`、`score`（1–5）、`keep`（`score` > 2 才可选）、`reasons` |
 
 ## 运行
@@ -372,7 +392,7 @@ curl -L -o third_party/DOVER/pretrained_weights/DOVER.pth --create-dirs https://
 
 都在项目根目录执行。
 
-⓪ 导入：把新视频放进 `data/raw/` 后运行。它会更新清单、标出重复
+⓪ 导入：把新视频放进 `data/raw/<集合>/` 后运行。它会更新清单、标出重复
 文件，并只对新视频做 ① 切分和 ② 画质信号（不需要模型）：
 
 ```bash
@@ -398,7 +418,8 @@ llama-server -m D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/
 
 也可以分开跑：`tag` 只打标签，`aesthetic` 只做美学打分。
 
-⑤ 剪辑建议、⑥ 预览、⑦ 报告（每次都覆盖全部视频重新生成）：
+⑤ 剪辑建议、⑥ 预览、⑦ 报告（每次都覆盖该集合的全部视频重新生成）。
+下面是默认的 vlog 集合、reel 模式：
 
 ```bash
 .venv/Scripts/python -m video_demo suggest
@@ -412,9 +433,30 @@ llama-server -m D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/
 .venv/Scripts/python -m video_demo report
 ```
 
-`tag`、`aesthetic`、`analyze` 都支持 `--only <前缀>`（视频 ID 或原文件名
-的前缀，如 `--only 04` 或 `--only 330ff4`）和 `--limit <段数>`
-（每条视频最多处理几段），调试时用。
+长素材出精彩瞬间（以 `long` 集合为例，三步都要带相同的参数）。先在另一个
+终端启动大纲用的 Qwen3.5-4B 服务，并保持运行：
+
+```bash
+llama-server -m D:/users/018574/work/OCR_test/models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 -ngl 99 -c 16384 -np 1
+```
+
+然后：
+
+```bash
+.venv/Scripts/python -m video_demo suggest --collection long --mode highlights
+```
+
+```bash
+.venv/Scripts/python -m video_demo render --collection long --mode highlights
+```
+
+```bash
+.venv/Scripts/python -m video_demo report --collection long --mode highlights
+```
+
+`tag`、`aesthetic`、`analyze` 支持 `--collection <集合>`、`--only <前缀>`
+（视频 ID 或文件路径的前缀，如 `--only 330ff4` 或 `--only vlog/04`）和
+`--limit <段数>`（每条视频最多处理几段），调试时用。
 
 ### 切分评测
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
@@ -14,8 +15,11 @@ from video_demo.segment import Segment
 
 SIGNAL_FPS = 4
 KEYFRAME_SIDE = 448
-# Positions inside a segment used as keyframes for tagging.
-KEYFRAME_POS = (0.3, 0.7)
+# One keyframe per window of this length for tagging (2026-10-26; was two
+# fixed frames at 30% and 70%, which missed content that changes within a
+# segment, e.g. hand-held walks and whip pans). Within each window the
+# sharpest sample is kept, so motion-blurred frames are avoided.
+KEYFRAME_STEP_SEC = 2.0
 
 # Heuristic thresholds, eyeballed on the six demo videos (not tuned on labels).
 # Night footage is legitimately dark, so this is a hint, not a defect.
@@ -37,6 +41,7 @@ class SegmentSignals:
     shake: float  # std of global shift changes
     flags: list[str]
     keyframes: list[str]
+    keyframe_times: list[float]
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -92,7 +97,8 @@ def _score_segment(
     gray = [cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY) for _, rgb in samples]
     grayf = [g.astype(np.float32) for g in gray]
     brightness = float(np.mean([g.mean() for g in gray]))
-    sharpness = float(np.median([cv2.Laplacian(g, cv2.CV_64F).var() for g in gray]))
+    per_frame_sharpness = [cv2.Laplacian(g, cv2.CV_64F).var() for g in gray]
+    sharpness = float(np.median(per_frame_sharpness))
     motion = pan = shake = 0.0
     if len(grayf) > 1:
         pairs = list(zip(grayf, grayf[1:], strict=False))
@@ -103,12 +109,13 @@ def _score_segment(
             shake = float(np.mean(np.std(np.diff(shifts, axis=0), axis=0)))
 
     names: list[str] = []
-    for k, pos in enumerate(KEYFRAME_POS):
-        target = seg.start + pos * seg.duration
-        _, rgb = min(samples, key=lambda s: abs(s[0] - target))
+    times: list[float] = []
+    for k, i in enumerate(pick_keyframes(seg, samples, per_frame_sharpness)):
+        t, rgb = samples[i]
         name = f"seg{seg.index:03d}_{k}.jpg"
         Image.fromarray(rgb).save(keyframe_dir / name, quality=88)
         names.append(name)
+        times.append(round(t, 3))
 
     return SegmentSignals(
         brightness=round(brightness, 1),
@@ -118,4 +125,31 @@ def _score_segment(
         shake=round(shake, 2),
         flags=[],
         keyframes=names,
+        keyframe_times=times,
     )
+
+
+def pick_keyframes(
+    seg: Segment,
+    samples: list[tuple[float, np.ndarray]],
+    sharpness: list[float],
+    step: float = KEYFRAME_STEP_SEC,
+) -> list[int]:
+    """Indices of the sharpest sample in each ``step``-second window.
+
+    Windows split the segment evenly into ceil(duration / step) parts, so a
+    10 s segment gets 5 keyframes and anything up to ``step`` gets one. A
+    window without samples (very short segments) is skipped; the segment
+    always gets at least one keyframe.
+    """
+    n = max(1, math.ceil(seg.duration / step - 1e-9))
+    width = seg.duration / n
+    picked: list[int] = []
+    for w in range(n):
+        lo, hi = seg.start + w * width, seg.start + (w + 1) * width
+        inside = [i for i, (t, _) in enumerate(samples) if lo <= t < hi]
+        if inside:
+            picked.append(max(inside, key=lambda i: (sharpness[i], -i)))
+    if not picked:
+        picked.append(max(range(len(samples)), key=lambda i: (sharpness[i], -i)))
+    return picked

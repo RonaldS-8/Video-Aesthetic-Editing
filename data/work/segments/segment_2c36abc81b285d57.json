@@ -1,12 +1,13 @@
 {
   "video_id": "2c36abc81b285d57",
   "sha256": "2c36abc81b285d575cf3b66ab97125732e877c019a9a67c2b9f70286f47c83c1",
-  "video": "06_shanghai_24h_vlog.webm",
+  "video": "vlog/06_shanghai_24h_vlog.webm",
   "duration": 1177.677,
   "analysed_until": 300.0,
   "fps": 24.0,
   "has_audio": true,
-  "detect_seconds": 58.1,
+  "detect_seconds": 55.75,
+  "max_segment_sec": 10.0,
   "cuts": [
     {
       "time": 0.958,
@@ -630,257 +631,233 @@
     {
       "index": 27,
       "start": 94.0,
-      "end": 98.083,
-      "shot": 26
-    },
-    {
-      "index": 28,
-      "start": 98.083,
       "end": 102.166,
       "shot": 26
     },
     {
-      "index": 29,
+      "index": 28,
       "start": 102.166,
       "end": 107.978,
       "shot": 27
     },
     {
-      "index": 30,
+      "index": 29,
       "start": 107.978,
       "end": 113.791,
       "shot": 27
     },
     {
-      "index": 31,
+      "index": 30,
       "start": 113.791,
       "end": 116.208,
       "shot": 28
     },
     {
-      "index": 32,
+      "index": 31,
       "start": 116.208,
       "end": 120.75,
       "shot": 29
     },
     {
-      "index": 33,
+      "index": 32,
       "start": 120.75,
       "end": 127.062,
       "shot": 30
     },
     {
-      "index": 34,
+      "index": 33,
       "start": 127.062,
       "end": 133.375,
       "shot": 30
     },
     {
-      "index": 35,
+      "index": 34,
       "start": 133.375,
       "end": 136.666,
       "shot": 31
     },
     {
-      "index": 36,
+      "index": 35,
       "start": 136.666,
       "end": 140.625,
       "shot": 32
     },
     {
-      "index": 37,
+      "index": 36,
       "start": 140.625,
       "end": 146.791,
       "shot": 33
     },
     {
-      "index": 38,
+      "index": 37,
       "start": 146.791,
       "end": 153.625,
       "shot": 34
     },
     {
-      "index": 39,
+      "index": 38,
       "start": 153.625,
       "end": 160.458,
       "shot": 34
     },
     {
-      "index": 40,
+      "index": 39,
       "start": 160.458,
-      "end": 164.687,
-      "shot": 35
-    },
-    {
-      "index": 41,
-      "start": 164.687,
       "end": 168.916,
       "shot": 35
     },
     {
-      "index": 42,
+      "index": 40,
       "start": 168.916,
-      "end": 174.486,
+      "end": 177.27,
       "shot": 36
     },
     {
-      "index": 43,
-      "start": 174.486,
-      "end": 180.055,
-      "shot": 36
-    },
-    {
-      "index": 44,
-      "start": 180.055,
+      "index": 41,
+      "start": 177.27,
       "end": 185.625,
       "shot": 36
     },
     {
-      "index": 45,
+      "index": 42,
       "start": 185.625,
       "end": 188.041,
       "shot": 37
     },
     {
-      "index": 46,
+      "index": 43,
       "start": 188.041,
       "end": 191.125,
       "shot": 38
     },
     {
-      "index": 47,
+      "index": 44,
       "start": 191.125,
       "end": 194.25,
       "shot": 39
     },
     {
-      "index": 48,
+      "index": 45,
       "start": 194.25,
-      "end": 198.688,
-      "shot": 40
-    },
-    {
-      "index": 49,
-      "start": 198.688,
       "end": 203.125,
       "shot": 40
     },
     {
-      "index": 50,
+      "index": 46,
       "start": 203.125,
       "end": 208.688,
       "shot": 41
     },
     {
-      "index": 51,
+      "index": 47,
       "start": 208.688,
       "end": 214.25,
       "shot": 41
     },
     {
-      "index": 52,
+      "index": 48,
       "start": 214.25,
       "end": 221.333,
       "shot": 42
     },
     {
-      "index": 53,
+      "index": 49,
       "start": 221.333,
       "end": 225.458,
       "shot": 43
     },
     {
-      "index": 54,
+      "index": 50,
       "start": 225.458,
       "end": 230.833,
       "shot": 44
     },
     {
-      "index": 55,
+      "index": 51,
       "start": 230.833,
       "end": 233.208,
       "shot": 45
     },
     {
-      "index": 56,
+      "index": 52,
       "start": 233.208,
       "end": 238.479,
       "shot": 46
     },
     {
-      "index": 57,
+      "index": 53,
       "start": 238.479,
       "end": 243.75,
       "shot": 46
     },
     {
-      "index": 58,
+      "index": 54,
       "start": 243.75,
       "end": 246.833,
       "shot": 47
     },
     {
-      "index": 59,
+      "index": 55,
       "start": 246.833,
       "end": 248.375,
       "shot": 48
     },
     {
-      "index": 60,
+      "index": 56,
       "start": 248.375,
       "end": 249.916,
       "shot": 49
     },
     {
-      "index": 61,
+      "index": 57,
       "start": 249.916,
       "end": 257.708,
       "shot": 50
     },
     {
-      "index": 62,
+      "index": 58,
       "start": 257.708,
       "end": 265.5,
       "shot": 50
     },
     {
-      "index": 63,
+      "index": 59,
       "start": 265.5,
       "end": 271.208,
       "shot": 51
     },
     {
-      "index": 64,
+      "index": 60,
       "start": 271.208,
       "end": 276.916,
       "shot": 51
     },
     {
-      "index": 65,
+      "index": 61,
       "start": 276.916,
       "end": 279.416,
       "shot": 52
     },
     {
-      "index": 66,
+      "index": 62,
       "start": 279.416,
       "end": 285.208,
       "shot": 53
     },
     {
-      "index": 67,
+      "index": 63,
       "start": 285.208,
       "end": 290.562,
       "shot": 54
     },
     {
-      "index": 68,
+      "index": 64,
       "start": 290.562,
       "end": 295.916,
       "shot": 54
     },
     {
-      "index": 69,
+      "index": 65,
       "start": 295.916,
       "end": 300.0,
       "shot": 55

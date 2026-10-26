@@ -9,7 +9,15 @@
     "flags": [],
     "keyframes": [
       "seg000_0.jpg",
-      "seg000_1.jpg"
+      "seg000_1.jpg",
+      "seg000_2.jpg",
+      "seg000_3.jpg"
+    ],
+    "keyframe_times": [
+      0.0,
+      3.503,
+      4.004,
+      7.507
     ]
   },
   {
@@ -22,7 +30,15 @@
     "flags": [],
     "keyframes": [
       "seg001_0.jpg",
-      "seg001_1.jpg"
+      "seg001_1.jpg",
+      "seg001_2.jpg",
+      "seg001_3.jpg"
+    ],
+    "keyframe_times": [
+      8.508,
+      10.26,
+      11.762,
+      14.514
     ]
   },
   {
@@ -35,7 +51,15 @@
     "flags": [],
     "keyframes": [
       "seg002_0.jpg",
-      "seg002_1.jpg"
+      "seg002_1.jpg",
+      "seg002_2.jpg",
+      "seg002_3.jpg"
+    ],
+    "keyframe_times": [
+      15.766,
+      17.267,
+      19.77,
+      21.521
     ]
   },
   {
@@ -48,7 +72,15 @@
     "flags": [],
     "keyframes": [
       "seg003_0.jpg",
-      "seg003_1.jpg"
+      "seg003_1.jpg",
+      "seg003_2.jpg",
+      "seg003_3.jpg"
+    ],
+    "keyframe_times": [
+      24.775,
+      25.525,
+      27.027,
+      30.28
     ]
   }
 ]

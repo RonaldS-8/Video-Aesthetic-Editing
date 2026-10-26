@@ -71,18 +71,46 @@ def sample_frames(
             yield t, frame.to_ndarray(format="rgb24")
 
 
-def segment_frames(
+def count_frames(
     path: Path,
     spans: list[tuple[float, float]],
     end_time: float | None = None,
-) -> Iterator[tuple[int, list[np.ndarray]]]:
-    """Yield (span index, native-resolution RGB frames) in one sequential pass.
+) -> list[int]:
+    """Frames per [start, end) span, from packet timestamps (no decoding)."""
+    counts = [0] * len(spans)
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        for packet in container.demux(stream):
+            if packet.pts is None or packet.size == 0:
+                continue
+            t = float(packet.pts * stream.time_base)
+            if end_time is not None and t > end_time:
+                continue
+            for i, (start, end) in enumerate(spans):
+                if start <= t < end:
+                    counts[i] += 1
+                    break
+    return counts
 
-    ``spans`` are sorted, non-overlapping [start, end) ranges; frames outside
-    them are skipped and each span's frames are released once yielded.
+
+def segment_frames_picked(
+    path: Path,
+    spans: list[tuple[float, float]],
+    picks: list[set[int]],
+    max_side: int | None = None,
+    end_time: float | None = None,
+) -> Iterator[tuple[int, dict[int, np.ndarray], int]]:
+    """Yield (span index, {frame index: RGB frame}, frames seen) in one pass.
+
+    Only the frames listed in ``picks[i]`` (indices within span i) are
+    converted and kept, so memory is bounded by the picks, not the span
+    length. Frames larger than ``max_side`` on their long side are scaled
+    down. ``frames seen`` lets the caller check the count it picked from.
     """
-    idx = 0
-    buf: list[np.ndarray] = []
+    if len(picks) != len(spans):
+        raise ValueError("one pick set per span")
+    idx, seen = 0, 0
+    kept: dict[int, np.ndarray] = {}
     with av.open(str(path)) as container:
         stream = container.streams.video[0]
         stream.thread_type = "AUTO"
@@ -93,18 +121,28 @@ def segment_frames(
             if end_time is not None and t > end_time:
                 break
             while idx < len(spans) and t >= spans[idx][1]:
-                yield idx, buf
-                buf = []
-                idx += 1
+                yield idx, kept, seen
+                kept, seen, idx = {}, 0, idx + 1
             if idx >= len(spans):
                 break
-            if t >= spans[idx][0]:
-                buf.append(frame.to_ndarray(format="rgb24"))
-    # The last span usually ends where the video (or analysis) ends.
+            if t < spans[idx][0]:
+                continue
+            if seen in picks[idx]:
+                scale = (
+                    1.0
+                    if max_side is None
+                    else max_side / max(frame.width, frame.height)
+                )
+                if scale < 1.0:
+                    frame = frame.reformat(
+                        width=int(frame.width * scale) // 2 * 2,
+                        height=int(frame.height * scale) // 2 * 2,
+                    )
+                kept[seen] = frame.to_ndarray(format="rgb24")
+            seen += 1
     while idx < len(spans):
-        yield idx, buf
-        buf = []
-        idx += 1
+        yield idx, kept, seen
+        kept, seen, idx = {}, 0, idx + 1
 
 
 def segment_frames_every(
@@ -162,8 +200,12 @@ def read_clip(path: Path, start: float, duration: float) -> list[np.ndarray]:
     targets = [start + i / OUT_FPS for i in range(n_out)]
     frames: list[np.ndarray] = []
     last: np.ndarray | None = None
+    ended = False
     with av.open(str(path)) as container:
         stream = container.streams.video[0]
+        video_end = (
+            float(container.duration / av.time_base) if container.duration else 0.0
+        )
         container.seek(int(max(0.0, start - 1.0) / stream.time_base), stream=stream)
         for frame in container.decode(stream):
             if frame.time is None:
@@ -177,6 +219,17 @@ def read_clip(path: Path, start: float, duration: float) -> list[np.ndarray]:
             last = frame.reformat(
                 width=OUT_SIZE[0], height=OUT_SIZE[1], format="rgb24"
             ).to_ndarray()
+        else:
+            ended = True
+    # A clip that runs to the end of the video: the last frame stays on screen
+    # until the video ends (there is no later frame to end its hold).
+    while (
+        ended
+        and last is not None
+        and len(frames) < n_out
+        and targets[len(frames)] < video_end + 1e-3
+    ):
+        frames.append(last)
     if len(frames) < n_out:
         raise ValueError(
             f"{path.name}: needed {n_out} frames from {start}s, got {len(frames)}"

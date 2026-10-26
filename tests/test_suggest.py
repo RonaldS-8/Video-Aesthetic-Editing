@@ -167,3 +167,66 @@ def test_validate_timeline_rejects_out_of_segment_clip() -> None:
     bad = suggest.Clip(0, "主体", "v.webm", 0, 3.0, 6.0, "d", "r")
     with pytest.raises(ValueError, match="exceeds"):
         suggest.validate_timeline([bad], [cand])
+
+
+def _hl(cands: list[suggest.Candidate], target: float) -> list[suggest.Clip]:
+    clips, _ = suggest.build_highlights(
+        cands, [suggest.assess(c) for c in cands], target
+    )
+    return clips
+
+
+def test_highlights_keep_whole_segments_in_shooting_order() -> None:
+    # 10 s apart, 8 s long, best quality last; distinct tags, no repeats.
+    cands = [
+        _cand(i, dur=8.0, quality=0.3 + 0.05 * i, tags=[f"t{i}", f"u{i}", f"v{i}"])
+        for i in range(10)
+    ]
+    clips = _hl(cands, 24.0)
+    assert [c.index for c in clips] == sorted(c.index for c in clips)
+    assert all(c.duration == pytest.approx(8.0) for c in clips)
+    assert sum(c.duration for c in clips) >= 24.0
+    # Best three by score, since all fall into one 5-minute window plus
+    # the coverage pick (the window's best, which is also the best overall).
+    assert {c.index for c in clips} == {7, 8, 9}
+
+
+def test_highlights_cover_every_window() -> None:
+    # One strong segment at the start; weak ones every 5 minutes later.
+    def at(i: int, start: float, quality: float) -> suggest.Candidate:
+        c = _cand(i, dur=6.0, quality=quality, tags=[f"t{i}", f"u{i}", f"v{i}"])
+        return suggest.Candidate(**{**c.__dict__, "start": start, "end": start + 6})
+
+    cands = [at(0, 0.0, 0.9), at(1, 10.0, 0.9), at(2, 320.0, 0.2), at(3, 650.0, 0.2)]
+    clips = _hl(cands, 6.0)
+    assert [c.index for c in clips] == [0, 2, 3]
+    assert [c.role for c in clips] == ["覆盖", "覆盖", "覆盖"]
+
+
+def test_highlights_skip_near_repeats_but_not_distant_ones() -> None:
+    same = ["a", "b", "c"]
+    near = [_cand(0, dur=6.0, tags=same, quality=0.9), _cand(1, dur=6.0, tags=same)]
+    assert [c.index for c in _hl(near, 100.0)] == [0]
+    far = near[:1] + [
+        suggest.Candidate(**{**near[1].__dict__, "start": 200.0, "end": 206.0})
+    ]
+    assert [c.index for c in _hl(far, 100.0)] == [0, 1]
+
+
+def test_highlights_report_a_shortfall() -> None:
+    clips, notes = suggest.build_highlights(
+        [_cand(0, dur=5.0)], [suggest.assess(_cand(0, dur=5.0))], 60.0
+    )
+    assert len(clips) == 1 and "可用素材不足" in notes[0]
+
+
+def test_calibration_ranks_night_among_night() -> None:
+    cands = [
+        _cand(0, quality=0.8),
+        _cand(1, quality=0.6),
+        _cand(2, quality=0.3, time_of_day="夜晚"),
+        _cand(3, quality=0.2, time_of_day="夜晚"),
+    ]
+    got = [c.quality for c in suggest.calibrate_by_time(cands)]
+    assert got == [0.75, 0.25, 0.75, 0.25]
+    assert suggest.calibrate_by_time([_cand(0, quality=0.1)])[0].quality == 0.5

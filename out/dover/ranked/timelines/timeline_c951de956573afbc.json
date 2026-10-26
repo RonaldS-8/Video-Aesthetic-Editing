@@ -1,0 +1,62 @@
+{
+  "name": "c951de956573afbc",
+  "mode": "ranked",
+  "target_sec": 5.1,
+  "total_sec": 7.63,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "覆盖",
+      "video": "c951de956573afbc",
+      "index": 0,
+      "src_start": 0.0,
+      "src_end": 7.63,
+      "description": "商场内的水道上，游客乘坐红色小船在水上缓缓移动。",
+      "reason": "得分 4.2，中景，商场、水上活动、观光",
+      "duration": 7.63
+    }
+  ],
+  "assessments": [
+    {
+      "video": "c951de956573afbc",
+      "index": 0,
+      "score": 4.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.057 / 美学 +0.043）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "c951de956573afbc",
+      "index": 1,
+      "score": 3.4,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.050 / 美学 +0.036）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "c951de956573afbc",
+      "index": 2,
+      "score": 2.8,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.058 / 美学 +0.040）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "c951de956573afbc",
+      "index": 3,
+      "score": 1.8,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.062 / 美学 +0.029）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    }
+  ]
+}

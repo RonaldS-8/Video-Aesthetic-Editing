@@ -196,3 +196,27 @@ def test_ingest_without_new_videos_does_nothing(
     monkeypatch.setattr(cli, "_segment", must_not_segment)
     cli.cmd_ingest(_args())
     assert "没有需要切分的新视频" in capsys.readouterr().out
+
+
+def test_collection_selects_videos_and_output_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _workspace(tmp_path, monkeypatch, signals=True)
+    (cli.RAW_DIR / "tvsum").mkdir()
+    (cli.RAW_DIR / "tvsum" / "a.mp4").write_bytes(b"tvsum video")
+    layout.write_manifest(cli.RAW_DIR, layout.update_manifest(cli.RAW_DIR)[0])
+
+    class Args:
+        collection = "tvsum"
+        only = ""
+        out = None
+
+    assert [v.file for v in cli._selected(Args())] == ["tvsum/a.mp4"]
+    assert cli._out(Args()) == cli.OUT_DIR / "tvsum"
+    Args.mode = "highlights"
+    assert cli._out(Args()) == cli.OUT_DIR / "tvsum" / "highlights"
+    Args.mode = "reel"
+    Args.collection = "vlog"
+    assert cli._out(Args()) == cli.RESULT_DIR
+    with pytest.raises(SystemExit, match="没有符合条件的视频"):
+        cli._selected(Args())

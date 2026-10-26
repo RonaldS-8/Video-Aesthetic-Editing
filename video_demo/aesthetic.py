@@ -125,19 +125,46 @@ class DoverAdapter:
         sample_types = config["data"][CONFIG_SET]["args"]["sample_types"]
         return cls(sample_types, model, digest, device)
 
-    def views(self, frames: list[np.ndarray]) -> dict[str, torch.Tensor]:
-        """Technical fragments and aesthetic resize views, normalised."""
-        if not frames:
+    def sample_indices(self, n_frames: int) -> dict[str, np.ndarray]:
+        """Frame indices each view samples from a segment of ``n_frames``.
+
+        The samplers draw only from Python's and NumPy's generators and the
+        views only from torch's, so drawing all indices first gives the same
+        result as the official interleaved order.
+        """
+        if n_frames < 1:
             raise ValueError("No frames to score")
-        # T, H, W, C uint8 -> C, T, H, W, matching decord's torch bridge.
-        video = torch.from_numpy(np.stack(frames)).permute(3, 0, 1, 2)
         random.seed(SEED)
         np.random.seed(SEED)
+        return {stype: self.samplers[stype](n_frames) for stype in self.sample_types}
+
+    def needed_frames(self, n_frames: int) -> set[int]:
+        """Every frame index any view uses; only these need decoding."""
+        return {int(i) for inds in self.sample_indices(n_frames).values() for i in inds}
+
+    def views(self, frames: list[np.ndarray]) -> dict[str, torch.Tensor]:
+        """Technical fragments and aesthetic resize views, normalised."""
+        return self.views_from(dict(enumerate(frames)), len(frames))
+
+    def views_from(
+        self, frames: dict[int, np.ndarray], n_frames: int
+    ) -> dict[str, torch.Tensor]:
+        """Views from the sampled frames only, keyed by index in the segment."""
+        indices = self.sample_indices(n_frames)
+        needed = sorted({int(i) for inds in indices.values() for i in inds})
+        missing = [i for i in needed if i not in frames]
+        if missing:
+            raise ValueError(f"Frames not decoded: {missing[:5]}")
+        position = {i: p for p, i in enumerate(needed)}
+        # T, H, W, C uint8 -> C, T, H, W, matching decord's torch bridge.
+        video = torch.from_numpy(np.stack([frames[i] for i in needed])).permute(
+            3, 0, 1, 2
+        )
         torch.manual_seed(SEED)
         views: dict[str, torch.Tensor] = {}
         for stype, sopt in self.sample_types.items():
-            inds = self.samplers[stype](video.shape[1])
-            v = get_single_view(video[:, torch.from_numpy(inds).long()], stype, **sopt)
+            inds = torch.tensor([position[int(i)] for i in indices[stype]]).long()
+            v = get_single_view(video[:, inds], stype, **sopt)
             num_clips = sopt.get("num_clips", 1)
             views[stype] = (
                 ((v.permute(1, 2, 3, 0) - MEAN) / STD)
@@ -149,7 +176,11 @@ class DoverAdapter:
         return views
 
     def score(self, frames: list[np.ndarray]) -> DoverScore:
-        views = self.views(frames)
+        return self.score_from(dict(enumerate(frames)), len(frames))
+
+    def score_from(self, frames: dict[int, np.ndarray], n_frames: int) -> DoverScore:
+        """Score a segment of ``n_frames`` from just its sampled frames."""
+        views = self.views_from(frames, n_frames)
         with torch.no_grad():
             technical, aesthetic = (r.mean().item() for r in self.model(views))
         if not (math.isfinite(technical) and math.isfinite(aesthetic)):

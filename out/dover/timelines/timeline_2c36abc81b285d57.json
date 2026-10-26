@@ -1,19 +1,19 @@
 {
   "name": "2c36abc81b285d57",
   "target_sec": 30.0,
-  "total_sec": 32.54,
+  "total_sec": 33.33,
   "notes": [],
   "clips": [
     {
       "order": 0,
       "role": "开场",
       "video": "2c36abc81b285d57",
-      "index": 40,
-      "src_start": 160.572,
-      "src_end": 164.572,
-      "description": "城市街道上，一辆摩托车在斑马线前停下，背景是高楼大厦。",
-      "reason": "得分 3.7，远景，城市街景、动画电影、摩托车",
-      "duration": 4.0
+      "index": 54,
+      "src_start": 243.75,
+      "src_end": 246.833,
+      "description": "女子在河边的步道上行走，背景是上海的城市天际线。",
+      "reason": "得分 3.7，远景，城市风光、女性、户外活动",
+      "duration": 3.083
     },
     {
       "order": 1,
@@ -22,8 +22,8 @@
       "index": 8,
       "src_start": 15.958,
       "src_end": 19.0,
-      "description": "一位年轻女性在阳光明媚的上海外滩向观众打招呼。",
-      "reason": "得分 3.9，中景，旅游、上海、外滩",
+      "description": "女子在河边向镜头打招呼，背景是上海标志性建筑。",
+      "reason": "得分 3.9，中景，旅游、上海、城市风光",
       "duration": 3.042
     },
     {
@@ -33,8 +33,8 @@
       "index": 14,
       "src_start": 39.583,
       "src_end": 43.583,
-      "description": "一位女性在河边对着镜头微笑，背景是上海的城市天际线。",
-      "reason": "得分 4.0，中景，旅行、城市风光、美女",
+      "description": "一位女性在黄浦江畔的上海外滩，背景是标志性建筑群，她正在对着镜头说话。",
+      "reason": "得分 4.0，中景，旅游、上海、外滩",
       "duration": 4.0
     },
     {
@@ -44,64 +44,75 @@
       "index": 24,
       "src_start": 80.875,
       "src_end": 84.875,
-      "description": "一对男女在城市街道上行走，准备去The Bund，背景有公交车和街景。",
-      "reason": "得分 3.8，中景，城市街景、情侣出行、旅行",
+      "description": "一对男女在城市街道上行走，背景有公交车和路人。",
+      "reason": "得分 3.8，中景，城市漫步、街头旅行、情侣",
       "duration": 4.0
     },
     {
       "order": 4,
       "role": "主体",
       "video": "2c36abc81b285d57",
-      "index": 45,
-      "src_start": 185.625,
-      "src_end": 188.041,
-      "description": "女子在户外向镜头挥手微笑，背景是上海的城市天际线。",
-      "reason": "得分 3.9，中景，女子、城市风光、上海",
-      "duration": 2.416
+      "index": 39,
+      "src_start": 162.687,
+      "src_end": 166.687,
+      "description": "动画风格的城市街道场景，摩托车在路口等待通行。",
+      "reason": "得分 3.8，中景，动画电影、城市街道、交通信号灯",
+      "duration": 4.0
     },
     {
       "order": 5,
       "role": "主体",
       "video": "2c36abc81b285d57",
-      "index": 54,
-      "src_start": 226.145,
-      "src_end": 230.145,
-      "description": "女子在河边码头上对着镜头说话，背景是上海的城市天际线。",
-      "reason": "得分 3.9，中景，城市风光、旅游、女性",
-      "duration": 4.0
+      "index": 42,
+      "src_start": 185.625,
+      "src_end": 188.041,
+      "description": "女子在户外城市景观前微笑并挥手致意。",
+      "reason": "得分 3.9，中景，城市风光、女性、微笑",
+      "duration": 2.416
     },
     {
       "order": 6,
       "role": "主体",
       "video": "2c36abc81b285d57",
-      "index": 58,
-      "src_start": 243.75,
-      "src_end": 246.833,
-      "description": "女子在江边码头行走，背景是上海标志性建筑群。",
-      "reason": "得分 3.7，中景，城市风光、江边、女性",
-      "duration": 3.083
+      "index": 50,
+      "src_start": 226.145,
+      "src_end": 230.145,
+      "description": "女子在河边码头上对着镜头介绍上海城市景观。",
+      "reason": "得分 3.9，中景，旅游、上海、城市景观",
+      "duration": 4.0
     },
     {
       "order": 7,
       "role": "主体",
       "video": "2c36abc81b285d57",
-      "index": 61,
-      "src_start": 251.812,
-      "src_end": 255.812,
-      "description": "一位女子在河边的户外场景中，手持雨伞，从微笑到说话。",
-      "reason": "得分 3.8，近景，户外、女子、雨伞",
-      "duration": 4.0
+      "index": 51,
+      "src_start": 230.833,
+      "src_end": 233.208,
+      "description": "女子在河边码头上开心地展示手中的扇子，背景是上海标志性建筑群。",
+      "reason": "得分 3.9，中景，城市风光、女性、夏日",
+      "duration": 2.375
     },
     {
       "order": 8,
+      "role": "主体",
+      "video": "2c36abc81b285d57",
+      "index": 57,
+      "src_start": 251.812,
+      "src_end": 255.812,
+      "description": "一位年轻女子在阳光明媚的城市河边漫步，手持雨伞，边走边说话。",
+      "reason": "得分 3.8，中景，户外、女性、城市风景",
+      "duration": 4.0
+    },
+    {
+      "order": 9,
       "role": "收尾",
       "video": "2c36abc81b285d57",
-      "index": 26,
-      "src_start": 88.812,
-      "src_end": 92.812,
-      "description": "城市街角交叉路口，车辆在斑马线前等待或行驶。",
-      "reason": "得分 3.4，远景，街景、城市交通、斑马线",
-      "duration": 4.0
+      "index": 30,
+      "src_start": 113.791,
+      "src_end": 116.208,
+      "description": "城市街景中，上海标志性建筑在阳光下清晰可见。",
+      "reason": "得分 3.3，远景，城市景观、建筑、天空",
+      "duration": 2.417
     }
   ],
   "assessments": [
@@ -118,11 +129,11 @@
     {
       "video": "2c36abc81b285d57",
       "index": 1,
-      "score": 2.977,
+      "score": 3.177,
       "keep": true,
       "reasons": [
         "美学模型 0.65（技术 -0.051 / 美学 +0.107）",
-        "VLM 精彩度 3/5（权重 20%）",
+        "VLM 精彩度 4/5（权重 20%）",
         "时长仅 1.3s"
       ]
     },
@@ -234,21 +245,21 @@
     {
       "video": "2c36abc81b285d57",
       "index": 12,
-      "score": 2.678,
+      "score": 2.878,
       "keep": true,
       "reasons": [
         "美学模型 0.40（技术 -0.078 / 美学 +0.029）",
-        "VLM 精彩度 3/5（权重 20%）"
+        "VLM 精彩度 4/5（权重 20%）"
       ]
     },
     {
       "video": "2c36abc81b285d57",
       "index": 13,
-      "score": 3.364,
+      "score": 3.164,
       "keep": true,
       "reasons": [
         "美学模型 0.71（技术 -0.032 / 美学 +0.118）",
-        "VLM 精彩度 4/5（权重 20%）",
+        "VLM 精彩度 3/5（权重 20%）",
         "时长仅 1.5s"
       ]
     },
@@ -373,11 +384,11 @@
     {
       "video": "2c36abc81b285d57",
       "index": 25,
-      "score": 1.96,
-      "keep": false,
+      "score": 2.16,
+      "keep": true,
       "reasons": [
         "美学模型 0.49（技术 -0.070 / 美学 +0.058）",
-        "VLM 精彩度 3/5（权重 20%）",
+        "VLM 精彩度 4/5（权重 20%）",
         "抖动明显"
       ]
     },
@@ -394,27 +405,17 @@
     {
       "video": "2c36abc81b285d57",
       "index": 27,
-      "score": 3.134,
+      "score": 2.294,
       "keep": true,
       "reasons": [
-        "美学模型 0.54（技术 -0.064 / 美学 +0.074）",
-        "VLM 精彩度 3/5（权重 20%）"
-      ]
-    },
-    {
-      "video": "2c36abc81b285d57",
-      "index": 28,
-      "score": 2.38,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.56（技术 -0.066 / 美学 +0.081）",
+        "美学模型 0.53（技术 -0.061 / 美学 +0.067）",
         "VLM 精彩度 4/5（权重 20%）",
         "抖动明显"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 29,
+      "index": 28,
       "score": 1.97,
       "keep": false,
       "reasons": [
@@ -425,7 +426,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 30,
+      "index": 29,
       "score": 2.058,
       "keep": true,
       "reasons": [
@@ -436,7 +437,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 31,
+      "index": 30,
       "score": 3.274,
       "keep": true,
       "reasons": [
@@ -446,7 +447,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 32,
+      "index": 31,
       "score": 2.984,
       "keep": true,
       "reasons": [
@@ -456,7 +457,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 33,
+      "index": 32,
       "score": 2.487,
       "keep": true,
       "reasons": [
@@ -466,7 +467,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 34,
+      "index": 33,
       "score": 1.559,
       "keep": false,
       "reasons": [
@@ -477,7 +478,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 35,
+      "index": 34,
       "score": 3.128,
       "keep": true,
       "reasons": [
@@ -487,7 +488,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 36,
+      "index": 35,
       "score": 2.928,
       "keep": true,
       "reasons": [
@@ -497,7 +498,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 37,
+      "index": 36,
       "score": 2.334,
       "keep": true,
       "reasons": [
@@ -507,7 +508,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 38,
+      "index": 37,
       "score": 1.646,
       "keep": false,
       "reasons": [
@@ -518,70 +519,49 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 39,
-      "score": 1.69,
+      "index": 38,
+      "score": 1.49,
       "keep": false,
       "reasons": [
         "美学模型 0.34（技术 -0.073 / 美学 +0.001）",
-        "VLM 精彩度 4/5（权重 20%）",
+        "VLM 精彩度 3/5（权重 20%）",
         "抖动明显"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 40,
-      "score": 3.663,
+      "index": 39,
+      "score": 3.818,
       "keep": true,
       "reasons": [
-        "美学模型 0.71（技术 -0.038 / 美学 +0.122）",
-        "VLM 精彩度 3/5（权重 20%）"
-      ]
-    },
-    {
-      "video": "2c36abc81b285d57",
-      "index": 41,
-      "score": 3.693,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.72（技术 -0.032 / 美学 +0.121）",
-        "VLM 精彩度 3/5（权重 20%）"
-      ]
-    },
-    {
-      "video": "2c36abc81b285d57",
-      "index": 42,
-      "score": 2.111,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.47（技术 -0.078 / 美学 +0.058）",
-        "VLM 精彩度 4/5（权重 20%）",
-        "抖动明显"
-      ]
-    },
-    {
-      "video": "2c36abc81b285d57",
-      "index": 43,
-      "score": 2.197,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.50（技术 -0.072 / 美学 +0.063）",
-        "VLM 精彩度 4/5（权重 20%）",
-        "抖动明显"
-      ]
-    },
-    {
-      "video": "2c36abc81b285d57",
-      "index": 44,
-      "score": 3.297,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.53（技术 -0.070 / 美学 +0.074）",
+        "美学模型 0.69（技术 -0.037 / 美学 +0.115）",
         "VLM 精彩度 4/5（权重 20%）"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 45,
+      "index": 40,
+      "score": 2.096,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.082 / 美学 +0.060）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "2c36abc81b285d57",
+      "index": 41,
+      "score": 3.237,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.51（技术 -0.067 / 美学 +0.064）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "2c36abc81b285d57",
+      "index": 42,
       "score": 3.854,
       "keep": true,
       "reasons": [
@@ -591,7 +571,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 46,
+      "index": 43,
       "score": 2.429,
       "keep": true,
       "reasons": [
@@ -602,7 +582,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 47,
+      "index": 44,
       "score": 3.535,
       "keep": true,
       "reasons": [
@@ -612,49 +592,39 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 48,
-      "score": 3.232,
+      "index": 45,
+      "score": 3.14,
       "keep": true,
       "reasons": [
-        "美学模型 0.57（技术 -0.056 / 美学 +0.079）",
+        "美学模型 0.54（技术 -0.061 / 美学 +0.072）",
         "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 49,
-      "score": 3.216,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.57（技术 -0.071 / 美学 +0.090）",
-        "VLM 精彩度 3/5（权重 20%）"
-      ]
-    },
-    {
-      "video": "2c36abc81b285d57",
-      "index": 50,
-      "score": 1.357,
+      "index": 46,
+      "score": 1.557,
       "keep": false,
       "reasons": [
         "美学模型 0.30（技术 -0.103 / 美学 +0.007）",
-        "VLM 精彩度 3/5（权重 20%）",
+        "VLM 精彩度 4/5（权重 20%）",
         "抖动明显"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 51,
-      "score": 1.175,
+      "index": 47,
+      "score": 1.375,
       "keep": false,
       "reasons": [
         "美学模型 0.24（技术 -0.119 / 美学 -0.008）",
-        "VLM 精彩度 3/5（权重 20%）",
+        "VLM 精彩度 4/5（权重 20%）",
         "抖动明显"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 52,
+      "index": 48,
       "score": 3.307,
       "keep": true,
       "reasons": [
@@ -664,7 +634,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 53,
+      "index": 49,
       "score": 3.446,
       "keep": true,
       "reasons": [
@@ -674,7 +644,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 54,
+      "index": 50,
       "score": 3.905,
       "keep": true,
       "reasons": [
@@ -684,7 +654,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 55,
+      "index": 51,
       "score": 3.85,
       "keep": true,
       "reasons": [
@@ -694,17 +664,17 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 56,
-      "score": 2.923,
+      "index": 52,
+      "score": 2.723,
       "keep": true,
       "reasons": [
         "美学模型 0.41（技术 -0.055 / 美学 +0.016）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 57,
+      "index": 53,
       "score": 2.873,
       "keep": true,
       "reasons": [
@@ -714,7 +684,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 58,
+      "index": 54,
       "score": 3.732,
       "keep": true,
       "reasons": [
@@ -724,18 +694,17 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 59,
-      "score": 1.257,
-      "keep": false,
+      "index": 55,
+      "score": 2.757,
+      "keep": true,
       "reasons": [
         "美学模型 0.36（技术 -0.079 / 美学 +0.014）",
-        "VLM 精彩度 4/5（权重 20%）",
-        "画面偏糊（清晰度 384）"
+        "VLM 精彩度 4/5（权重 20%）"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 60,
+      "index": 56,
       "score": 2.555,
       "keep": true,
       "reasons": [
@@ -745,7 +714,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 61,
+      "index": 57,
       "score": 3.83,
       "keep": true,
       "reasons": [
@@ -755,7 +724,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 62,
+      "index": 58,
       "score": 2.655,
       "keep": true,
       "reasons": [
@@ -766,7 +735,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 63,
+      "index": 59,
       "score": 1.913,
       "keep": false,
       "reasons": [
@@ -777,7 +746,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 64,
+      "index": 60,
       "score": 2.117,
       "keep": true,
       "reasons": [
@@ -788,7 +757,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 65,
+      "index": 61,
       "score": 3.31,
       "keep": true,
       "reasons": [
@@ -798,7 +767,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 66,
+      "index": 62,
       "score": 2.163,
       "keep": true,
       "reasons": [
@@ -809,7 +778,7 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 67,
+      "index": 63,
       "score": 0.245,
       "keep": false,
       "reasons": [
@@ -821,17 +790,17 @@
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 68,
-      "score": 2.543,
+      "index": 64,
+      "score": 2.343,
       "keep": true,
       "reasons": [
         "美学模型 0.29（技术 -0.094 / 美学 -0.003）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "2c36abc81b285d57",
-      "index": 69,
+      "index": 65,
       "score": 2.866,
       "keep": true,
       "reasons": [

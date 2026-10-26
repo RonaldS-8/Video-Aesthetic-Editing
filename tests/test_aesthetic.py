@@ -107,3 +107,23 @@ def test_load_reads_the_named_config_for_dover_mobile(tmp_path: Path) -> None:
     )
     with pytest.raises(FileNotFoundError, match="DOVER-Mobile.pth"):
         aesthetic.DoverAdapter.load(tmp_path, config_name="dover-mobile.yml")
+
+
+def test_views_from_sampled_frames_equal_views_from_all() -> None:
+    frames = _frames(150)
+    adapter = _adapter()
+    needed = adapter.needed_frames(len(frames))
+    assert len(needed) < len(frames)
+    full = adapter.views(frames)
+    part = adapter.views_from({i: frames[i] for i in needed}, len(frames))
+    for stype in full:
+        assert torch.equal(full[stype], part[stype])
+    assert adapter.score_from(
+        {i: frames[i] for i in needed}, len(frames)
+    ) == adapter.score(frames)
+
+
+def test_views_from_names_missing_frames() -> None:
+    adapter = _adapter()
+    with pytest.raises(ValueError, match="not decoded"):
+        adapter.views_from({0: _frames(1)[0]}, 100)

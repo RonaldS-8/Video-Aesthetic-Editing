@@ -16,6 +16,7 @@ import numpy as np
 from video_demo import (
     evaluate,
     layout,
+    outline,
     quality,
     report,
     runner,
@@ -25,13 +26,15 @@ from video_demo import (
     tag,
 )
 from video_demo.media import (
+    count_frames,
     probe,
     read_clip,
-    segment_frames,
     segment_frames_every,
+    segment_frames_picked,
     write_video,
 )
 from video_demo.segment import (
+    MAX_SEGMENT_SEC,
     Segment,
     detect_cuts,
     merge_short,
@@ -55,7 +58,8 @@ PathFn = Callable[[Path, str], Path]
 # Scorers compared against DOVER by `quality` / `compare-quality`; their
 # scores are for that comparison only and do not feed `suggest`.
 COMPARE_MODELS = ("dover-mobile", "uvq")
-ONLY_HELP = "video id or file name prefix, e.g. 04 or 330ff4"
+ONLY_HELP = "video id or file prefix (path under data/raw), e.g. 330ff4"
+COLLECTION_HELP = "first folder under data/raw, e.g. vlog, tvsum, summe, long"
 COMPARE_FILE = "quality_compare.json"
 UVQ_COMMIT = "c204ecc04f093e90c941cb126c7ac3d5beca0414"
 SETUP_HINTS = {
@@ -85,25 +89,25 @@ NEXT_STEPS = "下一步：python -m video_demo suggest → render → report"
 END_TIME = {"2c36abc81b285d57": 300.0}  # 06_shanghai_24h_vlog.webm
 
 SYNTH_CLIPS = [
-    synth.ClipSpec("04_mbs_skypark.webm", 0.5, 5.0),
-    synth.ClipSpec("04_mbs_skypark.webm", 10.0, 5.0),
-    synth.ClipSpec("05_mbs_gondola.webm", 1.0, 6.0),
-    synth.ClipSpec("03_aurora_timelapse.webm", 3.0, 5.0),
-    synth.ClipSpec("05_mbs_gondola.webm", 16.0, 5.0),
-    synth.ClipSpec("03_aurora_timelapse.webm", 50.0, 5.0),
-    synth.ClipSpec("03_aurora_timelapse.webm", 80.0, 6.0, dissolve_in=1.0),
-    synth.ClipSpec("05_mbs_gondola.webm", 24.0, 5.5, dissolve_in=1.0),
+    synth.ClipSpec("vlog/04_mbs_skypark.webm", 0.5, 5.0),
+    synth.ClipSpec("vlog/04_mbs_skypark.webm", 10.0, 5.0),
+    synth.ClipSpec("vlog/05_mbs_gondola.webm", 1.0, 6.0),
+    synth.ClipSpec("vlog/03_aurora_timelapse.webm", 3.0, 5.0),
+    synth.ClipSpec("vlog/05_mbs_gondola.webm", 16.0, 5.0),
+    synth.ClipSpec("vlog/03_aurora_timelapse.webm", 50.0, 5.0),
+    synth.ClipSpec("vlog/03_aurora_timelapse.webm", 80.0, 6.0, dissolve_in=1.0),
+    synth.ClipSpec("vlog/05_mbs_gondola.webm", 24.0, 5.5, dissolve_in=1.0),
 ]
 # Held-out set from other videos, built after the dissolve thresholds were
 # fixed, with dissolves of 0.5-1.5 s to check the detector does not overfit.
 HOLDOUT_CLIPS = [
-    synth.ClipSpec("06_shanghai_24h_vlog.webm", 55.5, 5.5),
-    synth.ClipSpec("02_bled_bohinj_vlog.webm", 61.5, 5.5),
-    synth.ClipSpec("06_shanghai_24h_vlog.webm", 103.5, 5.5, dissolve_in=1.0),
-    synth.ClipSpec("01_lion_city_singapore.webm", 132.5, 5.5, dissolve_in=0.5),
-    synth.ClipSpec("06_shanghai_24h_vlog.webm", 149.5, 5.5, dissolve_in=1.5),
-    synth.ClipSpec("02_bled_bohinj_vlog.webm", 123.0, 5.0),
-    synth.ClipSpec("06_shanghai_24h_vlog.webm", 196.5, 5.0, dissolve_in=1.0),
+    synth.ClipSpec("vlog/06_shanghai_24h_vlog.webm", 55.5, 5.5),
+    synth.ClipSpec("vlog/02_bled_bohinj_vlog.webm", 61.5, 5.5),
+    synth.ClipSpec("vlog/06_shanghai_24h_vlog.webm", 103.5, 5.5, dissolve_in=1.0),
+    synth.ClipSpec("vlog/01_lion_city_singapore.webm", 132.5, 5.5, dissolve_in=0.5),
+    synth.ClipSpec("vlog/06_shanghai_24h_vlog.webm", 149.5, 5.5, dissolve_in=1.5),
+    synth.ClipSpec("vlog/02_bled_bohinj_vlog.webm", 123.0, 5.0),
+    synth.ClipSpec("vlog/06_shanghai_24h_vlog.webm", 196.5, 5.0, dissolve_in=1.0),
 ]
 SYNTH_SETS = {
     "main": (SYNTH_CLIPS, SYNTH_PATH),
@@ -132,6 +136,8 @@ def _update_manifest() -> list[layout.Video]:
         print(f"新视频：{v.id}  {v.file}")
     for d in changes.duplicates:
         print(f"重复，跳过：{d.file} 与 {d.same_as} 内容相同（可删除以节约空间）")
+    for old, new in changes.moved:
+        print(f"位置变了：{old.file} → {new.file}（同一 id {new.id}，结果沿用）")
     for old, new in changes.changed:
         print(f"内容变了：{new.file} {old.id} → {new.id}（旧 id 的结果保留未动）")
     for v in changes.removed:
@@ -171,7 +177,7 @@ def cmd_ingest(args: argparse.Namespace) -> None:
 
 
 def cmd_segment(args: argparse.Namespace) -> None:
-    videos = _pending(_videos(), layout.segments_path, args.force)
+    videos = _pending(_selected(args), layout.segments_path, args.force)
     if args.force:
         print("重新切分：该视频已有的信号、关键帧、标签、美学分需要手动删除后重跑")
     _segment(videos)
@@ -199,6 +205,7 @@ def _segment(videos: list[layout.Video]) -> None:
             "fps": info.fps,
             "has_audio": info.has_audio,
             "detect_seconds": round(elapsed, 2),
+            "max_segment_sec": MAX_SEGMENT_SEC,
             "cuts": [{"time": c.time, "kind": c.kind} for c in cuts],
             "raw_shot_count": len(raw_shots),
             "shots": shots,
@@ -226,7 +233,7 @@ def _load_signals(vid: str) -> list[dict]:
 
 
 def cmd_signals(args: argparse.Namespace) -> None:
-    _signals(_pending(_videos(), layout.signals_path, args.force))
+    _signals(_pending(_selected(args), layout.signals_path, args.force))
 
 
 def _signals(videos: list[layout.Video]) -> None:
@@ -252,12 +259,35 @@ def _signals(videos: list[layout.Video]) -> None:
 
 
 def _selected(args: argparse.Namespace) -> list[layout.Video]:
-    """Videos whose id or file name starts with ``--only``."""
-    return [
+    """Videos in ``--collection`` whose id or file starts with ``--only``."""
+    collection = getattr(args, "collection", "")
+    only = getattr(args, "only", "")
+    videos = [
         v
         for v in _videos()
-        if not args.only or v.id.startswith(args.only) or v.file.startswith(args.only)
+        if (not collection or v.collection == collection)
+        and (not only or v.id.startswith(only) or v.file.startswith(only))
     ]
+    if not videos:
+        raise SystemExit(
+            f"没有符合条件的视频（collection={collection!r}，only={only!r}）"
+        )
+    return videos
+
+
+def _out(args: argparse.Namespace) -> Path:
+    """``--out``, else out/<collection> (vlog keeps out/dover); highlights
+    and ranked go to a folder of that name inside it, since every mode
+    writes one timeline per video under the same names."""
+    if args.out is not None:
+        return args.out
+    base = RESULT_DIR if args.collection == "vlog" else OUT_DIR / args.collection
+    mode = getattr(args, "mode", "reel")
+    return base if mode == "reel" else base / mode
+
+
+def _summary_name(mode: str) -> str:
+    return REEL_NAME if mode == "reel" else HIGHLIGHTS_NAME
 
 
 def _todo(vid: str, out: PathFn, limit: int) -> list[Segment]:
@@ -312,6 +342,34 @@ def _tag_stage(videos: list[layout.Video], limit: int) -> runner.StageFn:
     return run
 
 
+# DOVER's technical view samples fragments at native resolution; larger
+# frames are scaled to this long side first so a 4K segment fits in memory.
+DOVER_MAX_SIDE = 1920
+
+
+def _dover_frames(
+    adapter: Any, video: layout.Video, spans: list[tuple[float, float]]
+) -> Iterator[tuple[int, dict[int, np.ndarray], int]]:
+    """(span index, the frames DOVER samples, frames in the span).
+
+    Frames are counted from packet timestamps first so only the sampled ones
+    are decoded into memory; a decode that sees a different count is an
+    error rather than a silently different sample.
+    """
+    end = END_TIME.get(video.id)
+    counts = count_frames(_raw(video), spans, end)
+    picks = [adapter.needed_frames(n) if n else set() for n in counts]
+    for i, frames, seen in segment_frames_picked(
+        _raw(video), spans, picks, DOVER_MAX_SIDE, end
+    ):
+        if seen != counts[i]:
+            raise ValueError(
+                f"{video.file} {spans[i]}: "
+                f"按时间戳数出 {counts[i]} 帧，解码得到 {seen} 帧"
+            )
+        yield i, frames, seen
+
+
 def _quality_stage(
     videos: list[layout.Video], limit: int, adapter: Any
 ) -> runner.StageFn:
@@ -320,11 +378,11 @@ def _quality_stage(
             todo = _todo(video.id, layout.aesthetic_path, limit)
             out_path = layout.aesthetic_path(WORK_DIR, video.id)
             spans = [(s.start, s.end) for s in todo]
-            for i, frames in segment_frames(_raw(video), spans, END_TIME.get(video.id)):
+            for i, frames, n_frames in _dover_frames(adapter, video, spans):
                 seg = todo[i]
                 t0 = time.perf_counter()
                 try:
-                    score = adapter.score(frames)
+                    score = adapter.score_from(frames, n_frames)
                 except Exception as exc:
                     raise runner.StageError(
                         "美学打分", video.file, seg.index, exc
@@ -337,7 +395,8 @@ def _quality_stage(
                         "technical": round(score.technical, 5),
                         "aesthetic": round(score.aesthetic, 5),
                         "fused": round(score.fused, 4),
-                        "n_frames": len(frames),
+                        "n_frames": n_frames,
+                        "decoded_frames": len(frames),
                         "seconds": round(elapsed, 2),
                         "model": "DOVER",
                         "weights_sha256": adapter.weights_sha256,
@@ -387,30 +446,36 @@ def _load_compare_adapter(model: str) -> Any:
 
 
 def _compare_frames(
-    model: str, video: layout.Video, spans: list[tuple[float, float]]
-) -> Iterator[tuple[int, list[np.ndarray]]]:
+    model: str, adapter: Any, video: layout.Video, spans: list[tuple[float, float]]
+) -> Iterator[tuple[int, dict[int, np.ndarray], int]]:
+    """(span index, frames by index in the span, frames in the span)."""
     if model == "dover-mobile":
-        return segment_frames(_raw(video), spans, END_TIME.get(video.id))
+        yield from _dover_frames(adapter, video, spans)
+        return
     from video_demo import uvq
 
-    return segment_frames_every(
+    for i, frames in segment_frames_every(
         _raw(video), spans, uvq.STEP_SECONDS, uvq.SIZE, END_TIME.get(video.id)
-    )
+    ):
+        yield i, dict(enumerate(frames)), len(frames)
 
 
 def _compare_out(model: str) -> PathFn:
     return lambda work, vid: layout.compare_path(work, model, vid)
 
 
-def _compare_scores(model: str, adapter: Any, frames: list[np.ndarray]) -> dict:
-    score = adapter.score(frames)
+def _compare_scores(
+    model: str, adapter: Any, frames: dict[int, np.ndarray], n_frames: int
+) -> dict:
     if model == "dover-mobile":
+        score = adapter.score_from(frames, n_frames)
         return {
             "technical": round(score.technical, 5),
             "aesthetic": round(score.aesthetic, 5),
             "fused": round(score.fused, 4),
             "seed": adapter.seed,
         }
+    score = adapter.score([frames[i] for i in sorted(frames)])
     return {
         "uvq": round(score.mean, 4),
         "per_frame": [round(s, 4) for s in score.per_frame],
@@ -430,18 +495,18 @@ def cmd_quality(args: argparse.Namespace) -> None:
     for video in _selected(args):
         todo = _todo(video.id, out, args.limit)
         spans = [(s.start, s.end) for s in todo]
-        frames_iter = _compare_frames(args.model, video, spans)
+        frames_iter = _compare_frames(args.model, adapter, video, spans)
         while True:
             t0 = time.perf_counter()
             try:
-                i, frames = next(frames_iter)
+                i, frames, n_frames = next(frames_iter)
             except StopIteration:
                 break
             decode = time.perf_counter() - t0
             seg = todo[i]
             t0 = time.perf_counter()
             try:
-                scores = _compare_scores(args.model, adapter, frames)
+                scores = _compare_scores(args.model, adapter, frames, n_frames)
             except Exception as exc:
                 raise runner.StageError(args.model, video.file, seg.index, exc) from exc
             elapsed = time.perf_counter() - t0
@@ -450,7 +515,7 @@ def cmd_quality(args: argparse.Namespace) -> None:
                 {
                     "index": seg.index,
                     **scores,
-                    "n_frames": len(frames),
+                    "n_frames": n_frames,
                     "decode_seconds": round(decode, 2),
                     "seconds": round(elapsed, 2),
                     "peak_mib": round(quality.peak_memory_mib()),
@@ -460,7 +525,7 @@ def cmd_quality(args: argparse.Namespace) -> None:
                 },
             )
             print(
-                f"{video.file} seg{seg.index:03d} {len(frames)}f "
+                f"{video.file} seg{seg.index:03d} {n_frames}f "
                 f"decode {decode:4.1f}s infer {elapsed:4.1f}s",
                 flush=True,
             )
@@ -481,7 +546,7 @@ def cmd_compare_quality(args: argparse.Namespace) -> None:
         **{m: _compare_out(m) for m in COMPARE_MODELS},
     }
     rows: list[dict] = []
-    for video in _videos():
+    for video in _selected(args):
         _, segments = _load_segments(video.id)
         tag_records = _read_records(layout.tags_path(WORK_DIR, video.id))
         tags = {i: r["tags"] for i, r in tag_records.items()}
@@ -563,7 +628,7 @@ def cmd_compare_quality(args: argparse.Namespace) -> None:
             "sd_across_segments": round(statistics.pstdev(columns["UVQ 1.5"]), 3),
         },
     }
-    out = args.out / COMPARE_FILE
+    out = _out(args) / COMPARE_FILE
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     for name, c in result["cost"].items():
@@ -674,6 +739,13 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 PER_VIDEO_TARGET_SEC = 30.0
 REEL_TARGET_SEC = 45.0
 REEL_NAME = "all_videos_reel"
+# One timeline across the whole collection in highlights / ranked mode.
+HIGHLIGHTS_NAME = "highlights"
+MODES = ("reel", "highlights", "ranked")
+OUTLINE_SERVER_CMD = (
+    "llama-server -m Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 "
+    "-ngl 99 -c 16384 -np 1（模型在 OCR_test/models/gguf）"
+)
 
 
 def _candidates(video: layout.Video) -> list[suggest.Candidate]:
@@ -738,28 +810,103 @@ def _timeline_payload(
     }
 
 
+def _highlights_payload(
+    name: str,
+    cands: list[suggest.Candidate],
+    target: float,
+    offsets: dict[str, float],
+    mode: str,
+) -> dict:
+    """Highlights: a model outline filled by rules. Ranked: score only (the
+    baseline highlights mode kept for comparison)."""
+    cands = suggest.calibrate_by_time(cands)
+    assessments = [suggest.assess(c) for c in cands]
+    extra: dict[str, Any] = {}
+    if mode == "ranked":
+        clips, notes = suggest.build_highlights(cands, assessments, target, offsets)
+    else:
+        scenes = outline.group_scenes(cands, assessments, offsets)
+        try:
+            plan, raw, seconds, errors = outline.plan_outline(scenes, target)
+        except outline.OutlineError as exc:
+            raise SystemExit(
+                f"{name}：大纲生成失败（3 次都没通过校验）：{exc}"
+            ) from exc
+        clips, notes = outline.fill(plan, scenes, cands, assessments)
+        extra = {
+            "outline": plan,
+            "outline_raw": raw,
+            "outline_seconds": round(seconds, 1),
+            "outline_failed_attempts": errors,
+            "scenes": [
+                {
+                    "number": sc.number,
+                    "start": round(sc.start, 2),
+                    "end": round(sc.end, 2),
+                    "segments": [[cands[i].video, cands[i].index] for i in sc.members],
+                }
+                for sc in scenes
+            ],
+        }
+    return {
+        "name": name,
+        "mode": mode,
+        "target_sec": round(target, 1),
+        "total_sec": round(sum(c.duration for c in clips), 2),
+        "notes": notes,
+        "clips": [suggest.clip_to_dict(c) for c in clips],
+        "assessments": [vars(a) for a in assessments],
+        **extra,
+    }
+
+
 def cmd_suggest(args: argparse.Namespace) -> None:
+    """Reel mode: a 30 s cut per video and a 45 s reel. Highlights mode:
+    ``--ratio`` of each video, and of the whole collection, as whole segments."""
+    out = _out(args)
+    if args.mode == "highlights":
+        try:
+            tag.check_server(outline.SERVER_URL)
+        except ConnectionError as exc:
+            raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
     every: list[suggest.Candidate] = []
-    for video in _videos():
+    offsets: dict[str, float] = {}
+    total = 0.0
+    for video in _selected(args):
         cands = _candidates(video)
         every += cands
-        payload = _timeline_payload(video.id, cands, PER_VIDEO_TARGET_SEC)
-        _write_json(layout.timeline_path(args.out, video.id), payload)
+        analysed = _load_segments(video.id)[0]["analysed_until"]
+        offsets[video.id] = total
+        total += analysed
+        if args.mode == "reel":
+            payload = _timeline_payload(video.id, cands, PER_VIDEO_TARGET_SEC)
+        else:
+            payload = _highlights_payload(
+                video.id, cands, args.ratio * analysed, {video.id: 0.0}, args.mode
+            )
+        _write_json(layout.timeline_path(out, video.id), payload)
         kept = sum(a["keep"] for a in payload["assessments"])
         print(
             f"{video.id} {video.file}: keep {kept}/{len(cands)}, "
             f"{len(payload['clips'])} clips {payload['total_sec']}s {payload['notes']}"
         )
-    reel = _timeline_payload(REEL_NAME, every, REEL_TARGET_SEC)
-    _write_json(layout.timeline_path(args.out, REEL_NAME), reel)
-    print(f"{REEL_NAME}: {len(reel['clips'])} clips {reel['total_sec']}s")
+    name = _summary_name(args.mode)
+    if args.mode == "reel":
+        summary = _timeline_payload(name, every, REEL_TARGET_SEC)
+    else:
+        summary = _highlights_payload(
+            name, every, args.ratio * total, offsets, args.mode
+        )
+    _write_json(layout.timeline_path(out, name), summary)
+    print(f"{name}: {len(summary['clips'])} clips {summary['total_sec']}s")
 
 
 def cmd_render(args: argparse.Namespace) -> None:
-    videos = _videos()
+    out = _out(args)
+    videos = _selected(args)
     files = {v.id: v.file for v in videos}
-    for name in [v.id for v in videos] + [REEL_NAME]:
-        timeline = json.loads(layout.timeline_path(args.out, name).read_text("utf-8"))
+    for name in [v.id for v in videos] + [_summary_name(args.mode)]:
+        timeline = json.loads(layout.timeline_path(out, name).read_text("utf-8"))
 
         def frames(tl: dict = timeline):
             for clip in tl["clips"]:
@@ -767,14 +914,21 @@ def cmd_render(args: argparse.Namespace) -> None:
                     RAW_DIR / files[clip["video"]], clip["src_start"], clip["duration"]
                 )
 
-        target = layout.preview_path(args.out, name)
+        target = layout.preview_path(out, name)
         t0 = time.perf_counter()
         write_video(frames(), target)
         print(f"{target.name}: {time.perf_counter() - t0:.1f}s")
 
 
 def cmd_report(args: argparse.Namespace) -> None:
-    path = report.write(ROOT, args.out, _videos(), REEL_NAME, BASELINE_REPORT)
+    path = report.write(
+        ROOT,
+        _out(args),
+        _selected(args),
+        _summary_name(args.mode),
+        BASELINE_REPORT,
+        args.mode,
+    )
     print(f"Wrote {path}")
 
 
@@ -824,8 +978,11 @@ def main() -> None:
         p.add_argument(
             "--force", action="store_true", help="redo videos that already have it"
         )
+        p.add_argument("--collection", default="", help=COLLECTION_HELP)
+        p.add_argument("--only", default="", help=ONLY_HELP)
         p.set_defaults(func=func)
     p_tag = sub.add_parser("tag")
+    p_tag.add_argument("--collection", default="", help=COLLECTION_HELP)
     p_tag.add_argument("--only", default="", help=ONLY_HELP)
     p_tag.add_argument("--limit", type=int, default=0, help="max segments per video")
     p_tag.set_defaults(func=cmd_tag)
@@ -834,6 +991,7 @@ def main() -> None:
         ("analyze", cmd_analyze, "tag + DOVER quality scores in parallel"),
     ):
         p = sub.add_parser(name, help=help_text)
+        p.add_argument("--collection", default="", help=COLLECTION_HELP)
         p.add_argument("--only", default="", help=ONLY_HELP)
         p.add_argument("--limit", type=int, default=0, help="max segments per video")
         p.set_defaults(func=func)
@@ -844,6 +1002,7 @@ def main() -> None:
     p_quality.add_argument(
         "--threads", type=int, default=0, help="torch CPU threads (0: torch default)"
     )
+    p_quality.add_argument("--collection", default="", help=COLLECTION_HELP)
     p_quality.add_argument("--only", default="", help=ONLY_HELP)
     p_quality.add_argument(
         "--limit", type=int, default=0, help="max segments per video"
@@ -856,12 +1015,28 @@ def main() -> None:
         ("report", cmd_report),
     ):
         p = sub.add_parser(name)
+        p.add_argument("--collection", default="vlog", help=COLLECTION_HELP)
         p.add_argument(
             "--out",
             type=Path,
-            default=RESULT_DIR,
-            help="result dir (default out/dover)",
+            default=None,
+            help="result dir (default out/<collection>; vlog uses out/dover)",
         )
+        if func is not cmd_compare_quality:
+            p.add_argument(
+                "--mode",
+                choices=MODES,
+                default="reel",
+                help="reel: 30 s per video + 45 s reel; highlights: model outline "
+                "filled with --ratio of input; ranked: --ratio by score only",
+            )
+        if func is cmd_suggest:
+            p.add_argument(
+                "--ratio",
+                type=float,
+                default=suggest.HIGHLIGHT_RATIO,
+                help="highlights length / input length (default 1/6)",
+            )
         p.set_defaults(func=func)
     p_synth = sub.add_parser("synth")
     p_synth.add_argument("--set", choices=sorted(SYNTH_SETS), default="main")

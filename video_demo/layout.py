@@ -7,6 +7,10 @@ to its file and full hash. Files with identical content get one id and are
 processed once. Updating the manifest only hashes files that are new or
 whose size or modification time changed.
 
+Videos may sit in sub-folders of ``data/raw``; the first folder level is the
+video's *collection* (e.g. ``tvsum/``), which stages use to pick a data set.
+``file`` in the manifest is the path relative to ``data/raw``.
+
 Every derived file is named ``<kind>_<id>`` inside a directory per kind, e.g.
 ``data/work/tags/tag_330ff4c78eabf568.jsonl``.
 """
@@ -20,7 +24,10 @@ from pathlib import Path
 
 ID_LENGTH = 16
 MANIFEST_NAME = "manifest.json"
-VIDEO_GLOB = "*.webm"
+# Containers the photo library accepts as video (A-NAS photo-video spec).
+VIDEO_SUFFIXES = frozenset(
+    {".mp4", ".mov", ".m4v", ".3gp", ".mkv", ".webm", ".avi", ".mts", ".m2ts"}
+)
 
 
 @dataclass(frozen=True)
@@ -31,6 +38,12 @@ class Video:
     size: int
     # Only used to decide whether the file must be hashed again.
     mtime_ns: int
+
+    @property
+    def collection(self) -> str:
+        """First folder under data/raw, or "" for files directly in it."""
+        parts = Path(self.file).parts
+        return parts[0] if len(parts) > 1 else ""
 
 
 @dataclass(frozen=True)
@@ -55,7 +68,22 @@ class ManifestChanges:
     # (they get a new id; results under the old id are left untouched).
     removed: list[Video]
     changed: list[tuple[Video, Video]]
+    # Same content under a new path: the id and its results carry over.
+    moved: list[tuple[Video, Video]]
     hashed: int
+
+
+def scan(raw_dir: Path) -> list[Path]:
+    """Video files anywhere under ``raw_dir``, by suffix (any case)."""
+    return sorted(
+        p
+        for p in raw_dir.rglob("*")
+        if p.is_file() and p.suffix.lower() in VIDEO_SUFFIXES
+    )
+
+
+def relative(raw_dir: Path, path: Path) -> str:
+    return path.relative_to(raw_dir).as_posix()
 
 
 def file_sha256(path: Path) -> str:
@@ -95,15 +123,16 @@ def update_manifest(raw_dir: Path) -> tuple[Manifest, ManifestChanges]:
     # Listed videos first, in their previous order; new files by name.
     order = {v.file: i for i, v in enumerate(previous.videos)}
     paths = sorted(
-        raw_dir.glob(VIDEO_GLOB),
-        key=lambda p: (order.get(p.name, len(order)), p.name),
+        scan(raw_dir),
+        key=lambda p: (order.get(relative(raw_dir, p), len(order)), p.as_posix()),
     )
     videos: dict[str, Video] = {}
     duplicates: list[Duplicate] = []
     hashed = 0
     for path in paths:
+        name = relative(raw_dir, path)
         stat = path.stat()
-        entry = known.get(path.name)
+        entry = known.get(name)
         unchanged = (
             entry is not None
             and entry.size == stat.st_size
@@ -121,14 +150,14 @@ def update_manifest(raw_dir: Path) -> tuple[Manifest, ManifestChanges]:
         if vid in videos:
             if videos[vid].sha256 != sha:
                 raise ValueError(
-                    f"{path.name} and {videos[vid].file} share the id {vid} "
+                    f"{name} and {videos[vid].file} share the id {vid} "
                     "but differ in content; lengthen ID_LENGTH"
                 )
-            duplicates.append(Duplicate(path.name, vid, stat.st_size, stat.st_mtime_ns))
+            duplicates.append(Duplicate(name, vid, stat.st_size, stat.st_mtime_ns))
             continue
-        videos[vid] = Video(vid, sha, path.name, stat.st_size, stat.st_mtime_ns)
+        videos[vid] = Video(vid, sha, name, stat.st_size, stat.st_mtime_ns)
     if not videos:
-        raise FileNotFoundError(f"No {VIDEO_GLOB} files in {raw_dir}")
+        raise FileNotFoundError(f"No video files under {raw_dir}")
 
     # A duplicate whose original left can no longer point at it.
     orphans = [d for d in duplicates if d.same_as not in videos]
@@ -142,6 +171,12 @@ def update_manifest(raw_dir: Path) -> tuple[Manifest, ManifestChanges]:
     old_ids = {v.id for v in previous.videos}
     old_by_file = {v.file: v for v in previous.videos}
     new_files = {v.file for v in videos.values()} | {d.file for d in duplicates}
+    old_by_id = {v.id: v for v in previous.videos}
+    moved = [
+        (old_by_id[v.id], v)
+        for v in videos.values()
+        if v.id in old_by_id and old_by_id[v.id].file != v.file
+    ]
     changed = [
         (old_by_file[v.file], v)
         for v in videos.values()
@@ -156,8 +191,11 @@ def update_manifest(raw_dir: Path) -> tuple[Manifest, ManifestChanges]:
             if v.id not in old_ids and v.file not in changed_files
         ],
         duplicates=[d for d in duplicates if d.file not in known],
-        removed=[v for v in previous.videos if v.file not in new_files],
+        removed=[
+            v for v in previous.videos if v.file not in new_files and v.id not in videos
+        ],
         changed=changed,
+        moved=moved,
         hashed=hashed,
     )
     return manifest, changes
@@ -195,9 +233,9 @@ def load_videos(raw_dir: Path) -> list[Video]:
         if (raw_dir / v.file).exists() and (raw_dir / v.file).stat().st_size != v.size
     ]
     problems += [
-        f"{p.name} 不在清单里"
-        for p in sorted(raw_dir.glob(VIDEO_GLOB))
-        if p.name not in listed
+        f"{relative(raw_dir, p)} 不在清单里"
+        for p in scan(raw_dir)
+        if relative(raw_dir, p) not in listed
     ]
     if problems:
         raise ValueError(

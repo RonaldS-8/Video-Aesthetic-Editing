@@ -1,18 +1,18 @@
 {
   "name": "330ff4c78eabf568",
   "target_sec": 30.0,
-  "total_sec": 32.89,
+  "total_sec": 30.05,
   "notes": [],
   "clips": [
     {
       "order": 0,
       "role": "开场",
       "video": "330ff4c78eabf568",
-      "index": 47,
+      "index": 46,
       "src_start": 157.93,
       "src_end": 161.93,
-      "description": "新加坡鱼尾狮雕像喷水，背景是现代化高楼大厦。",
-      "reason": "得分 4.0，远景，鱼尾狮、新加坡、城市景观",
+      "description": "新加坡鱼尾狮雕像喷水，背景是现代化高楼。",
+      "reason": "得分 4.0，远景，旅游景点、城市风光、地标建筑",
       "duration": 4.0
     },
     {
@@ -22,97 +22,75 @@
       "index": 4,
       "src_start": 11.22,
       "src_end": 13.847,
-      "description": "红色灯笼和中国结悬挂在建筑外，营造出喜庆的节日氛围。",
-      "reason": "得分 3.8，近景，春节、节日装饰、灯笼",
+      "description": "春节期间悬挂的红色灯笼和中国结",
+      "reason": "得分 4.0，近景，春节、灯笼、中国结",
       "duration": 2.627
     },
     {
       "order": 2,
       "role": "主体",
       "video": "330ff4c78eabf568",
-      "index": 6,
-      "src_start": 16.975,
-      "src_end": 19.603,
-      "description": "镜头展示一座色彩斑斓的印度教寺庙建筑，一只白色神兽雕像卧在神庙顶部。",
-      "reason": "得分 3.7，特写，印度教、寺庙、神兽",
-      "duration": 2.628
-    },
-    {
-      "order": 3,
-      "role": "主体",
-      "video": "330ff4c78eabf568",
-      "index": 11,
-      "src_start": 28.362,
-      "src_end": 30.405,
-      "description": "一名男子在餐厅柜台前与店员交流，店员在展示菜单。",
-      "reason": "得分 3.8，中景，餐厅、顾客、店员",
-      "duration": 2.043
-    },
-    {
-      "order": 4,
-      "role": "主体",
-      "video": "330ff4c78eabf568",
       "index": 21,
       "src_start": 49.675,
       "src_end": 53.095,
       "description": "男子在室内吃冰淇淋，背景是彩色线轴。",
-      "reason": "得分 4.3，中景，吃冰淇淋、室内、零食",
+      "reason": "得分 4.3，中景，美食、冰淇淋、日常",
       "duration": 3.42
     },
     {
-      "order": 5,
+      "order": 3,
       "role": "主体",
       "video": "330ff4c78eabf568",
       "index": 32,
       "src_start": 86.651,
       "src_end": 90.651,
       "description": "一只猴子在茂密的森林中攀爬树干",
-      "reason": "得分 3.9，中景，猴子、森林、自然",
+      "reason": "得分 3.9，近景，猴子、森林、动物",
+      "duration": 4.0
+    },
+    {
+      "order": 4,
+      "role": "主体",
+      "video": "330ff4c78eabf568",
+      "index": 34,
+      "src_start": 96.285,
+      "src_end": 100.285,
+      "description": "一朵粉红色花朵在绿叶丛中绽放",
+      "reason": "得分 4.0，特写，花卉、自然、特写",
+      "duration": 4.0
+    },
+    {
+      "order": 5,
+      "role": "主体",
+      "video": "330ff4c78eabf568",
+      "index": 35,
+      "src_start": 101.291,
+      "src_end": 105.291,
+      "description": "森林中一只蜘蛛在蛛网上静止不动",
+      "reason": "得分 4.2，特写，自然、昆虫、森林",
       "duration": 4.0
     },
     {
       "order": 6,
       "role": "主体",
       "video": "330ff4c78eabf568",
-      "index": 35,
-      "src_start": 101.291,
-      "src_end": 105.291,
-      "description": "森林中一只蜘蛛在蛛网上静止，背景是模糊的绿植。",
-      "reason": "得分 4.4，特写，蜘蛛、森林、自然",
+      "index": 36,
+      "src_start": 106.567,
+      "src_end": 110.567,
+      "description": "镜头聚焦于一株红色花序的植物，展示了其从上到下的特写。",
+      "reason": "得分 3.9，近景，植物、花卉、特写",
       "duration": 4.0
     },
     {
       "order": 7,
-      "role": "主体",
-      "video": "330ff4c78eabf568",
-      "index": 36,
-      "src_start": 106.567,
-      "src_end": 110.567,
-      "description": "热带植物的红色花朵在不同时间点的特写",
-      "reason": "得分 4.1，特写，热带植物、花朵、特写",
-      "duration": 4.0
-    },
-    {
-      "order": 8,
-      "role": "主体",
-      "video": "330ff4c78eabf568",
-      "index": 42,
-      "src_start": 132.468,
-      "src_end": 136.468,
-      "description": "一位女士戴着墨镜站在高楼阳台上，背景是城市天际线。",
-      "reason": "得分 3.6，中景，女性、城市风光、阳台上",
-      "duration": 4.0
-    },
-    {
-      "order": 9,
       "role": "收尾",
       "video": "330ff4c78eabf568",
-      "index": 2,
-      "src_start": 5.756,
-      "src_end": 7.925,
-      "description": "两盏红色灯笼在天空下悬挂，背景是建筑和云朵。",
-      "reason": "得分 3.7，远景，灯笼、节日、建筑",
-      "duration": 2.169
+      "index": 47,
+      "src_start": 163.04,
+      "src_end": 167.04,
+      "description": "夜晚的鱼尾狮雕像喷水，背景是滨海湾金沙酒店。",
+      "reason": "得分 3.5，远景，旅游景点、城市夜景、地标建筑",
+      "duration": 4.0
     }
   ],
   "assessments": [
@@ -161,11 +139,11 @@
     {
       "video": "330ff4c78eabf568",
       "index": 4,
-      "score": 3.789,
+      "score": 3.989,
       "keep": true,
       "reasons": [
         "美学模型 0.68（技术 -0.030 / 美学 +0.105）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 5/5（权重 20%）"
       ]
     },
     {
@@ -191,21 +169,21 @@
     {
       "video": "330ff4c78eabf568",
       "index": 7,
-      "score": 3.255,
+      "score": 3.055,
       "keep": true,
       "reasons": [
         "美学模型 0.52（技术 -0.058 / 美学 +0.060）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
       "index": 8,
-      "score": 2.73,
+      "score": 2.93,
       "keep": true,
       "reasons": [
         "美学模型 0.35（技术 -0.066 / 美学 +0.000）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 5/5（权重 20%）"
       ]
     },
     {
@@ -221,11 +199,11 @@
     {
       "video": "330ff4c78eabf568",
       "index": 10,
-      "score": 2.214,
+      "score": 2.414,
       "keep": true,
       "reasons": [
         "美学模型 0.41（技术 -0.055 / 美学 +0.016）",
-        "VLM 精彩度 3/5（权重 20%）",
+        "VLM 精彩度 4/5（权重 20%）",
         "时长仅 1.3s"
       ]
     },
@@ -242,32 +220,32 @@
     {
       "video": "330ff4c78eabf568",
       "index": 12,
-      "score": 3.045,
+      "score": 2.845,
       "keep": true,
       "reasons": [
         "美学模型 0.45（技术 -0.068 / 美学 +0.042）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
       "index": 13,
-      "score": 2.369,
+      "score": 2.169,
       "keep": true,
       "reasons": [
         "美学模型 0.71（技术 -0.070 / 美学 +0.149）",
-        "VLM 精彩度 4/5（权重 20%）",
+        "VLM 精彩度 3/5（权重 20%）",
         "画面偏糊（清晰度 42）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
       "index": 14,
-      "score": 3.216,
+      "score": 3.416,
       "keep": true,
       "reasons": [
         "美学模型 0.66（技术 -0.049 / 美学 +0.110）",
-        "VLM 精彩度 4/5（权重 20%）",
+        "VLM 精彩度 5/5（权重 20%）",
         "时长仅 1.4s"
       ]
     },
@@ -380,11 +358,11 @@
     {
       "video": "330ff4c78eabf568",
       "index": 25,
-      "score": 2.465,
+      "score": 2.265,
       "keep": true,
       "reasons": [
         "美学模型 0.43（技术 -0.054 / 美学 +0.021）",
-        "VLM 精彩度 4/5（权重 20%）",
+        "VLM 精彩度 3/5（权重 20%）",
         "时长仅 1.0s"
       ]
     },
@@ -484,21 +462,21 @@
     {
       "video": "330ff4c78eabf568",
       "index": 35,
-      "score": 4.36,
+      "score": 4.16,
       "keep": true,
       "reasons": [
         "美学模型 0.86（技术 -0.033 / 美学 +0.210）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
       "index": 36,
-      "score": 4.062,
+      "score": 3.862,
       "keep": true,
       "reasons": [
         "美学模型 0.77（技术 -0.027 / 美学 +0.144）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
@@ -514,37 +492,27 @@
     {
       "video": "330ff4c78eabf568",
       "index": 38,
-      "score": 2.597,
+      "score": 2.626,
       "keep": true,
       "reasons": [
-        "美学模型 0.31（技术 -0.094 / 美学 +0.005）",
+        "美学模型 0.32（技术 -0.085 / 美学 +0.002）",
         "VLM 精彩度 4/5（权重 20%）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
       "index": 39,
-      "score": 2.862,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.39（技术 -0.074 / 美学 +0.024）",
-        "VLM 精彩度 4/5（权重 20%）"
-      ]
-    },
-    {
-      "video": "330ff4c78eabf568",
-      "index": 40,
-      "score": 1.869,
+      "score": 1.669,
       "keep": false,
       "reasons": [
         "美学模型 0.55（技术 -0.045 / 美学 +0.063）",
-        "VLM 精彩度 4/5（权重 20%）",
+        "VLM 精彩度 3/5（权重 20%）",
         "画面偏糊（清晰度 57）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 41,
+      "index": 40,
       "score": 2.4,
       "keep": true,
       "reasons": [
@@ -554,7 +522,7 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 42,
+      "index": 41,
       "score": 3.618,
       "keep": true,
       "reasons": [
@@ -564,17 +532,17 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 43,
-      "score": 3.552,
+      "index": 42,
+      "score": 3.352,
       "keep": true,
       "reasons": [
         "美学模型 0.61（技术 -0.039 / 美学 +0.081）",
-        "VLM 精彩度 4/5（权重 20%）"
+        "VLM 精彩度 3/5（权重 20%）"
       ]
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 44,
+      "index": 43,
       "score": 2.827,
       "keep": true,
       "reasons": [
@@ -584,7 +552,7 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 45,
+      "index": 44,
       "score": 2.481,
       "keep": true,
       "reasons": [
@@ -595,7 +563,7 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 46,
+      "index": 45,
       "score": 3.504,
       "keep": true,
       "reasons": [
@@ -605,7 +573,7 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 47,
+      "index": 46,
       "score": 4.014,
       "keep": true,
       "reasons": [
@@ -615,7 +583,7 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 48,
+      "index": 47,
       "score": 3.483,
       "keep": true,
       "reasons": [
@@ -625,7 +593,7 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 49,
+      "index": 48,
       "score": 2.551,
       "keep": true,
       "reasons": [
@@ -635,23 +603,14 @@
     },
     {
       "video": "330ff4c78eabf568",
-      "index": 50,
-      "score": 2.387,
-      "keep": true,
-      "reasons": [
-        "美学模型 0.31（技术 -0.088 / 美学 -0.001）",
-        "VLM 精彩度 3/5（权重 20%）"
-      ]
-    },
-    {
-      "video": "330ff4c78eabf568",
-      "index": 51,
-      "score": -0.106,
+      "index": 49,
+      "score": -0.432,
       "keep": false,
       "reasons": [
-        "美学模型 0.12（技术 -0.176 / 美学 -0.043）",
-        "VLM 精彩度 1/5（权重 20%）",
-        "画面偏糊（清晰度 0）"
+        "美学模型 0.21（技术 -0.118 / 美学 -0.028）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 1）",
+        "抖动明显"
       ]
     }
   ]

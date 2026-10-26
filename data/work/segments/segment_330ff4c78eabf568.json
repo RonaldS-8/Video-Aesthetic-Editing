@@ -1,12 +1,13 @@
 {
   "video_id": "330ff4c78eabf568",
   "sha256": "330ff4c78eabf568819498ccdeda9a41db3459dc4cf50fd54a9f0b03b78971da",
-  "video": "01_lion_city_singapore.webm",
+  "video": "vlog/01_lion_city_singapore.webm",
   "duration": 181.098,
   "analysed_until": 181.098,
   "fps": 23.976023976023978,
   "has_audio": false,
-  "detect_seconds": 35.08,
+  "detect_seconds": 39.55,
+  "max_segment_sec": 10.0,
   "cuts": [
     {
       "time": 0.959,
@@ -636,84 +637,72 @@
     {
       "index": 38,
       "start": 114.072,
-      "end": 118.118,
-      "shot": 38
-    },
-    {
-      "index": 39,
-      "start": 118.118,
       "end": 122.164,
       "shot": 38
     },
     {
-      "index": 40,
+      "index": 39,
       "start": 122.164,
       "end": 127.002,
       "shot": 39
     },
     {
-      "index": 41,
+      "index": 40,
       "start": 127.002,
       "end": 131.882,
       "shot": 40
     },
     {
-      "index": 42,
+      "index": 41,
       "start": 131.882,
       "end": 137.053,
       "shot": 41
     },
     {
-      "index": 43,
+      "index": 42,
       "start": 137.053,
       "end": 142.225,
       "shot": 41
     },
     {
-      "index": 44,
+      "index": 43,
       "start": 142.225,
       "end": 147.23,
       "shot": 42
     },
     {
-      "index": 45,
+      "index": 44,
       "start": 147.23,
       "end": 152.486,
       "shot": 43
     },
     {
-      "index": 46,
+      "index": 45,
       "start": 152.486,
       "end": 157.449,
       "shot": 44
     },
     {
-      "index": 47,
+      "index": 46,
       "start": 157.449,
       "end": 162.412,
       "shot": 45
     },
     {
-      "index": 48,
+      "index": 47,
       "start": 162.412,
       "end": 167.668,
       "shot": 46
     },
     {
-      "index": 49,
+      "index": 48,
       "start": 167.668,
       "end": 172.714,
       "shot": 47
     },
     {
-      "index": 50,
+      "index": 49,
       "start": 172.714,
-      "end": 176.906,
-      "shot": 48
-    },
-    {
-      "index": 51,
-      "start": 176.906,
       "end": 181.098,
       "shot": 48
     }

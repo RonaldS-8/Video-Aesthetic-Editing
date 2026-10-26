@@ -1,12 +1,13 @@
 {
   "video_id": "dd0df77c6142e62f",
   "sha256": "dd0df77c6142e62fdc33f46994824727892496d664297a8658ee8c8024055b7c",
-  "video": "02_bled_bohinj_vlog.webm",
+  "video": "vlog/02_bled_bohinj_vlog.webm",
   "duration": 152.986,
   "analysed_until": 152.986,
   "fps": 29.97002997002997,
   "has_audio": false,
-  "detect_seconds": 35.46,
+  "detect_seconds": 44.02,
+  "max_segment_sec": 10.0,
   "cuts": [
     {
       "time": 14.047,
@@ -142,143 +143,119 @@
     {
       "index": 3,
       "start": 17.251,
-      "end": 24.269,
+      "end": 25.673,
       "shot": 2
     },
     {
       "index": 4,
-      "start": 24.269,
-      "end": 31.287,
+      "start": 25.673,
+      "end": 34.094,
       "shot": 2
     },
     {
       "index": 5,
-      "start": 31.287,
-      "end": 38.305,
+      "start": 34.094,
+      "end": 42.516,
       "shot": 2
     },
     {
       "index": 6,
-      "start": 38.305,
-      "end": 45.323,
+      "start": 42.516,
+      "end": 50.937,
       "shot": 2
     },
     {
       "index": 7,
-      "start": 45.323,
-      "end": 52.341,
-      "shot": 2
-    },
-    {
-      "index": 8,
-      "start": 52.341,
+      "start": 50.937,
       "end": 59.359,
       "shot": 2
     },
     {
-      "index": 9,
+      "index": 8,
       "start": 59.359,
       "end": 66.75,
       "shot": 3
     },
     {
-      "index": 10,
+      "index": 9,
       "start": 66.75,
       "end": 74.141,
       "shot": 3
     },
     {
-      "index": 11,
+      "index": 10,
       "start": 74.141,
       "end": 80.681,
       "shot": 4
     },
     {
-      "index": 12,
+      "index": 11,
       "start": 80.681,
       "end": 85.752,
       "shot": 5
     },
     {
-      "index": 13,
+      "index": 12,
       "start": 85.752,
       "end": 90.824,
       "shot": 5
     },
     {
-      "index": 14,
+      "index": 13,
       "start": 90.824,
-      "end": 95.379,
-      "shot": 6
-    },
-    {
-      "index": 15,
-      "start": 95.379,
       "end": 99.933,
       "shot": 6
     },
     {
-      "index": 16,
+      "index": 14,
       "start": 99.933,
-      "end": 104.188,
-      "shot": 7
-    },
-    {
-      "index": 17,
-      "start": 104.188,
       "end": 108.442,
       "shot": 7
     },
     {
-      "index": 18,
+      "index": 15,
       "start": 108.442,
       "end": 111.144,
       "shot": 8
     },
     {
-      "index": 19,
+      "index": 16,
       "start": 111.144,
       "end": 116.183,
       "shot": 9
     },
     {
-      "index": 20,
+      "index": 17,
       "start": 116.183,
       "end": 120.22,
       "shot": 10
     },
     {
-      "index": 21,
+      "index": 18,
       "start": 120.22,
-      "end": 126.843,
+      "end": 129.051,
       "shot": 11
     },
     {
-      "index": 22,
-      "start": 126.843,
-      "end": 133.466,
+      "index": 19,
+      "start": 129.051,
+      "end": 137.882,
       "shot": 11
     },
     {
-      "index": 23,
-      "start": 133.466,
-      "end": 140.09,
-      "shot": 11
-    },
-    {
-      "index": 24,
-      "start": 140.09,
+      "index": 20,
+      "start": 137.882,
       "end": 146.713,
       "shot": 11
     },
     {
-      "index": 25,
+      "index": 21,
       "start": 146.713,
       "end": 151.518,
       "shot": 12
     },
     {
-      "index": 26,
+      "index": 22,
       "start": 151.518,
       "end": 152.986,
       "shot": 13

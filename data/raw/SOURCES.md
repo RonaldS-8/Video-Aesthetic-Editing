@@ -3,6 +3,8 @@
 下载日期 2026-10-22，均取自 Wikimedia Commons 官方 480p VP9 转码版本。
 仅用于内部技术验证，对外使用须按许可证署名（BY-SA 还须相同方式共享）。
 
+以下文件放在 `data/raw/vlog/`（2026-10-26 起按集合分文件夹）。
+
 | 本地文件 | 原始标题 | 作者 | 许可 |
 |---|---|---|---|
 | 01_lion_city_singapore.webm | The Lion City (Singapore) | Jessica Drolet | CC BY-SA 3.0 |

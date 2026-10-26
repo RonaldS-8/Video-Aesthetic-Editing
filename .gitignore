@@ -6,10 +6,24 @@ __pycache__/
 .ruff_cache/
 
 # Large media that can be re-downloaded (data/raw/SOURCES.md) or regenerated
-data/raw/*.webm
+data/raw/**/*.webm
+data/raw/**/*.mp4
+data/raw/**/*.MP4
+data/raw/**/*.mov
+data/raw/**/*.MOV
+data/raw/**/*.m4v
+data/raw/**/*.3gp
+data/raw/**/*.mkv
+data/raw/**/*.avi
+data/raw/**/*.mts
+data/raw/**/*.MTS
+data/raw/**/*.m2ts
 data/synth/*.mp4
 out/**/previews/
 
 # Third-party code and model weights (see README for versions)
 third_party/
 *.pth
+
+# Downloaded datasets and archives (see docs/plans/长素材精彩瞬间-数据与方案.md)
+data/downloads/

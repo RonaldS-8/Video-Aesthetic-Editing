@@ -6,13 +6,14 @@ back to a signal, a DOVER quality score or a VLM tag.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Any
 
 WIDE_SHOTS = {"远景", "全景"}
 CLOSING_TIMES = {"黄昏", "夜晚"}
 # Body order for a multi-video reel: day -> dusk -> night, never by file name.
 TIME_ORDER = {"白天": 0, "室内": 1, "不确定": 1, "黄昏": 2, "夜晚": 3}
+# Reel mode trims each segment to at most this; highlights keep whole segments.
 MAX_CLIP_SEC = 4.0
 MIN_CLIP_SEC = 1.5
 DROP_SCORE = 2.0
@@ -197,8 +198,15 @@ def build_timeline(
     return clips, notes
 
 
-def validate_timeline(clips: list[Clip], candidates: list[Candidate]) -> None:
-    """Deterministic checks; raise instead of emitting a broken timeline."""
+def validate_timeline(
+    clips: list[Clip],
+    candidates: list[Candidate],
+    max_clip_sec: float | None = MAX_CLIP_SEC,
+) -> None:
+    """Deterministic checks; raise instead of emitting a broken timeline.
+
+    ``max_clip_sec`` of None allows whole segments (highlights mode).
+    """
     by_key = {(c.video, c.index): c for c in candidates}
     seen: set[tuple[str, int]] = set()
     for clip in clips:
@@ -209,9 +217,121 @@ def validate_timeline(clips: list[Clip], candidates: list[Candidate]) -> None:
         seg = by_key[key]
         if not (seg.start - 1e-3 <= clip.src_start < clip.src_end <= seg.end + 1e-3):
             raise ValueError(f"Clip {clip} exceeds its segment {seg}")
-        if clip.duration > MAX_CLIP_SEC + 1e-3:
-            raise ValueError(f"Clip longer than {MAX_CLIP_SEC}s: {clip}")
+        if max_clip_sec is not None and clip.duration > max_clip_sec + 1e-3:
+            raise ValueError(f"Clip longer than {max_clip_sec}s: {clip}")
 
 
 def clip_to_dict(clip: Clip) -> dict[str, Any]:
     return {**asdict(clip), "duration": round(clip.duration, 3)}
+
+
+# Highlights mode: about 1/6 of the input (1 h -> 10 min) as whole segments,
+# for the user to edit further rather than a finished reel.
+HIGHLIGHT_RATIO = 1 / 6
+# At least one segment from every window of this length, so the selection
+# covers the whole recording instead of clustering in one part.
+COVERAGE_WINDOW_SEC = 300.0
+# Tag overlap only counts as a repeat between segments this close in time;
+# a long walk shares tags all the way through.
+DUP_NEAR_SEC = 60.0
+
+
+def _percentiles(values: list[float]) -> list[float]:
+    """Mid-rank percentile in (0, 1); a single value gets 0.5."""
+    order = sorted(values)
+    n = len(values)
+    return [
+        (sum(v < x for v in order) + 0.5 * sum(v == x for v in order)) / n
+        for x in values
+    ]
+
+
+def calibrate_by_time(candidates: list[Candidate]) -> list[Candidate]:
+    """Replace DOVER quality with its percentile among segments of the same
+    time of day, so night footage is not ranked against daylight."""
+    groups: dict[str, list[int]] = {}
+    for i, c in enumerate(candidates):
+        groups.setdefault(c.tags["time_of_day"], []).append(i)
+    quality = [0.0] * len(candidates)
+    for members in groups.values():
+        pct = _percentiles([candidates[i].quality for i in members])
+        for i, p in zip(members, pct, strict=True):
+            quality[i] = p
+    return [replace(c, quality=q) for c, q in zip(candidates, quality, strict=True)]
+
+
+def build_highlights(
+    candidates: list[Candidate],
+    assessments: list[Assessment],
+    target_sec: float,
+    offsets: dict[str, float] | None = None,
+) -> tuple[list[Clip], list[str]]:
+    """Pick whole segments up to ``target_sec``, covering every window.
+
+    ``offsets`` places each video on one timeline (the sum of the analysed
+    lengths before it) for coverage and ordering; videos default to 0.
+    Clips keep shooting order. Selection depends only on segment content.
+    """
+    if len(candidates) != len(assessments):
+        raise ValueError("candidates and assessments must align")
+    offsets = offsets or {}
+
+    def at(c: Candidate) -> float:
+        return offsets.get(c.video, 0.0) + c.start
+
+    pool = sorted(
+        (
+            (a.score, c)
+            for c, a in zip(candidates, assessments, strict=True)
+            if a.keep and c.duration >= MIN_CLIP_SEC
+        ),
+        key=lambda x: (-x[0], -x[1].sharpness_rel, x[1].tags["description"]),
+    )
+    chosen: list[tuple[str, float, Candidate]] = []
+
+    def usable(c: Candidate) -> bool:
+        for _, _, d in chosen:
+            if d.video == c.video and d.index == c.index:
+                return False
+            near = d.video == c.video and abs(d.start - c.start) <= DUP_NEAR_SEC
+            if near and _jaccard(d.tags["tags"], c.tags["tags"]) >= DUP_JACCARD:
+                return False
+        return True
+
+    total = 0.0
+    windows: dict[int, list[tuple[float, Candidate]]] = {}
+    for score, c in pool:
+        windows.setdefault(int(at(c) // COVERAGE_WINDOW_SEC), []).append((score, c))
+    for _, members in sorted(windows.items()):
+        for score, c in members:
+            if usable(c):
+                chosen.append(("覆盖", score, c))
+                total += c.duration
+                break
+    for score, c in pool:
+        if total >= target_sec:
+            break
+        if usable(c):
+            chosen.append(("精彩", score, c))
+            total += c.duration
+
+    notes: list[str] = []
+    if total < target_sec * 0.8:
+        notes.append(f"可用素材不足：去重后只选到 {total:.1f}s，目标 {target_sec:.0f}s")
+    chosen.sort(key=lambda x: at(x[2]))
+    clips = [
+        Clip(
+            order=order,
+            role=role,
+            video=c.video,
+            index=c.index,
+            src_start=round(c.start, 3),
+            src_end=round(c.end, 3),
+            description=c.tags["description"],
+            reason=f"得分 {score:.1f}，{c.tags['shot_size']}，"
+            + "、".join(c.tags["tags"][:3]),
+        )
+        for order, (role, score, c) in enumerate(chosen)
+    ]
+    validate_timeline(clips, candidates, max_clip_sec=None)
+    return clips, notes

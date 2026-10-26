@@ -1,0 +1,42 @@
+{
+  "name": "18e16a82dbdc9c38",
+  "mode": "ranked",
+  "target_sec": 2.8,
+  "total_sec": 8.34,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "覆盖",
+      "video": "18e16a82dbdc9c38",
+      "index": 1,
+      "src_start": 8.339,
+      "src_end": 16.679,
+      "description": "夜晚的城市全景航拍，展示了灯火辉煌的滨海城市景观。",
+      "reason": "得分 4.2，远景，城市夜景、航拍、灯光",
+      "duration": 8.34
+    }
+  ],
+  "assessments": [
+    {
+      "video": "18e16a82dbdc9c38",
+      "index": 0,
+      "score": 2.4,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.25（技术 -0.062 / 美学 +0.044）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "18e16a82dbdc9c38",
+      "index": 1,
+      "score": 4.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.75（技术 -0.061 / 美学 +0.049）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    }
+  ]
+}

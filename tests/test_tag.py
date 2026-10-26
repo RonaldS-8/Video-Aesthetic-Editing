@@ -117,3 +117,9 @@ def test_tag_segment_retries_a_repetition_loop(
     tags, _, _, errors = tag.tag_segment([_frame(tmp_path)], 2.0)
     assert tags == GOOD
     assert len(errors) == 1 and "repetition" in errors[0]
+
+
+def test_schema_forbids_empty_text_fields() -> None:
+    # Constrained decoding then cannot emit "" (a black credits segment did).
+    for key in ("description", "scene", "action", "mood"):
+        assert tag.TAG_SCHEMA["properties"][key]["minLength"] == 1
