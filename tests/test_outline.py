@@ -45,10 +45,38 @@ def _assess(cands: list[suggest.Candidate]) -> list[suggest.Assessment]:
     return [suggest.assess(c) for c in cands]
 
 
+def _summary(highlights: list[int] | None = None, text: str = "s") -> dict:
+    return {
+        "summary": text,
+        "places": ["森林"],
+        "subjects": [],
+        "activities": ["徒步"],
+        "highlights": [{"segment": n, "why": "w"} for n in highlights or []],
+    }
+
+
+def _chunks(
+    cands: list[suggest.Candidate],
+    groups: list[list[int]],
+    highlights: list[list[int]] | None = None,
+) -> list[outline.Chunk]:
+    return [
+        outline.Chunk(
+            number=k,
+            video=cands[g[0]].video,
+            members=g,
+            start=cands[g[0]].start,
+            end=cands[g[-1]].end,
+            summary=_summary((highlights or [[]] * len(groups))[k - 1]),
+        )
+        for k, g in enumerate(groups, start=1)
+    ]
+
+
 def _plan(
     parts: list[tuple[int, int, int, list[str]]], seconds: list[int] | None = None
 ) -> dict[str, Any]:
-    """Parts as (first scene, last scene, weight, keywords); ``seconds`` sets
+    """Parts as (first chunk, last chunk, weight, scenes); ``seconds`` sets
     duration_sec directly, as validation would, for the fill tests."""
     plan = {
         "title": "t",
@@ -56,12 +84,12 @@ def _plan(
             {
                 "name": f"p{k}",
                 "summary": "s",
-                "first_scene": a,
-                "last_scene": b,
+                "first_chunk": a,
+                "last_chunk": b,
                 "weight": d,
-                "keywords": kw,
+                "scenes": sc,
             }
-            for k, (a, b, d, kw) in enumerate(parts)
+            for k, (a, b, d, sc) in enumerate(parts)
         ],
     }
     for part, sec in zip(plan["parts"], seconds or [], strict=False):
@@ -69,25 +97,55 @@ def _plan(
     return plan
 
 
-def test_scenes_split_on_tag_change_video_and_length() -> None:
-    cands = _forest_then_cooking()
-    scenes = outline.group_scenes(cands, _assess(cands))
-    assert [s.members for s in scenes] == [[0, 1, 2, 3], [4, 5, 6, 7]]
-    assert scenes[1].start == 40.0 and scenes[1].end == 78.0
-    # Another video always starts a new scene.
-    other = [*cands[:2], _cand(9, 0.0, ["森林", "小路", "树木"], video="w")]
-    assert len(outline.group_scenes(other, _assess(other))) == 2
-    # A long take with constant tags is cut every SCENE_MAX_SEC.
-    walk = [_cand(i, 10.0 * i, ["街道"]) for i in range(20)]
-    lengths = [s.end - s.start for s in outline.group_scenes(walk, _assess(walk))]
-    assert max(lengths) <= outline.SCENE_MAX_SEC
+def test_split_chunks_by_time_and_video() -> None:
+    walk = [_cand(i, 10.0 * i, ["街道"]) for i in range(70)]
+    groups = outline.split_chunks(walk)
+    # 0-290 s, 300-590 s, 600-690 s.
+    assert [len(g) for g in groups] == [30, 30, 10]
+    other = [*walk[:3], _cand(9, 0.0, ["街道"], video="w")]
+    assert outline.split_chunks(other) == [[0, 1, 2], [3]]
+    assert outline.split_chunks(walk[:5], chunk_sec=20.0) == [[0, 1], [2, 3], [4]]
 
 
-def test_scene_lines_show_time_score_and_tags() -> None:
+def test_segment_and_chunk_lines() -> None:
     cands = _forest_then_cooking()
-    text = outline.scene_lines(outline.group_scenes(cands, _assess(cands)))
-    assert text.splitlines()[1].startswith("[2] 0:40–1:18 | 白天 |")
-    assert "野炊、火、锅" in text
+    text = outline.segment_lines([4, 5], cands, _assess(cands))
+    assert text.splitlines()[0].startswith("[1] 0:40 | 白天 |")
+    assert text.splitlines()[1].endswith("d5 | 野炊、火、锅")
+    lines = outline.chunk_lines(_chunks(cands, [[0, 1, 2, 3], [4, 5, 6, 7]]))
+    assert lines.splitlines()[1] == "[2] 0:40–1:18 | s | 森林 | 徒步"
+
+
+@pytest.mark.parametrize(
+    ("summary", "message"),
+    [
+        ({"summary": " "}, "non-empty"),
+        (_summary([0]), "outside"),
+        (_summary([5]), "outside"),
+        (_summary([2, 2]), "twice"),
+    ],
+)
+def test_validate_summary_rejects(summary: dict, message: str) -> None:
+    with pytest.raises(outline.OutlineError, match=message):
+        outline.validate_summary(summary, 4)
+
+
+def test_summarize_chunk_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    cands = _forest_then_cooking()
+    replies = iter([json.dumps(_summary([9])), json.dumps(_summary([2]))])
+    prompts: list[str] = []
+
+    def fake(prompt: str, *_: Any) -> tuple[str, float]:
+        prompts.append(prompt)
+        return next(replies), 1.0
+
+    monkeypatch.setattr(outline, "_request", fake)
+    summary, _, seconds, errors = outline.summarize_chunk(
+        [4, 5, 6, 7], cands, _assess(cands)
+    )
+    assert summary["highlights"][0]["segment"] == 2 and seconds == 2.0
+    assert "outside 1-4" in errors[0]
+    assert "0:40–1:18" in prompts[0] and "[4]" in prompts[0]
 
 
 @pytest.mark.parametrize(
@@ -95,36 +153,38 @@ def test_scene_lines_show_time_score_and_tags() -> None:
     [
         ([(1, 1, 5, ["a"])], "need"),
         ([(1, 2, 5, ["a"]), (2, 2, 5, ["a"])], "overlap"),
+        ([(2, 2, 5, ["a"]), (1, 1, 5, ["a"])], "overlap"),
         ([(1, 1, 5, ["a"]), (2, 3, 5, ["a"])], "outside"),
         ([(1, 1, 0, ["a"]), (2, 2, 5, ["a"])], "weight must"),
         ([(1, 1, 11, ["a"]), (2, 2, 5, ["a"])], "weight"),
-        ([(1, 1, 5, []), (2, 2, 5, ["a"])], "keywords"),
+        ([(1, 1, 5, []), (2, 2, 5, ["a"])], "needs 1-4 scenes"),
+        ([(1, 1, 5, list("abcde")), (2, 2, 5, ["a"])], "needs 1-4 scenes"),
+        ([(1, 1, 5, ["a", "a"]), (2, 2, 5, ["a"])], "listed twice"),
+        ([(1, 1, 5, [" "]), (2, 2, 5, ["a"])], "empty scene"),
     ],
 )
 def test_validate_outline_rejects(
     parts: list[tuple[int, int, int, list[str]]], message: str
 ) -> None:
-    cands = _forest_then_cooking()
-    scenes = outline.group_scenes(cands, _assess(cands))
     with pytest.raises(outline.OutlineError, match=message):
-        outline.validate_outline(_plan(parts), scenes, 40.0)
+        outline.validate_outline(_plan(parts), 2, 40.0)
 
 
 def test_plan_outline_retries_then_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     cands = _forest_then_cooking()
-    scenes = outline.group_scenes(cands, _assess(cands))
+    chunks = _chunks(cands, [[0, 1, 2, 3], [4, 5, 6, 7]])
     good = json.dumps(_plan([(1, 1, 1, ["森林"]), (2, 2, 3, ["野炊"])]))
     replies = iter(["not json", good])
     monkeypatch.setattr(outline, "_request", lambda *_: (next(replies), 1.0))
-    plan, raw, seconds, errors = outline.plan_outline(scenes, 40.0)
-    assert plan["parts"][1]["keywords"] == ["野炊"] and seconds == 2.0
+    plan, raw, seconds, errors = outline.plan_outline(chunks, 40.0)
+    assert plan["parts"][1]["scenes"] == ["野炊"] and seconds == 2.0
     # 40 s: 10 s each, the other 20 s split 1:3.
     assert [p["duration_sec"] for p in plan["parts"]] == [15, 25]
     assert len(errors) == 1 and "not JSON" in errors[0]
 
     monkeypatch.setattr(outline, "_request", lambda *_: ("{}", 1.0))
     with pytest.raises(outline.OutlineError, match="temperature=0.8"):
-        outline.plan_outline(scenes, 40.0)
+        outline.plan_outline(chunks, 40.0)
 
 
 def test_part_limits_follow_the_target() -> None:
@@ -134,7 +194,7 @@ def test_part_limits_follow_the_target() -> None:
     assert outline.part_limits(2.8) == (1.4, 2)
     parts = outline.outline_schema(1, 3)["properties"]["parts"]
     assert (parts["minItems"], parts["maxItems"]) == (1, 3)
-    # No more parts than scenes; one scene makes a one-part outline.
+    # No more parts than chunks; one chunk makes a one-part outline.
     assert outline.parts_range(600.0, 40) == (2, 8)
     assert outline.parts_range(600.0, 5) == (2, 5)
     assert outline.parts_range(2.8, 1) == (1, 1)
@@ -149,34 +209,128 @@ def test_allocate_meets_target_and_minimum() -> None:
         outline.allocate([1, 1, 1, 1], 30.0)
 
 
-def test_fill_stays_in_each_part_and_prefers_keyword_matches() -> None:
-    # Forest segments share two of four tags: one scene, but not repeats.
-    forest = [_cand(i, 10.0 * i, ["森林", "小路", f"a{i}", f"b{i}"]) for i in range(4)]
-    cooking = [
-        _cand(4, 40.0, ["野炊", "火", "锅"], quality=0.3, description="点火"),
-        *[_cand(i, 10.0 * i, ["野炊", "火", "锅"], quality=0.5) for i in (5, 6, 7)],
+def _distinct(n: int, **kw: Any) -> list[suggest.Candidate]:
+    """Segments 10 s apart whose tags never repeat."""
+    return [_cand(i, 10.0 * i, [f"t{i}", f"u{i}"], **kw) for i in range(n)]
+
+
+def _scenes(groups: list[list[int]]) -> list[outline.Scene]:
+    return [outline.Scene(n, g) for n, g in enumerate(groups, start=1)]
+
+
+def _flat(members: range, values: dict[int, float] | None = None) -> dict:
+    return {i: (values or {}).get(i, 0.0) for i in members}
+
+
+def test_part_scenes_and_share() -> None:
+    cands = _distinct(4)
+    chunks = _chunks(cands, [[0, 1], [2, 3]])
+    scenes = _scenes([[0], [1], [2, 3]])
+    part = _plan([(2, 2, 5, ["a"])])["parts"][0]
+    assert [s.number for s in outline.part_scenes(part, chunks, scenes)] == [3]
+    assert outline.share(30.0, [100.0, 100.0]) == [15.0, 15.0]
+    assert outline.share(30.0, [8.0, 100.0]) == [8.0, 22.0]
+    assert outline.share(30.0, [5.0, 5.0]) == [5.0, 5.0]
+    assert outline.rescale({1: 0.9, 2: 1.0, 3: 0.95}) == pytest.approx(
+        {1: 0.0, 2: 1.0, 3: 0.5}
+    )
+    assert outline.rescale({1: 0.7, 2: 0.7}) == {1: 1.0, 2: 1.0}
+
+
+def test_fill_lets_relevance_lead_over_quality() -> None:
+    # RRF values close together (rank 1 vs rank 3) still decide over a
+    # better-looking scene.
+    cands = [
+        *_distinct(2, quality=0.2),
+        *[_cand(i, 10.0 * i, [f"t{i}"], quality=0.9) for i in (2, 3)],
+        *[_cand(i, 10.0 * i, [f"t{i}"], quality=0.5) for i in (4, 5)],
     ]
-    cands = forest + cooking
+    scenes = _scenes([[0, 1], [2, 3], [4, 5]])
+    clips, _, slots = outline.fill(
+        _plan([(1, 1, 5, ["a"])], seconds=[8]),
+        _chunks(cands, [list(range(6))]),
+        scenes,
+        cands,
+        _assess(cands),
+        [[{1: 1.0, 2: 0.968, 3: 0.9}]],
+        [[_flat(range(6))]],
+    )
+    assert slots[0][0]["scene"] == 1 and [c.index for c in clips] == [0]
+
+
+def test_fill_gives_each_slot_its_own_scene() -> None:
+    cands = _distinct(8)
     assess = _assess(cands)
-    scenes = outline.group_scenes(cands, assess)
-    assert [s.members for s in scenes] == [[0, 1, 2, 3], [4, 5, 6, 7]]
-    plan = _plan([(1, 1, 5, ["森林"]), (2, 2, 5, ["点火"])], seconds=[16, 8])
-    clips, notes = outline.fill(plan, scenes, cands, assess)
-    # The lower-scoring segment wins its part on the keyword.
-    assert [(c.role, c.index) for c in clips] == [("p0", 0), ("p0", 1), ("p1", 4)]
-    assert all(c.duration == pytest.approx(8.0) for c in clips)
+    chunks = _chunks(cands, [[0, 1, 2, 3], [4, 5, 6, 7]])
+    scenes = _scenes([[0, 1], [2, 3], [4, 5], [6, 7]])
+    plan = _plan([(1, 1, 5, ["城堡", "街道"]), (2, 2, 5, ["教堂"])], seconds=[16, 8])
+    # Both slots like scene 2 best; the better match takes it.
+    scene_rel = [[{1: 0.5, 2: 1.0}, {1: 0.9, 2: 0.95}], [{3: 0.2, 4: 1.0}]]
+    seg_rel = [[_flat(range(4))] * 2, [_flat(range(4, 8))]]
+    clips, notes, slots = outline.fill(
+        plan, chunks, scenes, cands, assess, scene_rel, seg_rel
+    )
+    assert [(c.role, c.index) for c in clips] == [("p0", 0), ("p0", 2), ("p1", 6)]
+    assert [c.order for c in clips] == [0, 1, 2]
+    assert "场景「城堡」→ 场景 2（相关度 100%）" in clips[1].reason
+    assert [(s["scene"], s["seconds"]) for s in slots[0]] == [(2, 8.0), (1, 8.0)]
+    assert slots[0][0]["top"] == [2, 1]
     assert notes == []
 
 
-def test_fill_reports_a_short_part() -> None:
-    cands = _forest_then_cooking()
+def test_fill_moves_seconds_a_small_scene_cannot_hold() -> None:
+    cands = _distinct(4)
     assess = _assess(cands)
-    scenes = outline.group_scenes(cands, assess)
-    clips, notes = outline.fill(
-        _plan([(1, 1, 5, ["森林"]), (2, 2, 5, ["野炊"])], seconds=[10, 300]),
-        scenes,
-        cands,
-        assess,
+    chunks = _chunks(cands, [[0, 1, 2, 3]])
+    scenes = _scenes([[0], [1, 2, 3]])
+    plan = _plan([(1, 1, 5, ["a", "b"])], seconds=[32])
+    scene_rel = [[{1: 1.0, 2: 0.0}, {1: 0.0, 2: 1.0}]]
+    seg_rel = [[_flat(range(4))] * 2]
+    clips, notes, slots = outline.fill(
+        plan, chunks, scenes, cands, assess, scene_rel, seg_rel
     )
-    assert "「p1」素材不足" in notes[0]
-    assert [c.order for c in clips] == list(range(len(clips)))
+    assert [s["seconds"] for s in slots[0]] == [8.0, 24.0]
+    assert [c.index for c in clips] == [0, 1, 2, 3] and notes == []
+
+
+def test_fill_ranks_segments_in_the_scene() -> None:
+    cands = _distinct(4)
+    cands[3] = _cand(3, 30.0, ["t3"], quality=0.45)
+    assess = _assess(cands)
+    scenes = _scenes([[0, 1, 2, 3]])
+    plan = _plan([(1, 1, 5, ["a"])], seconds=[8])
+    scene_rel = [[{1: 1.0}]]
+    plain = _chunks(cands, [[0, 1, 2, 3]])
+    clips, _, _ = outline.fill(
+        plan, plain, scenes, cands, assess, scene_rel, [[_flat(range(4))]]
+    )
+    assert [c.index for c in clips] == [0]
+    # Relevance to the slot picks a segment among equal scores.
+    rel = [[_flat(range(4), {2: 1.0})]]
+    clips, _, _ = outline.fill(plan, plain, scenes, cands, assess, scene_rel, rel)
+    assert [c.index for c in clips] == [2] and "片段相关度 100%" in clips[0].reason
+    # The summary's highlight bonus outweighs a slightly lower score.
+    named = _chunks(cands, [[0, 1, 2, 3]], highlights=[[4]])
+    clips, _, _ = outline.fill(
+        plan, named, scenes, cands, assess, scene_rel, [[_flat(range(4))]]
+    )
+    assert [c.index for c in clips] == [3]
+    assert "分段总结点名的亮点" in clips[0].reason
+
+
+def test_fill_reports_missing_scenes_and_short_parts() -> None:
+    cands = [*_distinct(4), _cand(4, 40.0, ["x"], dur=1.0)]
+    assess = _assess(cands)
+    chunks = _chunks(cands, [[0, 1, 2, 3, 4]])
+    # Scene 2 has only a segment too short to use.
+    scenes = _scenes([[0, 1, 2, 3], [4]])
+    plan = _plan([(1, 1, 5, ["a", "b"])], seconds=[300])
+    scene_rel = [[{1: 1.0, 2: 1.0}, {1: 0.5, 2: 1.0}]]
+    seg_rel = [[_flat(range(5))] * 2]
+    clips, notes, slots = outline.fill(
+        plan, chunks, scenes, cands, assess, scene_rel, seg_rel
+    )
+    assert [s["scene"] for s in slots[0]] == [1, None]
+    assert "「p0」场景「b」没有可用的场景" in notes[0]
+    assert "「p0」素材不足" in notes[1]
+    assert [c.index for c in clips] == [0, 1, 2, 3]

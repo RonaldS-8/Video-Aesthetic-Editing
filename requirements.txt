@@ -26,6 +26,15 @@ einops>=0.7
 pyyaml>=6.0
 # Progress bars for the parallel `analyze` stage
 tqdm>=4.66
+# EmbeddingGemma 2 text/image vectors (`index`, retrieval fill), the same
+# runtime as the A-NAS client. Install without its dependencies: it pulls
+# opencv-contrib-python, which clashes with opencv-python-headless (both
+# provide cv2); these are the ones it needs at import time:
+#   pip install --no-deps mediapipe==1.1.1
+#   pip install absl-py flatbuffers matplotlib
+absl-py>=2.0
+flatbuffers>=25.0
+matplotlib>=3.9
 # Dev tools
 pytest>=8.0
 ruff>=0.6

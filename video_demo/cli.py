@@ -19,6 +19,7 @@ from video_demo import (
     outline,
     quality,
     report,
+    retrieve,
     runner,
     signals,
     suggest,
@@ -810,40 +811,313 @@ def _timeline_payload(
     }
 
 
+def _video_summaries(
+    vid: str, cands: list[suggest.Candidate]
+) -> list[tuple[list[int], dict]]:
+    """(chunk members as indices into ``cands``, summary) for one video.
+
+    ``cands`` are all of the video's segments in order. Summaries are cached
+    in summary_<ID>.json and reused while the chunk's segments, CHUNK_SEC
+    and SUMMARY_VERSION are unchanged; new ones are written chunk by chunk,
+    so an interrupted run resumes.
+    """
+    cal = suggest.calibrate_by_time(cands)
+    assessments = [suggest.assess(c) for c in cal]
+    groups = outline.split_chunks(cal)
+    path = layout.summary_path(WORK_DIR, vid)
+    cached: dict[tuple[int, ...], dict] = {}
+    if path.exists():
+        data = json.loads(path.read_text("utf-8"))
+        if (
+            data["version"] == outline.SUMMARY_VERSION
+            and data["chunk_sec"] == outline.CHUNK_SEC
+        ):
+            cached = {tuple(c["segments"]): c for c in data["chunks"]}
+    entries: list[dict] = []
+    out: list[tuple[list[int], dict]] = []
+    for k, members in enumerate(groups, start=1):
+        key = tuple(cal[i].index for i in members)
+        entry = cached.get(key)
+        if entry is None:
+            try:
+                summary, raw, seconds, errors = outline.summarize_chunk(
+                    members, cal, assessments
+                )
+            except outline.OutlineError as exc:
+                raise SystemExit(
+                    f"{vid} 第 {k} 块（片段 {key[0]}–{key[-1]}）总结失败：{exc}"
+                ) from exc
+            entry = {
+                "segments": list(key),
+                "start": round(cal[members[0]].start, 2),
+                "end": round(cal[members[-1]].end, 2),
+                "summary": summary,
+                "raw": raw,
+                "seconds": round(seconds, 1),
+                "failed_attempts": errors,
+            }
+            print(
+                f"{vid} 第 {k}/{len(groups)} 块总结 {seconds:.0f}s："
+                f"{summary['summary'][:40]}",
+                flush=True,
+            )
+        entries.append(entry)
+        out.append((members, entry["summary"]))
+        _write_json(
+            path,
+            {
+                "version": outline.SUMMARY_VERSION,
+                "chunk_sec": outline.CHUNK_SEC,
+                "video_id": vid,
+                "chunks": entries,
+            },
+        )
+    return out
+
+
+def _chunks(
+    cands: list[suggest.Candidate], offsets: dict[str, float]
+) -> list[outline.Chunk]:
+    """Chunks along the timeline, each video's from its own summaries."""
+    chunks: list[outline.Chunk] = []
+    start = 0
+    while start < len(cands):
+        vid = cands[start].video
+        end = start
+        while end < len(cands) and cands[end].video == vid:
+            end += 1
+        for members, summary in _video_summaries(vid, cands[start:end]):
+            first, last = cands[start + members[0]], cands[start + members[-1]]
+            chunks.append(
+                outline.Chunk(
+                    number=len(chunks) + 1,
+                    video=vid,
+                    members=[start + i for i in members],
+                    start=offsets.get(vid, 0.0) + first.start,
+                    end=offsets.get(vid, 0.0) + last.end,
+                    summary=summary,
+                )
+            )
+        start = end
+    return chunks
+
+
+class _Retrieval:
+    """Query embedder and the segment vectors of the selected videos."""
+
+    def __init__(self, videos: list[layout.Video]):
+        from video_demo import embed
+
+        try:
+            self.embedder = embed.EmbeddingGemmaAdapter()
+        except embed.EmbedError as exc:
+            raise SystemExit(f"向量模型不可用：{exc}") from exc
+        self.text: dict[tuple[str, int], np.ndarray] = {}
+        self.image: dict[tuple[str, int], np.ndarray] = {}
+        self.docs: dict[tuple[str, int], str] = {}
+        for video in videos:
+            try:
+                rows = _tag_rows(video.id)
+                idx = retrieve.load_index(
+                    layout.index_path(WORK_DIR, video.id),
+                    self.embedder.model,
+                    check_complete=len(rows),
+                )
+            except (SystemExit, retrieve.RetrievalError) as exc:
+                # MediaPipe's own cleanup fails once the interpreter is
+                # shutting down, so release it before exiting.
+                self.embedder.close()
+                raise SystemExit(f"{video.id} {video.file}：{exc}") from exc
+            for i, t, m in zip(idx["index"], idx["text"], idx["image"], strict=True):
+                self.text[(video.id, int(i))] = t
+                self.image[(video.id, int(i))] = m
+            for r in rows:
+                self.docs[(video.id, r["index"])] = retrieve.segment_text(r["tags"])
+
+    def _key(self, c: suggest.Candidate) -> tuple[str, int]:
+        return (c.video, c.index)
+
+    def scenes(
+        self, chunks: list[outline.Chunk], cands: list[suggest.Candidate]
+    ) -> list[outline.Scene]:
+        """Scenes along the timeline; a scene never crosses a chunk or a
+        shot cut."""
+        out: list[outline.Scene] = []
+        for ch in chunks:
+            ms = ch.members
+            keys = [self._key(cands[i]) for i in ms]
+            sim = retrieve.boundary_similarity(
+                np.stack([self.text[k] for k in keys]),
+                np.stack([self.image[k] for k in keys]),
+            )
+            shots = [cands[i].shot for i in ms]
+            hard = {p for p in range(len(ms) - 1) if shots[p] != shots[p + 1]}
+            for g in retrieve.split_scenes(
+                [cands[i].start for i in ms], [cands[i].end for i in ms], sim, hard
+            ):
+                out.append(outline.Scene(len(out) + 1, [ms[p] for p in g]))
+        return out
+
+    def relevance(
+        self,
+        plan: dict,
+        chunks: list[outline.Chunk],
+        scenes: list[outline.Scene],
+        cands: list[suggest.Candidate],
+    ) -> tuple[list[list[dict[int, float]]], list[list[dict[int, float]]], list[dict]]:
+        """Per part and scene slot: relevance of the scenes in the part's
+        chunks and of their segments, and the top five of each scene
+        ranking for the timeline file."""
+        scene_rel: list[list[dict[int, float]]] = []
+        segment_rel: list[list[dict[int, float]]] = []
+        report: list[dict] = []
+        for part in plan["parts"]:
+            pool = outline.part_scenes(part, chunks, scenes)
+            members = [i for s in pool for i in s.members]
+            keys = {i: self._key(cands[i]) for i in members}
+            docs = {i: self.docs[keys[i]] for i in members}
+            text = {i: self.text[keys[i]] for i in members}
+            image = {i: self.image[keys[i]] for i in members}
+            scene_docs = {s.number: "；".join(docs[i] for i in s.members) for s in pool}
+            scene_text = {
+                s.number: retrieve.pooled([text[i] for i in s.members]) for s in pool
+            }
+            scene_image = {
+                s.number: retrieve.pooled([image[i] for i in s.members]) for s in pool
+            }
+            numbers = [s.number for s in pool]
+            per_scene, per_segment, tops = [], [], []
+            for query in part["scenes"]:
+                vec = self.embedder.embed_query(query)
+                rel, rankings = retrieve.relevance(
+                    query, vec, numbers, scene_docs, scene_text, scene_image
+                )
+                per_scene.append(rel)
+                per_segment.append(
+                    retrieve.relevance(query, vec, members, docs, text, image)[0]
+                )
+                tops.append(
+                    {
+                        "query": query,
+                        "top": {
+                            name: ranking[:5] for name, ranking in rankings.items()
+                        },
+                    }
+                )
+            scene_rel.append(per_scene)
+            segment_rel.append(per_segment)
+            report.append({"part": part["name"], "queries": tops})
+        return scene_rel, segment_rel, report
+
+
+def _tag_rows(vid: str) -> list[dict]:
+    path = layout.tags_path(WORK_DIR, vid)
+    if not path.exists():
+        raise SystemExit(f"{vid}：还没有打标签（{path}）")
+    return [json.loads(x) for x in path.read_text("utf-8").splitlines()]
+
+
+def cmd_index(args: argparse.Namespace) -> None:
+    """Text and keyframe image vectors per segment, for retrieval fill."""
+    from video_demo import embed
+
+    videos = _selected(args)
+    try:
+        embedder = embed.EmbeddingGemmaAdapter()
+    except embed.EmbedError as exc:
+        raise SystemExit(f"向量模型不可用：{exc}") from exc
+    print(f"{embedder.model}, {embedder.dimensions} dimensions")
+    for video in videos:
+        path = layout.index_path(WORK_DIR, video.id)
+        if args.force:
+            path.unlink(missing_ok=True)
+        rows = _tag_rows(video.id)
+        sig = {s["index"]: s for s in _load_signals(video.id)}
+        kdir = layout.keyframes_dir(WORK_DIR, video.id)
+        segments = [
+            (r["index"], r["tags"], [kdir / k for k in sig[r["index"]]["keyframes"]])
+            for r in rows
+        ]
+        t0 = time.perf_counter()
+
+        def progress(n: int, total: int, vid: str = video.id, t0: float = t0) -> None:
+            if n % 50 == 0 or n == total:
+                print(f"  {vid} {n}/{total} ({time.perf_counter() - t0:.0f}s)")
+
+        try:
+            retrieve.build_index(path, embedder.model, segments, embedder, progress)
+        except retrieve.RetrievalError as exc:
+            raise SystemExit(f"{video.id} {video.file}：{exc}") from exc
+        print(f"{video.id} {video.file}: {len(segments)} segments -> {path}")
+    embedder.close()
+
+
 def _highlights_payload(
     name: str,
     cands: list[suggest.Candidate],
     target: float,
     offsets: dict[str, float],
     mode: str,
+    retrieval: _Retrieval | None = None,
 ) -> dict:
-    """Highlights: a model outline filled by rules. Ranked: score only (the
+    """Highlights: a model outline whose scene slots are filled from
+    retrieved scenes (needs ``retrieval``). Ranked: score only (the
     baseline highlights mode kept for comparison)."""
+    chunks = _chunks(cands, offsets) if mode == "highlights" else []
     cands = suggest.calibrate_by_time(cands)
     assessments = [suggest.assess(c) for c in cands]
     extra: dict[str, Any] = {}
     if mode == "ranked":
         clips, notes = suggest.build_highlights(cands, assessments, target, offsets)
     else:
-        scenes = outline.group_scenes(cands, assessments, offsets)
+        if retrieval is None:
+            raise ValueError("highlights mode needs retrieval")
+        scenes = retrieval.scenes(chunks, cands)
         try:
-            plan, raw, seconds, errors = outline.plan_outline(scenes, target)
+            plan, raw, seconds, errors = outline.plan_outline(chunks, target)
         except outline.OutlineError as exc:
             raise SystemExit(
                 f"{name}：大纲生成失败（3 次都没通过校验）：{exc}"
             ) from exc
-        clips, notes = outline.fill(plan, scenes, cands, assessments)
+        scene_rel, segment_rel, retrieved = retrieval.relevance(
+            plan, chunks, scenes, cands
+        )
+        clips, notes, slots = outline.fill(
+            plan, chunks, scenes, cands, assessments, scene_rel, segment_rel
+        )
         extra = {
+            "slots": slots,
+            "retrieval": retrieved,
             "outline": plan,
             "outline_raw": raw,
             "outline_seconds": round(seconds, 1),
             "outline_failed_attempts": errors,
+            "chunks": [
+                {
+                    "number": ch.number,
+                    "video": ch.video,
+                    "start": round(ch.start, 2),
+                    "end": round(ch.end, 2),
+                    "segments": [cands[i].index for i in ch.members],
+                    "summary": ch.summary,
+                }
+                for ch in chunks
+            ],
             "scenes": [
                 {
                     "number": sc.number,
-                    "start": round(sc.start, 2),
-                    "end": round(sc.end, 2),
-                    "segments": [[cands[i].video, cands[i].index] for i in sc.members],
+                    "video": cands[sc.members[0]].video,
+                    "start": round(
+                        offsets.get(cands[sc.members[0]].video, 0.0)
+                        + cands[sc.members[0]].start,
+                        2,
+                    ),
+                    "end": round(
+                        offsets.get(cands[sc.members[-1]].video, 0.0)
+                        + cands[sc.members[-1]].end,
+                        2,
+                    ),
+                    "segments": [cands[i].index for i in sc.members],
                 }
                 for sc in scenes
             ],
@@ -869,6 +1143,7 @@ def cmd_suggest(args: argparse.Namespace) -> None:
             tag.check_server(outline.SERVER_URL)
         except ConnectionError as exc:
             raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
+    retrieval = _Retrieval(_selected(args)) if args.mode == "highlights" else None
     every: list[suggest.Candidate] = []
     offsets: dict[str, float] = {}
     total = 0.0
@@ -882,7 +1157,12 @@ def cmd_suggest(args: argparse.Namespace) -> None:
             payload = _timeline_payload(video.id, cands, PER_VIDEO_TARGET_SEC)
         else:
             payload = _highlights_payload(
-                video.id, cands, args.ratio * analysed, {video.id: 0.0}, args.mode
+                video.id,
+                cands,
+                args.ratio * analysed,
+                {video.id: 0.0},
+                args.mode,
+                retrieval,
             )
         _write_json(layout.timeline_path(out, video.id), payload)
         kept = sum(a["keep"] for a in payload["assessments"])
@@ -893,12 +1173,18 @@ def cmd_suggest(args: argparse.Namespace) -> None:
     name = _summary_name(args.mode)
     if args.mode == "reel":
         summary = _timeline_payload(name, every, REEL_TARGET_SEC)
+    elif len(offsets) == 1:
+        # One video: the collection timeline is that video's; asking the
+        # model for a second outline would only give a different one.
+        summary = {**payload, "name": name}
     else:
         summary = _highlights_payload(
-            name, every, args.ratio * total, offsets, args.mode
+            name, every, args.ratio * total, offsets, args.mode, retrieval
         )
     _write_json(layout.timeline_path(out, name), summary)
     print(f"{name}: {len(summary['clips'])} clips {summary['total_sec']}s")
+    if retrieval:
+        retrieval.embedder.close()
 
 
 def cmd_render(args: argparse.Namespace) -> None:
@@ -981,6 +1267,13 @@ def main() -> None:
         p.add_argument("--collection", default="", help=COLLECTION_HELP)
         p.add_argument("--only", default="", help=ONLY_HELP)
         p.set_defaults(func=func)
+    p_index = sub.add_parser(
+        "index", help="EmbeddingGemma 2 text and image vectors per segment"
+    )
+    p_index.add_argument("--force", action="store_true", help="rebuild the index")
+    p_index.add_argument("--collection", default="", help=COLLECTION_HELP)
+    p_index.add_argument("--only", default="", help=ONLY_HELP)
+    p_index.set_defaults(func=cmd_index)
     p_tag = sub.add_parser("tag")
     p_tag.add_argument("--collection", default="", help=COLLECTION_HELP)
     p_tag.add_argument("--only", default="", help=ONLY_HELP)

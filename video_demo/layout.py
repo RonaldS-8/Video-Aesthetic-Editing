@@ -277,6 +277,16 @@ def aesthetic_path(work: Path, vid: str) -> Path:
     return work / "aesthetic" / f"aesthetic_{vid}.jsonl"
 
 
+def index_path(work: Path, vid: str) -> Path:
+    """Text and image vectors per segment (EmbeddingGemma 2)."""
+    return work / "index" / f"index_{vid}.npz"
+
+
+def summary_path(work: Path, vid: str) -> Path:
+    """Chunk summaries for the highlights outline (cached per video)."""
+    return work / "summaries" / f"summary_{vid}.json"
+
+
 def compare_path(work: Path, model: str, vid: str) -> Path:
     """Scores from a model compared against DOVER (``quality`` stage)."""
     kind = model.replace("-", "_")
