@@ -1016,6 +1016,7 @@ def main() -> None:
     ):
         p = sub.add_parser(name)
         p.add_argument("--collection", default="vlog", help=COLLECTION_HELP)
+        p.add_argument("--only", default="", help=ONLY_HELP)
         p.add_argument(
             "--out",
             type=Path,

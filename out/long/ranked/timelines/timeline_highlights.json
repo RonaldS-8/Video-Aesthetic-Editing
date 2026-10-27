@@ -1,0 +1,4814 @@
+{
+  "name": "highlights",
+  "mode": "ranked",
+  "target_sec": 670.1,
+  "total_sec": 678.98,
+  "notes": [],
+  "clips": [
+    {
+      "order": 0,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 2,
+      "src_start": 19.981,
+      "src_end": 29.972,
+      "description": "镜头在一条充满历史感的欧洲街道上移动，记录了行人和周围建筑。",
+      "reason": "得分 4.2，中景，街头、旅游景点、历史建筑",
+      "duration": 9.991
+    },
+    {
+      "order": 1,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 4,
+      "src_start": 39.962,
+      "src_end": 49.953,
+      "description": "一条石板路的街道上，行人来往，镜头跟随一位穿蓝色外套的人移动。",
+      "reason": "得分 4.2，中景，街道、人行道、步行",
+      "duration": 9.991
+    },
+    {
+      "order": 2,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 6,
+      "src_start": 59.944,
+      "src_end": 69.934,
+      "description": "镜头从低角度仰拍一座哥特式教堂，随着拍摄时间推移，右侧塔楼的脚手架逐渐出现。",
+      "reason": "得分 4.8，近景，教堂、哥特式建筑、仰拍",
+      "duration": 9.99
+    },
+    {
+      "order": 3,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 7,
+      "src_start": 69.934,
+      "src_end": 79.925,
+      "description": "镜头从低角度仰拍一座被脚手架包围的古老教堂，随着拍摄者缓慢上移，逐渐揭示出建筑细节和施工人员。",
+      "reason": "得分 4.5，远景，建筑施工、教堂、仰拍",
+      "duration": 9.991
+    },
+    {
+      "order": 4,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 8,
+      "src_start": 79.925,
+      "src_end": 89.915,
+      "description": "镜头从低角度仰拍一座被脚手架包围的哥特式教堂，天空晴朗，逐渐露出教堂的全貌。",
+      "reason": "得分 4.2，远景，建筑、教堂、施工",
+      "duration": 9.99
+    },
+    {
+      "order": 5,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 12,
+      "src_start": 119.887,
+      "src_end": 129.878,
+      "description": "一条铺着鹅卵石的欧洲街道上，双层巴士和行人从不同角度出现。",
+      "reason": "得分 4.5，远景，街景、双层巴士、城市交通",
+      "duration": 9.991
+    },
+    {
+      "order": 6,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 14,
+      "src_start": 139.868,
+      "src_end": 149.859,
+      "description": "城市街道上，车辆和行人穿梭，镜头缓慢向前移动。",
+      "reason": "得分 4.4，远景，城市街景、交通、行人",
+      "duration": 9.991
+    },
+    {
+      "order": 7,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 21,
+      "src_start": 209.803,
+      "src_end": 219.793,
+      "description": "一名骑行者在石板路上前行，镜头从远处缓缓推近，聚焦于前方的教堂和雕像。",
+      "reason": "得分 4.4，远景，城市风光、历史建筑、旅游景点",
+      "duration": 9.99
+    },
+    {
+      "order": 8,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 22,
+      "src_start": 219.793,
+      "src_end": 229.784,
+      "description": "镜头从一座哥特式教堂和其旁的雕像上缓缓向上移动，展示建筑细节。",
+      "reason": "得分 4.7，远景，历史建筑、哥特式教堂、城市景观",
+      "duration": 9.991
+    },
+    {
+      "order": 9,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 23,
+      "src_start": 229.784,
+      "src_end": 239.774,
+      "description": "镜头缓慢向上移动,展示一座哥特式教堂的宏伟立面和彩色玻璃窗",
+      "reason": "得分 4.8，远景，建筑、教堂、哥特式",
+      "duration": 9.99
+    },
+    {
+      "order": 10,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 24,
+      "src_start": 239.774,
+      "src_end": 249.765,
+      "description": "镜头从教堂正面缓缓上移，展示其宏伟的哥特式建筑和精美的彩色玻璃窗。",
+      "reason": "得分 4.7，远景，教堂、哥特式建筑、彩色玻璃窗",
+      "duration": 9.991
+    },
+    {
+      "order": 11,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 58,
+      "src_start": 579.455,
+      "src_end": 589.445,
+      "description": "城市街景中，一座高耸的钟楼和古典建筑在晴朗天空下矗立，街道上有行人和车辆。",
+      "reason": "得分 4.8，远景，城市风光、历史建筑、街景",
+      "duration": 9.99
+    },
+    {
+      "order": 12,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 63,
+      "src_start": 629.408,
+      "src_end": 639.398,
+      "description": "一辆DPD快递货车在城市街道上行驶，镜头从车侧跟拍并逐渐拉远，展示了街景、其他车辆和沿街店铺。",
+      "reason": "得分 4.6，中景，城市街景、DPD快递、货运车辆",
+      "duration": 9.99
+    },
+    {
+      "order": 13,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 66,
+      "src_start": 659.38,
+      "src_end": 669.37,
+      "description": "一辆红色公交车在城市街道上行驶，行人和商店沿街而立。",
+      "reason": "得分 4.2，中景，城市街景、公共交通、行人",
+      "duration": 9.99
+    },
+    {
+      "order": 14,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 74,
+      "src_start": 739.304,
+      "src_end": 749.295,
+      "description": "一对男女在街边人行道上行走，途中经过一辆绿色踏板车和红绿灯。",
+      "reason": "得分 4.1，中景，街景、行人、城市生活",
+      "duration": 9.991
+    },
+    {
+      "order": 15,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 84,
+      "src_start": 839.21,
+      "src_end": 849.201,
+      "description": "城市街道上，行人和车辆在阳光下移动，路边停放着汽车和自行车。",
+      "reason": "得分 4.1，中景，城市街景、日常出行、阳光",
+      "duration": 9.991
+    },
+    {
+      "order": 16,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 85,
+      "src_start": 849.201,
+      "src_end": 859.192,
+      "description": "城市街道上，一辆蓝色SUV和一辆深蓝色劳斯莱斯停在路边，背景是古典建筑和一座雕像。",
+      "reason": "得分 4.6，中景，街景、城市风光、汽车",
+      "duration": 9.991
+    },
+    {
+      "order": 17,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 106,
+      "src_start": 1059.103,
+      "src_end": 1069.102,
+      "description": "城市街道上车辆行驶，背景为一座大型古典建筑。",
+      "reason": "得分 4.7，中景，城市街景、建筑、交通",
+      "duration": 9.999
+    },
+    {
+      "order": 18,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 107,
+      "src_start": 1069.102,
+      "src_end": 1079.102,
+      "description": "城市街道上车辆行驶，一辆红色出租车和骑自行车的人出现。",
+      "reason": "得分 4.5，中景，街景、城市交通、日间",
+      "duration": 10.0
+    },
+    {
+      "order": 19,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 109,
+      "src_start": 1089.102,
+      "src_end": 1099.101,
+      "description": "镜头从一个建筑入口处缓慢向右移动，展示了一座大型古典建筑及其前广场上的行人和一辆白色货车。",
+      "reason": "得分 4.2，远景，建筑、城市广场、行人",
+      "duration": 9.999
+    },
+    {
+      "order": 20,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 118,
+      "src_start": 1179.098,
+      "src_end": 1189.098,
+      "description": "镜头从一座大型历史建筑前的广场开始，逐渐拉近并聚焦于一位母亲和两个孩子在广场上行走。",
+      "reason": "得分 4.2，远景，城市广场、家庭、建筑",
+      "duration": 10.0
+    },
+    {
+      "order": 21,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 140,
+      "src_start": 1399.09,
+      "src_end": 1409.089,
+      "description": "红色双层巴士在城市街道上行驶，周围有行人和建筑。",
+      "reason": "得分 4.6，中景，城市街景、红色巴士、行人",
+      "duration": 9.999
+    },
+    {
+      "order": 22,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 141,
+      "src_start": 1409.089,
+      "src_end": 1419.089,
+      "description": "红色双层巴士在城市街道上行驶，镜头从后方跟随并逐渐拉近，展示巴士尾部和周围行人。",
+      "reason": "得分 4.3，中景，城市街景、双层巴士、旅游观光",
+      "duration": 10.0
+    },
+    {
+      "order": 23,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 143,
+      "src_start": 1429.088,
+      "src_end": 1439.088,
+      "description": "城市街道上行人和车辆在日间活动，包括步行、骑行和交通。",
+      "reason": "得分 4.1，中景，城市生活、街景、交通",
+      "duration": 10.0
+    },
+    {
+      "order": 24,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 144,
+      "src_start": 1439.088,
+      "src_end": 1449.088,
+      "description": "一名骑自行车的人在街角等待过马路，一辆双层巴士从对面驶来，背景是城市街道。",
+      "reason": "得分 4.5，中景，城市街景、交通、自行车",
+      "duration": 10.0
+    },
+    {
+      "order": 25,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 145,
+      "src_start": 1449.088,
+      "src_end": 1459.087,
+      "description": "城市街道十字路口，行人正在过马路，一辆公交车和汽车在附近行驶。",
+      "reason": "得分 4.3，中景，街头生活、城市交通、行人过街",
+      "duration": 9.999
+    },
+    {
+      "order": 26,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 146,
+      "src_start": 1459.087,
+      "src_end": 1469.087,
+      "description": "城市街道上行人行走，其中一位女性在风中行走时头发飘动。",
+      "reason": "得分 4.2，中景，街头、行人、风",
+      "duration": 10.0
+    },
+    {
+      "order": 27,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 152,
+      "src_start": 1519.085,
+      "src_end": 1529.085,
+      "description": "一座古典石砌建筑前，一名女子在台阶上行走，另一名男子从门口走出。",
+      "reason": "得分 4.5，远景，建筑、行人、户外",
+      "duration": 10.0
+    },
+    {
+      "order": 28,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 166,
+      "src_start": 1659.08,
+      "src_end": 1669.079,
+      "description": "镜头从一个街边垃圾桶开始，逐渐向右移动，记录了行人和车辆在城市街道上的活动。",
+      "reason": "得分 4.3，中景，街景、城市生活、行人",
+      "duration": 9.999
+    },
+    {
+      "order": 29,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 167,
+      "src_start": 1669.079,
+      "src_end": 1679.079,
+      "description": "镜头从一条城市街道上向前移动，路边有铁栅栏、建筑和垃圾桶。",
+      "reason": "得分 4.1，中景，城市街景、移动镜头、建筑",
+      "duration": 10.0
+    },
+    {
+      "order": 30,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 169,
+      "src_start": 1689.078,
+      "src_end": 1699.078,
+      "description": "镜头从一座红砖建筑的侧面缓慢向右移动，展示了其复杂的屋顶和窗户。",
+      "reason": "得分 4.4，中景，建筑、红砖建筑、城市景观",
+      "duration": 10.0
+    },
+    {
+      "order": 31,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 173,
+      "src_start": 1729.077,
+      "src_end": 1739.076,
+      "description": "一条铺着鹅卵石的街道上，一辆银色汽车停在路边，行人从人行道上走过。",
+      "reason": "得分 4.4，中景，街景、日常、城市生活",
+      "duration": 9.999
+    },
+    {
+      "order": 32,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 177,
+      "src_start": 1769.075,
+      "src_end": 1779.075,
+      "description": "一条铺着鹅卵石的欧洲风格街道，两侧是古典建筑，阳光从建筑物间照射下来，路上有车辆和行人。",
+      "reason": "得分 4.1，中景，城市街景、黄昏、建筑",
+      "duration": 10.0
+    },
+    {
+      "order": 33,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 180,
+      "src_start": 1799.074,
+      "src_end": 1809.074,
+      "description": "城市街道上，车辆沿街停放，镜头缓慢向前移动。",
+      "reason": "得分 4.5，中景，街景、城市、车辆",
+      "duration": 10.0
+    },
+    {
+      "order": 34,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 197,
+      "src_start": 1969.068,
+      "src_end": 1979.067,
+      "description": "一名背着背包的人在城市广场上行走，背景是历史建筑和纪念碑。",
+      "reason": "得分 4.5，中景，城市景观、历史建筑、广场",
+      "duration": 9.999
+    },
+    {
+      "order": 35,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 198,
+      "src_start": 1979.067,
+      "src_end": 1989.067,
+      "description": "镜头从一座高大的石柱建筑上缓缓向上移动，天空由白天逐渐变为黄昏。",
+      "reason": "得分 4.5，中景，建筑、历史、黄昏",
+      "duration": 10.0
+    },
+    {
+      "order": 36,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 225,
+      "src_start": 2249.057,
+      "src_end": 2259.056,
+      "description": "镜头从一座现代建筑外景开始，逐渐向右移动并拉远，展示了建筑的入口、台阶以及背景中的历史建筑。",
+      "reason": "得分 4.4，远景，建筑、城市景观、现代与传统",
+      "duration": 9.999
+    },
+    {
+      "order": 37,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 228,
+      "src_start": 2279.056,
+      "src_end": 2289.055,
+      "description": "一条铺着鹅卵石的街道，两侧是古典建筑和停放的车辆，镜头从左向右移动。",
+      "reason": "得分 4.1，远景，城市街景、鹅卵石街道、建筑",
+      "duration": 9.999
+    },
+    {
+      "order": 38,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 229,
+      "src_start": 2289.055,
+      "src_end": 2299.055,
+      "description": "一条铺着鹅卵石的街道，两侧是建筑，有行人和车辆在移动。",
+      "reason": "得分 4.4，中景，街景、城市生活、日常",
+      "duration": 10.0
+    },
+    {
+      "order": 39,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 230,
+      "src_start": 2299.055,
+      "src_end": 2309.054,
+      "description": "一条铺着鹅卵石的街道上，行人和车辆在移动，镜头从左向右平移。",
+      "reason": "得分 4.3，中景，城市街道、行人、鹅卵石路面",
+      "duration": 9.999
+    },
+    {
+      "order": 40,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 235,
+      "src_start": 2349.053,
+      "src_end": 2359.053,
+      "description": "一个现代建筑的户外广场，有行人走过。",
+      "reason": "得分 4.3，远景，校园、建筑、户外",
+      "duration": 10.0
+    },
+    {
+      "order": 41,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 244,
+      "src_start": 2439.049,
+      "src_end": 2449.049,
+      "description": "镜头从一座清真寺建筑群缓慢拉远，展现其宏伟的外观和周围的城市环境。",
+      "reason": "得分 4.6，远景，清真寺、城市景观、建筑",
+      "duration": 10.0
+    },
+    {
+      "order": 42,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 245,
+      "src_start": 2449.049,
+      "src_end": 2459.049,
+      "description": "一座清真寺及其周边现代建筑在白天的街景中。",
+      "reason": "得分 4.5，远景，清真寺、城市街景、建筑",
+      "duration": 10.0
+    },
+    {
+      "order": 43,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 262,
+      "src_start": 2619.042,
+      "src_end": 2629.042,
+      "description": "一条城市街道，路边有石砌建筑和黑色铁栅栏，街上有车辆行驶。",
+      "reason": "得分 4.3，中景，街景、城市、建筑",
+      "duration": 10.0
+    },
+    {
+      "order": 44,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 263,
+      "src_start": 2629.042,
+      "src_end": 2639.042,
+      "description": "一条欧洲风格的石板街道，路边停着汽车，有行人走动。",
+      "reason": "得分 4.4，中景，街景、城市生活、日常",
+      "duration": 10.0
+    },
+    {
+      "order": 45,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 264,
+      "src_start": 2639.042,
+      "src_end": 2649.041,
+      "description": "镜头沿一条欧洲风格的街道缓慢移动，路边停着多辆汽车。",
+      "reason": "得分 4.4，中景，街景、城市、车辆",
+      "duration": 9.999
+    },
+    {
+      "order": 46,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 270,
+      "src_start": 2699.039,
+      "src_end": 2709.039,
+      "description": "城市街道上，一辆红色货车和一名穿高亮背心的工作人员出现，随后一辆双层巴士驶入画面。",
+      "reason": "得分 4.2，中景，城市街景、交通、货车",
+      "duration": 10.0
+    },
+    {
+      "order": 47,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 278,
+      "src_start": 2779.036,
+      "src_end": 2789.036,
+      "description": "城市街道上，行人和车辆在繁忙的十字路口穿行，一辆双层巴士经过，场景中主要显示了商店、交通和行人。",
+      "reason": "得分 4.7，全景，城市街景、交通、行人",
+      "duration": 10.0
+    },
+    {
+      "order": 48,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 279,
+      "src_start": 2789.036,
+      "src_end": 2799.036,
+      "description": "一名骑摩托车的人在街角经过，周围有行人和车辆。",
+      "reason": "得分 4.3，中景，街景、城市生活、交通",
+      "duration": 10.0
+    },
+    {
+      "order": 49,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 281,
+      "src_start": 2809.035,
+      "src_end": 2819.035,
+      "description": "行人走在城市街道上，路上有双层巴士和车辆。",
+      "reason": "得分 4.2，中景，街景、行人、公交",
+      "duration": 10.0
+    },
+    {
+      "order": 50,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 282,
+      "src_start": 2819.035,
+      "src_end": 2829.034,
+      "description": "一位女士在城市街道上行走，路上有公交车和行人。",
+      "reason": "得分 4.7，中景，街景、城市交通、行人",
+      "duration": 9.999
+    },
+    {
+      "order": 51,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 287,
+      "src_start": 2869.033,
+      "src_end": 2879.032,
+      "description": "一群人在公交站台排队等候公交车，背景是城市街道。",
+      "reason": "得分 4.3，中景，公交站台、城市生活、人群",
+      "duration": 9.999
+    },
+    {
+      "order": 52,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 293,
+      "src_start": 2929.031,
+      "src_end": 2939.03,
+      "description": "镜头从一个带有'请耐心等候'标志的街景开始，缓慢向上移动拍摄一座正在维修的教堂。",
+      "reason": "得分 4.6，远景，建筑、维修、教堂",
+      "duration": 9.999
+    },
+    {
+      "order": 53,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 294,
+      "src_start": 2939.03,
+      "src_end": 2949.03,
+      "description": "城市街道上一座教堂正在进行施工,周围有行人和车辆,场景为白天。",
+      "reason": "得分 4.3，中景，城市街景、建筑施工、教堂",
+      "duration": 10.0
+    },
+    {
+      "order": 54,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 295,
+      "src_start": 2949.03,
+      "src_end": 2959.029,
+      "description": "一名穿黄色外套的女子在有脚手架的街道上行走，经过交通信号灯和行人。",
+      "reason": "得分 4.6，中景，街头、行人、建筑工地",
+      "duration": 9.999
+    },
+    {
+      "order": 55,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 303,
+      "src_start": 3029.027,
+      "src_end": 3039.026,
+      "description": "城市街道上，双层巴士、汽车和行人依次经过，镜头从左向右移动。",
+      "reason": "得分 4.5，中景，城市街景、交通、双层巴士",
+      "duration": 9.999
+    },
+    {
+      "order": 56,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 304,
+      "src_start": 3039.026,
+      "src_end": 3049.026,
+      "description": "一名背着黑色背包的男孩在城市街道上行走，周围有行人、车辆和双层巴士。",
+      "reason": "得分 4.5，中景，街头、城市生活、年轻人",
+      "duration": 10.0
+    },
+    {
+      "order": 57,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 306,
+      "src_start": 3059.025,
+      "src_end": 3069.025,
+      "description": "城市街道上行人和车辆在移动，镜头跟随人群前进。",
+      "reason": "得分 4.4，中景，街头、行人、城市",
+      "duration": 10.0
+    },
+    {
+      "order": 58,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 309,
+      "src_start": 3089.024,
+      "src_end": 3099.024,
+      "description": "一条欧洲风格的步行街，人们在街上行走和购物。",
+      "reason": "得分 4.2，中景，街景、步行街、欧洲风情",
+      "duration": 10.0
+    },
+    {
+      "order": 59,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 313,
+      "src_start": 3129.023,
+      "src_end": 3139.022,
+      "description": "城市街道上行人和车辆在红绿灯下通行。",
+      "reason": "得分 4.1，中景，城市街景、行人、红绿灯",
+      "duration": 9.999
+    },
+    {
+      "order": 60,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 317,
+      "src_start": 3169.021,
+      "src_end": 3179.021,
+      "description": "城市街道上车辆和行人活动，远处可见城堡，镜头缓慢推进。",
+      "reason": "得分 4.4，中景，城市街景、城堡、街道",
+      "duration": 10.0
+    },
+    {
+      "order": 61,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 323,
+      "src_start": 3229.019,
+      "src_end": 3239.019,
+      "description": "一位女士在有施工围挡的城市人行道上行走，背景是桥梁和建筑。",
+      "reason": "得分 4.4，中景，城市街景、人行道、施工",
+      "duration": 10.0
+    },
+    {
+      "order": 62,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 354,
+      "src_start": 3539.007,
+      "src_end": 3549.007,
+      "description": "地铁站内自动扶梯上的人群上下移动，镜头跟随人物动态。",
+      "reason": "得分 4.3，中景，地铁、自动扶梯、人群",
+      "duration": 10.0
+    },
+    {
+      "order": 63,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 359,
+      "src_start": 3589.005,
+      "src_end": 3599.005,
+      "description": "一个户外广场上的纪念碑和城市景观，随着镜头缓慢推进，展示了不同角度的景物。",
+      "reason": "得分 4.5，远景，城市景观、纪念碑、户外",
+      "duration": 10.0
+    },
+    {
+      "order": 64,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 362,
+      "src_start": 3619.004,
+      "src_end": 3629.003,
+      "description": "城市街道上双层巴士和行人，镜头跟随巴士移动。",
+      "reason": "得分 4.7，中景，城市交通、双层巴士、街景",
+      "duration": 9.999
+    },
+    {
+      "order": 65,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 384,
+      "src_start": 3835.64,
+      "src_end": 3845.36,
+      "description": "镜头从远处拍摄苏格兰国家美术馆建筑群，逐渐拉近并聚焦于其标志性的立牌。",
+      "reason": "得分 4.6，远景，建筑、苏格兰国家美术馆、地标",
+      "duration": 9.72
+    },
+    {
+      "order": 66,
+      "role": "精彩",
+      "video": "b0f6010d8cdbbc67",
+      "index": 397,
+      "src_start": 3962.001,
+      "src_end": 3971.721,
+      "description": "一名女子和另一名男子在街边人行道上行走，路边有施工围栏。",
+      "reason": "得分 4.4，中景，街景、人行道、行人",
+      "duration": 9.72
+    },
+    {
+      "order": 67,
+      "role": "覆盖",
+      "video": "b0f6010d8cdbbc67",
+      "index": 401,
+      "src_start": 4000.881,
+      "src_end": 4010.601,
+      "description": "镜头从一座大型石制建筑前的花坛开始,逐渐向上移动并聚焦于其复杂的哥特式结构。",
+      "reason": "得分 4.7，中景，城市景观、历史建筑、哥特式风格",
+      "duration": 9.72
+    }
+  ],
+  "assessments": [
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 0,
+      "score": 2.626,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.054 / 美学 +0.068）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 1,
+      "score": 1.978,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.18（技术 -0.039 / 美学 +0.036）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 2,
+      "score": 4.181,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.81（技术 -0.025 / 美学 +0.074）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 3,
+      "score": 3.99,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.75（技术 -0.030 / 美学 +0.075）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 4,
+      "score": 4.193,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.87（技术 -0.025 / 美学 +0.080）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 5,
+      "score": 3.457,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.64（技术 -0.032 / 美学 +0.068）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 6,
+      "score": 4.796,
+      "keep": true,
+      "reasons": [
+        "美学模型 1.00（技术 -0.010 / 美学 +0.129）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 7,
+      "score": 4.463,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.89（技术 -0.037 / 美学 +0.093）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 8,
+      "score": 4.172,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.80（技术 -0.036 / 美学 +0.083）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 9,
+      "score": 1.936,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.17（技术 -0.042 / 美学 +0.036）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 10,
+      "score": 2.107,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.16（技术 -0.035 / 美学 +0.029）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 11,
+      "score": 3.699,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.034 / 美学 +0.071）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 12,
+      "score": 4.534,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.92（技术 -0.030 / 美学 +0.092）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 13,
+      "score": 3.831,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.76（技术 -0.027 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 14,
+      "score": 4.438,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.89（技术 -0.024 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 15,
+      "score": 3.158,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.039 / 美学 +0.063）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 16,
+      "score": 3.15,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.030 / 美学 +0.059）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 17,
+      "score": 2.302,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.22（技术 -0.044 / 美学 +0.046）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 18,
+      "score": 2.053,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.14（技术 -0.034 / 美学 +0.026）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 19,
+      "score": 2.535,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.29（技术 -0.040 / 美学 +0.048）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 20,
+      "score": 2.801,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.035 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 21,
+      "score": 4.422,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.024 / 美学 +0.080）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 22,
+      "score": 4.704,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.97（技术 -0.017 / 美学 +0.097）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 23,
+      "score": 4.779,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.99（技术 -0.020 / 美学 +0.124）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 24,
+      "score": 4.721,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.98（技术 -0.019 / 美学 +0.103）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 25,
+      "score": 1.344,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.23（技术 -0.064 / 美学 +0.064）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 26,
+      "score": 2.824,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.076 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 27,
+      "score": 1.812,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.07（技术 -0.080 / 美学 +0.044）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 28,
+      "score": 3.329,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.85（技术 -0.053 / 美学 +0.094）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 29,
+      "score": 2.169,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.24（技术 -0.057 / 美学 +0.058）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 30,
+      "score": 1.854,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.08（技术 -0.056 / 美学 +0.030）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 31,
+      "score": 2.265,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.045 / 美学 +0.071）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 315）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 32,
+      "score": -1.618,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.09（技术 -0.093 / 美学 +0.033）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 71）",
+        "抖动明显",
+        "非夜景但亮度过低"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 33,
+      "score": 0.694,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.03（技术 -0.116 / 美学 +0.007）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "非夜景但亮度过低"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 34,
+      "score": 1.487,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.03（技术 -0.087 / 美学 +0.030）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 35,
+      "score": 0.662,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.02（技术 -0.107 / 美学 +0.033）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 36,
+      "score": 2.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.069 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 37,
+      "score": 0.135,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.32（技术 -0.081 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 328）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 38,
+      "score": 3.512,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.60（技术 -0.054 / 美学 +0.082）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 39,
+      "score": 2.873,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.046 / 美学 +0.085）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 40,
+      "score": 1.895,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.09（技术 -0.071 / 美学 +0.046）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 41,
+      "score": 2.859,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.39（技术 -0.041 / 美学 +0.058）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 42,
+      "score": 2.107,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.16（技术 -0.046 / 美学 +0.037）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 43,
+      "score": 2.144,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.17（技术 -0.052 / 美学 +0.045）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 44,
+      "score": 1.687,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.09（技术 -0.035 / 美学 +0.017）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 45,
+      "score": 2.41,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.32（技术 -0.039 / 美学 +0.050）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 46,
+      "score": 3.574,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.038 / 美学 +0.070）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 47,
+      "score": 2.468,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.33（技术 -0.034 / 美学 +0.047）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 48,
+      "score": 2.336,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.23（技术 -0.037 / 美学 +0.042）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 49,
+      "score": 2.394,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.25（技术 -0.046 / 美学 +0.050）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 50,
+      "score": 2.169,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.18（技术 -0.037 / 美学 +0.034）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 51,
+      "score": 1.945,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.11（技术 -0.058 / 美学 +0.040）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 52,
+      "score": 3.005,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.034 / 美学 +0.056）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 53,
+      "score": 2.926,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.41（技术 -0.034 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 54,
+      "score": 1.87,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.15（技术 -0.045 / 美学 +0.036）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 55,
+      "score": 2.161,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.18（技术 -0.040 / 美学 +0.035）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 56,
+      "score": 2.036,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.14（技术 -0.035 / 美学 +0.026）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 57,
+      "score": 2.984,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.43（技术 -0.034 / 美学 +0.055）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 58,
+      "score": 4.771,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.99（技术 -0.018 / 美学 +0.119）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 59,
+      "score": 3.125,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.48（技术 -0.033 / 美学 +0.058）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 60,
+      "score": 1.903,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.09（技术 -0.044 / 美学 +0.025）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 61,
+      "score": 1.62,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.07（技术 -0.048 / 美学 +0.018）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 62,
+      "score": 2.377,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.040 / 美学 +0.050）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 63,
+      "score": 4.588,
+      "keep": true,
+      "reasons": [
+        "美学模型 1.00（技术 -0.022 / 美学 +0.130）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 64,
+      "score": 3.229,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.51（技术 -0.029 / 美学 +0.056）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 65,
+      "score": 3.781,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.025 / 美学 +0.070）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 66,
+      "score": 4.156,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.80（技术 -0.027 / 美学 +0.075）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 67,
+      "score": 4.006,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.75（技术 -0.024 / 美学 +0.070）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 68,
+      "score": 3.233,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.57（技术 -0.024 / 美学 +0.056）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 69,
+      "score": 2.701,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.41（技术 -0.025 / 美学 +0.046）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 70,
+      "score": 3.512,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.60（技术 -0.029 / 美学 +0.062）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 71,
+      "score": 3.674,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.65（技术 -0.029 / 美学 +0.065）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 72,
+      "score": 3.948,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.80（技术 -0.031 / 美学 +0.078）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 73,
+      "score": 3.898,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.78（技术 -0.034 / 美学 +0.080）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 74,
+      "score": 4.131,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.79（技术 -0.028 / 美学 +0.075）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 75,
+      "score": 3.915,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.72（技术 -0.030 / 美学 +0.074）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 76,
+      "score": 2.443,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.33（技术 -0.031 / 美学 +0.044）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 77,
+      "score": 1.804,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.06（技术 -0.065 / 美学 +0.031）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 78,
+      "score": 2.194,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.19（技术 -0.056 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 79,
+      "score": 3.665,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.65（技术 -0.048 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 80,
+      "score": 3.266,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.032 / 美学 +0.063）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 81,
+      "score": 3.623,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.040 / 美学 +0.078）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 82,
+      "score": 3.648,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.70（技术 -0.030 / 美学 +0.071）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 83,
+      "score": 3.183,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.56（技术 -0.031 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 84,
+      "score": 4.122,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.85（技术 -0.028 / 美学 +0.080）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 85,
+      "score": 4.571,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.93（技术 -0.024 / 美学 +0.089）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 86,
+      "score": 3.454,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.041 / 美学 +0.069）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 87,
+      "score": 3.308,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.030 / 美学 +0.059）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 88,
+      "score": 3.565,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.035 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 89,
+      "score": 3.382,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.035 / 美学 +0.068）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 90,
+      "score": 3.856,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.77（技术 -0.040 / 美学 +0.084）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 91,
+      "score": 3.807,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.027 / 美学 +0.068）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 92,
+      "score": 2.95,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.48（技术 -0.032 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 93,
+      "score": 2.892,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.043 / 美学 +0.065）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 94,
+      "score": 0.362,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.08（技术 -0.063 / 美学 +0.036）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 359）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 95,
+      "score": 3.084,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.46（技术 -0.043 / 美学 +0.065）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 96,
+      "score": 2.934,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.48（技术 -0.029 / 美学 +0.055）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 97,
+      "score": 3.424,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.63（技术 -0.024 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 98,
+      "score": 3.869,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.77（技术 -0.027 / 美学 +0.074）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 99,
+      "score": 4.064,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.83（技术 -0.027 / 美学 +0.078）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 100,
+      "score": 2.559,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.36（技术 -0.043 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 101,
+      "score": 1.77,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.032 / 美学 +0.021）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 102,
+      "score": 3.519,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.033 / 美学 +0.070）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 103,
+      "score": 3.449,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.64（技术 -0.031 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 104,
+      "score": 2.314,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.29（技术 -0.045 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 105,
+      "score": 1.671,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.02（技术 -0.080 / 美学 +0.017）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 106,
+      "score": 4.679,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.96（技术 -0.028 / 美学 +0.100）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 107,
+      "score": 4.529,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.98（技术 -0.026 / 美学 +0.109）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 108,
+      "score": 2.568,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.36（技术 -0.044 / 美学 +0.059）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 109,
+      "score": 4.155,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.86（技术 -0.039 / 美学 +0.090）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 110,
+      "score": 4.022,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.82（技术 -0.046 / 美学 +0.092）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 111,
+      "score": 3.372,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.87（技术 -0.034 / 美学 +0.086）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 112,
+      "score": 2.751,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.36（技术 -0.040 / 美学 +0.055）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 113,
+      "score": 3.965,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.038 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 114,
+      "score": 3.595,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.035 / 美学 +0.068）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 115,
+      "score": 2.26,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.27（技术 -0.044 / 美学 +0.050）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 116,
+      "score": 2.385,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.040 / 美学 +0.050）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 117,
+      "score": 2.975,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.051 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 118,
+      "score": 4.193,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.87（技术 -0.038 / 美学 +0.090）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 119,
+      "score": 2.185,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.25（技术 -0.041 / 美学 +0.046）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 120,
+      "score": 2.261,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.21（技术 -0.045 / 美学 +0.045）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 121,
+      "score": 3.241,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.034 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 122,
+      "score": 1.937,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.11（技术 -0.048 / 美学 +0.031）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 123,
+      "score": 2.485,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.28（技术 -0.046 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 124,
+      "score": 2.792,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.033 / 美学 +0.055）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 125,
+      "score": 3.208,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.56（技术 -0.028 / 美学 +0.058）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 126,
+      "score": 2.742,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.42（技术 -0.031 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 127,
+      "score": 1.728,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.10（技术 -0.041 / 美学 +0.025）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 128,
+      "score": 1.786,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.041 / 美学 +0.028）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 129,
+      "score": 1.779,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.06（技术 -0.054 / 美学 +0.021）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 130,
+      "score": 2.069,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.21（技术 -0.035 / 美学 +0.037）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 131,
+      "score": 3.166,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.046 / 美学 +0.072）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 132,
+      "score": 2.202,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.25（技术 -0.058 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 133,
+      "score": 1.431,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.26（技术 -0.043 / 美学 +0.048）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 134,
+      "score": 3.641,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.64（技术 -0.029 / 美学 +0.064）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 135,
+      "score": 3.557,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.032 / 美学 +0.065）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 136,
+      "score": 3.582,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.035 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 137,
+      "score": 4.039,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.82（技术 -0.027 / 美学 +0.077）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 138,
+      "score": 3.395,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.034 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 139,
+      "score": 2.983,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.032 / 美学 +0.058）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 140,
+      "score": 4.563,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.93（技术 -0.025 / 美学 +0.089）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 141,
+      "score": 4.272,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.84（技术 -0.021 / 美学 +0.073）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 142,
+      "score": 2.868,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.40（技术 -0.022 / 美学 +0.043）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 143,
+      "score": 4.089,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.78（技术 -0.021 / 美学 +0.069）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 144,
+      "score": 4.497,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.91（技术 -0.027 / 美学 +0.087）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 145,
+      "score": 4.339,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.86（技术 -0.028 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 146,
+      "score": 4.231,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.82（技术 -0.027 / 美学 +0.077）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 147,
+      "score": 4.056,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.83（技术 -0.027 / 美学 +0.077）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 148,
+      "score": 2.418,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.32（技术 -0.035 / 美学 +0.047）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 149,
+      "score": 1.56,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.30（技术 -0.046 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 150,
+      "score": 2.543,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.36（技术 -0.053 / 美学 +0.065）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 151,
+      "score": 3.998,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.75（技术 -0.037 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 152,
+      "score": 4.505,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.91（技术 -0.028 / 美学 +0.088）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 153,
+      "score": 2.314,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.29（技术 -0.051 / 美学 +0.056）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 154,
+      "score": 2.66,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.33（技术 -0.047 / 美学 +0.058）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 155,
+      "score": 4.023,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.76（技术 -0.033 / 美学 +0.078）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 156,
+      "score": 3.005,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.047 / 美学 +0.066）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 157,
+      "score": 3.391,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.56（技术 -0.035 / 美学 +0.064）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 158,
+      "score": 3.657,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.028 / 美学 +0.070）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 159,
+      "score": 2.759,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.42（技术 -0.039 / 美学 +0.059）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 160,
+      "score": 2.028,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.20（技术 -0.040 / 美学 +0.040）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 161,
+      "score": 2.809,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.037 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 162,
+      "score": 2.913,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.032 / 美学 +0.056）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 163,
+      "score": 3.557,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.67（技术 -0.038 / 美学 +0.075）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 164,
+      "score": 3.091,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.032 / 美学 +0.059）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 165,
+      "score": 2.51,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.35（技术 -0.064 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 166,
+      "score": 4.289,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.84（技术 -0.040 / 美学 +0.088）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 167,
+      "score": 4.13,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.85（技术 -0.037 / 美学 +0.088）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 168,
+      "score": 4.114,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.79（技术 -0.032 / 美学 +0.079）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 169,
+      "score": 4.421,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.94（技术 -0.022 / 美学 +0.090）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 170,
+      "score": 1.983,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.59（技术 -0.044 / 美学 +0.073）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 331）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 171,
+      "score": 3.632,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.70（技术 -0.031 / 美学 +0.071）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 172,
+      "score": 3.64,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.70（技术 -0.027 / 美学 +0.069）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 173,
+      "score": 4.438,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.95（技术 -0.034 / 美学 +0.101）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 174,
+      "score": 3.274,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.036 / 美学 +0.066）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 175,
+      "score": 3.727,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.73（技术 -0.028 / 美学 +0.072）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 176,
+      "score": 2.821,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.047 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 177,
+      "score": 4.141,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.79（技术 -0.045 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 178,
+      "score": 3.815,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.75（技术 -0.034 / 美学 +0.079）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 179,
+      "score": 3.59,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.038 / 美学 +0.076）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 180,
+      "score": 4.506,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.97（技术 -0.039 / 美学 +0.098）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 181,
+      "score": 2.771,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.43（技术 -0.040 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 182,
+      "score": 2.294,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.28（技术 -0.046 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 183,
+      "score": 1.77,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.05（技术 -0.056 / 美学 +0.020）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 184,
+      "score": 1.529,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.04（技术 -0.071 / 美学 +0.026）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 185,
+      "score": 1.421,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.01（技术 -0.066 / 美学 -0.034）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 186,
+      "score": 1.82,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.13（技术 -0.047 / 美学 +0.034）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 187,
+      "score": 3.848,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.76（技术 -0.035 / 美学 +0.081）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 188,
+      "score": 2.219,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.26（技术 -0.047 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 189,
+      "score": 3.773,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.030 / 美学 +0.074）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 190,
+      "score": 2.548,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.30（技术 -0.037 / 美学 +0.046）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 191,
+      "score": 1.953,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.17（技术 -0.043 / 美学 +0.037）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 192,
+      "score": 3.05,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.030 / 美学 +0.058）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 193,
+      "score": 3.964,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.80（技术 -0.025 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 194,
+      "score": 3.574,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.035 / 美学 +0.074）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 195,
+      "score": 2.252,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.27（技术 -0.050 / 美学 +0.054）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 196,
+      "score": 2.177,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.24（技术 -0.045 / 美学 +0.049）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 197,
+      "score": 4.472,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.90（技术 -0.031 / 美学 +0.089）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 198,
+      "score": 4.518,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.91（技术 -0.051 / 美学 +0.098）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 199,
+      "score": 1.729,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.51（技术 -0.061 / 美学 +0.082）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 274）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 200,
+      "score": 2.859,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.46（技术 -0.046 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 201,
+      "score": 2.231,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.26（技术 -0.051 / 美学 +0.055）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 202,
+      "score": 2.011,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.19（技术 -0.041 / 美学 +0.040）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 203,
+      "score": 3.482,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.65（技术 -0.031 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 204,
+      "score": 3.839,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.76（技术 -0.032 / 美学 +0.078）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 205,
+      "score": 2.701,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.34（技术 -0.045 / 美学 +0.057）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 206,
+      "score": 2.094,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.22（技术 -0.037 / 美学 +0.040）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 207,
+      "score": 1.587,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.06（技术 -0.048 / 美学 +0.016）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 208,
+      "score": 1.828,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.13（技术 -0.039 / 美学 +0.027）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 209,
+      "score": 2.244,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.26（技术 -0.037 / 美学 +0.044）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 210,
+      "score": 2.21,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.25（技术 -0.040 / 美学 +0.046）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 211,
+      "score": 2.248,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.20（技术 -0.048 / 美学 +0.047）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 212,
+      "score": 3.075,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.46（技术 -0.037 / 美学 +0.060）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 213,
+      "score": 2.119,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.16（技术 -0.042 / 美学 +0.035）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 214,
+      "score": 2.286,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.21（技术 -0.042 / 美学 +0.043）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 215,
+      "score": 2.048,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.20（技术 -0.043 / 美学 +0.043）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 216,
+      "score": 1.878,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.09（技术 -0.075 / 美学 +0.049）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 217,
+      "score": 2.059,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.21（技术 -0.071 / 美学 +0.024）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 218,
+      "score": 1.871,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.15（技术 -0.075 / 美学 +0.026）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 219,
+      "score": 2.447,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.26（技术 -0.067 / 美学 +0.034）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 220,
+      "score": 1.878,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.15（技术 -0.052 / 美学 +0.042）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 221,
+      "score": 1.645,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.08（技术 -0.047 / 美学 +0.023）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 222,
+      "score": 1.595,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.06（技术 -0.059 / 美学 +0.025）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 223,
+      "score": 2.821,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.044 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 224,
+      "score": 3.324,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.60（技术 -0.034 / 美学 +0.066）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 225,
+      "score": 4.446,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.95（技术 -0.041 / 美学 +0.107）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 226,
+      "score": 3.416,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.63（技术 -0.035 / 美学 +0.069）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 227,
+      "score": 2.771,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.43（技术 -0.030 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 228,
+      "score": 4.105,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.85（技术 -0.031 / 美学 +0.083）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 229,
+      "score": 4.43,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.95（技术 -0.029 / 美学 +0.096）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 230,
+      "score": 4.313,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.91（技术 -0.022 / 美学 +0.084）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 231,
+      "score": 2.676,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.40（技术 -0.040 / 美学 +0.058）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 232,
+      "score": 3.507,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.029 / 美学 +0.066）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 233,
+      "score": 3.923,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.79（技术 -0.028 / 美学 +0.076）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 234,
+      "score": 4.18,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.87（技术 -0.032 / 美学 +0.085）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 235,
+      "score": 4.255,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.89（技术 -0.031 / 美学 +0.087）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 236,
+      "score": 3.727,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.73（技术 -0.037 / 美学 +0.079）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 237,
+      "score": 1.845,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.14（技术 -0.051 / 美学 +0.039）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 238,
+      "score": 2.077,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.21（技术 -0.041 / 美学 +0.042）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 239,
+      "score": 1.807,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.13（技术 -0.045 / 美学 +0.032）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 240,
+      "score": 2.007,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.13（技术 -0.035 / 美学 +0.023）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 241,
+      "score": 2.584,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.37（技术 -0.035 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 242,
+      "score": 3.333,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.036 / 美学 +0.064）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 243,
+      "score": 3.566,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.034 / 美学 +0.067）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 244,
+      "score": 4.554,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.99（技术 -0.023 / 美学 +0.116）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 245,
+      "score": 4.538,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.98（技术 -0.026 / 美学 +0.110）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 246,
+      "score": 3.607,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.63（技术 -0.034 / 美学 +0.068）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 247,
+      "score": 2.481,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.34（技术 -0.034 / 美学 +0.048）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 248,
+      "score": 3.1,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.026 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 249,
+      "score": 3.266,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.026 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 250,
+      "score": 3.175,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.027 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 251,
+      "score": 2.818,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.034 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 252,
+      "score": 2.684,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.40（技术 -0.039 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 253,
+      "score": 2.776,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.37（技术 -0.037 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 254,
+      "score": 2.568,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.30（技术 -0.038 / 美学 +0.048）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 255,
+      "score": 3.698,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.72（技术 -0.039 / 美学 +0.080）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 256,
+      "score": 3.113,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.034 / 美学 +0.058）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 257,
+      "score": 2.019,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.19（技术 -0.038 / 美学 +0.039）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 258,
+      "score": 1.629,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.07（技术 -0.051 / 美学 +0.021）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 259,
+      "score": 1.753,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.11（技术 -0.044 / 美学 +0.029）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 260,
+      "score": 3.141,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.034 / 美学 +0.062）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 261,
+      "score": 2.593,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.37（技术 -0.045 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 262,
+      "score": 4.346,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.92（技术 -0.029 / 美学 +0.091）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 263,
+      "score": 4.38,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.93（技术 -0.027 / 美学 +0.092）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 264,
+      "score": 4.413,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.94（技术 -0.027 / 美学 +0.095）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 265,
+      "score": 3.906,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.78（技术 -0.028 / 美学 +0.076）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 266,
+      "score": 3.632,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.64（技术 -0.024 / 美学 +0.060）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 267,
+      "score": 2.327,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.23（技术 -0.031 / 美学 +0.037）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 268,
+      "score": 2.397,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.035 / 美学 +0.046）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 269,
+      "score": 2.302,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.28（技术 -0.038 / 美学 +0.045）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 270,
+      "score": 4.247,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.89（技术 -0.026 / 美学 +0.083）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 271,
+      "score": 3.74,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.67（技术 -0.032 / 美学 +0.070）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 272,
+      "score": 3.042,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.45（技术 -0.035 / 美学 +0.058）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 273,
+      "score": 3.116,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.027 / 美学 +0.056）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 274,
+      "score": 2.734,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.42（技术 -0.033 / 美学 +0.054）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 275,
+      "score": 3.083,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.034 / 美学 +0.061）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 276,
+      "score": 3.997,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.81（技术 -0.033 / 美学 +0.081）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 277,
+      "score": 4.23,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.030 / 美学 +0.085）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 278,
+      "score": 4.696,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.97（技术 -0.029 / 美学 +0.102）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 279,
+      "score": 4.28,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.90（技术 -0.023 / 美学 +0.083）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 280,
+      "score": 4.214,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.82（技术 -0.033 / 美学 +0.082）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 281,
+      "score": 4.214,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.025 / 美学 +0.080）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 282,
+      "score": 4.671,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.96（技术 -0.027 / 美学 +0.098）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 283,
+      "score": 3.012,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.039 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 284,
+      "score": 2.277,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.27（技术 -0.051 / 美学 +0.056）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 285,
+      "score": 3.865,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.052 / 美学 +0.090）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 286,
+      "score": 2.597,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.31（技术 -0.046 / 美学 +0.055）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 287,
+      "score": 4.322,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.91（技术 -0.041 / 美学 +0.101）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 288,
+      "score": 2.527,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.29（技术 -0.038 / 美学 +0.046）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 289,
+      "score": 3.125,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.54（技术 -0.037 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 290,
+      "score": 3.167,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.025 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 291,
+      "score": 2.851,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.39（技术 -0.026 / 美学 +0.046）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 292,
+      "score": 3.058,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.033 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 293,
+      "score": 4.563,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.99（技术 -0.024 / 美学 +0.122）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 294,
+      "score": 4.334,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.92（技术 -0.032 / 美学 +0.094）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 295,
+      "score": 4.596,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.94（技术 -0.029 / 美学 +0.094）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 296,
+      "score": 4.081,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.78（技术 -0.031 / 美学 +0.077）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 297,
+      "score": 3.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.041 / 美学 +0.036）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 298,
+      "score": 3.188,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.56（技术 -0.045 / 美学 +0.048）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 299,
+      "score": 3.952,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.022 / 美学 +0.068）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 300,
+      "score": 4.081,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.84（技术 -0.029 / 美学 +0.080）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 301,
+      "score": 2.834,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.39（技术 -0.036 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 302,
+      "score": 3.537,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.036 / 美学 +0.068）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 303,
+      "score": 4.455,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.95（技术 -0.024 / 美学 +0.094）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 304,
+      "score": 4.488,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.90（技术 -0.022 / 美学 +0.082）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 305,
+      "score": 3.94,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.73（技术 -0.020 / 美学 +0.066）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 306,
+      "score": 4.405,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.024 / 美学 +0.079）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 307,
+      "score": 4.006,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.81（技术 -0.020 / 美学 +0.070）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 308,
+      "score": 3.615,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.023 / 美学 +0.065）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 309,
+      "score": 4.247,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.83（技术 -0.020 / 美学 +0.072）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 310,
+      "score": 3.399,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.56（技术 -0.030 / 美学 +0.060）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 311,
+      "score": 3.549,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.034 / 美学 +0.067）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 312,
+      "score": 3.275,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.52（技术 -0.025 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 313,
+      "score": 4.147,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.86（技术 -0.020 / 美学 +0.075）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 314,
+      "score": 3.224,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.57（技术 -0.026 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 315,
+      "score": 2.717,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.41（技术 -0.033 / 美学 +0.053）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 316,
+      "score": 0.454,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.02（技术 -0.078 / 美学 -0.000）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 317,
+      "score": 4.364,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.86（技术 -0.023 / 美学 +0.077）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 318,
+      "score": 2.435,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.32（技术 -0.026 / 美学 +0.040）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 319,
+      "score": 3.798,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.69（技术 -0.032 / 美学 +0.072）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 320,
+      "score": 3.939,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.79（技术 -0.027 / 美学 +0.075）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 321,
+      "score": 3.532,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.67（技术 -0.025 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 322,
+      "score": 3.519,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.041 / 美学 +0.077）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 323,
+      "score": 4.405,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.94（技术 -0.028 / 美学 +0.095）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 324,
+      "score": 2.526,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.35（技术 -0.041 / 美学 +0.055）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 325,
+      "score": 1.762,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.11（技术 -0.040 / 美学 +0.026）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 326,
+      "score": 2.152,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.24（技术 -0.040 / 美学 +0.044）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 327,
+      "score": 2.643,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.39（技术 -0.034 / 美学 +0.052）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 328,
+      "score": 2.269,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.27（技术 -0.030 / 美学 +0.039）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 329,
+      "score": 3.254,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.041 / 美学 +0.069）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 330,
+      "score": 3.69,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.72（技术 -0.031 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 331,
+      "score": 3.906,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.72（技术 -0.035 / 美学 +0.077）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 332,
+      "score": 3.291,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.039 / 美学 +0.069）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 333,
+      "score": 3.1,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.034 / 美学 +0.062）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 334,
+      "score": 3.49,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.65（技术 -0.043 / 美学 +0.077）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 335,
+      "score": 2.751,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.42（技术 -0.041 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 336,
+      "score": 1.861,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.14（技术 -0.057 / 美学 +0.045）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 337,
+      "score": 2.992,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.043 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 338,
+      "score": 2.426,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.32（技术 -0.042 / 美学 +0.053）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 339,
+      "score": 3.242,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.51（技术 -0.025 / 美学 +0.054）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 340,
+      "score": 2.693,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.34（技术 -0.034 / 美学 +0.048）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 341,
+      "score": 2.718,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.35（技术 -0.032 / 美学 +0.047）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 342,
+      "score": 2.128,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.16（技术 -0.054 / 美学 +0.045）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 343,
+      "score": 3.358,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.034 / 美学 +0.062）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 344,
+      "score": 1.795,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.052 / 美学 +0.037）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 345,
+      "score": 1.978,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.051 / 美学 +0.036）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 346,
+      "score": 0.721,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.04（技术 -0.067 / 美学 +0.022）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 347,
+      "score": 2.161,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.24（技术 -0.036 / 美学 +0.042）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 348,
+      "score": 3.216,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.57（技术 -0.031 / 美学 +0.061）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 349,
+      "score": 1.086,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.15（技术 -0.044 / 美学 +0.035）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 350,
+      "score": 1.92,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.10（技术 -0.038 / 美学 +0.021）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 351,
+      "score": 1.348,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.30（技术 -0.052 / 美学 +0.059）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 352,
+      "score": 3.537,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.61（技术 -0.037 / 美学 +0.069）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 353,
+      "score": 3.297,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.84（技术 -0.033 / 美学 +0.084）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 354,
+      "score": 4.314,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.85（技术 -0.034 / 美学 +0.085）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 355,
+      "score": 3.752,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.049 / 美学 +0.089）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 356,
+      "score": 4.069,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.77（技术 -0.049 / 美学 +0.092）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 357,
+      "score": 3.682,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.031 / 美学 +0.073）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 358,
+      "score": 1.762,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.05（技术 -0.051 / 美学 +0.016）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 359,
+      "score": 4.513,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.97（技术 -0.036 / 美学 +0.116）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 360,
+      "score": 1.912,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.10（技术 -0.064 / 美学 +0.041）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 361,
+      "score": 2.834,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.45（技术 -0.041 / 美学 +0.062）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 362,
+      "score": 4.746,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.98（技术 -0.028 / 美学 +0.115）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 363,
+      "score": 3.953,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.74（技术 -0.035 / 美学 +0.065）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 364,
+      "score": 3.576,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.049 / 美学 +0.053）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 365,
+      "score": 1.712,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.04（技术 -0.055 / 美学 +0.011）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 366,
+      "score": 1.737,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.04（技术 -0.059 / 美学 +0.018）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 367,
+      "score": 3.012,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.44（技术 -0.056 / 美学 +0.046）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 368,
+      "score": 1.709,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.41（技术 -0.039 / 美学 +0.058）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 369,
+      "score": 3.299,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.59（技术 -0.034 / 美学 +0.066）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 370,
+      "score": 1.754,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.05（技术 -0.073 / 美学 +0.033）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 371,
+      "score": 1.442,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.01（技术 -0.083 / 美学 -0.010）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 372,
+      "score": 1.404,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.00（技术 -0.106 / 美学 -0.025）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 373,
+      "score": 1.412,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.00（技术 -0.108 / 美学 -0.015）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 374,
+      "score": 1.429,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.01（技术 -0.089 / 美学 -0.012）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 375,
+      "score": 1.704,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.03（技术 -0.061 / 美学 +0.014）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 376,
+      "score": 1.679,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.02（技术 -0.065 / 美学 +0.011）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 377,
+      "score": 2.119,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.22（技术 -0.049 / 美学 +0.051）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 378,
+      "score": 1.67,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.08（技术 -0.055 / 美学 +0.032）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 379,
+      "score": 1.637,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.07（技术 -0.068 / 美学 +0.035）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 380,
+      "score": 1.745,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.05（技术 -0.075 / 美学 +0.034）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 381,
+      "score": 3.989,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.81（技术 -0.052 / 美学 +0.096）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 382,
+      "score": 3.012,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.055 / 美学 +0.077）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 383,
+      "score": 3.549,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.67（技术 -0.050 / 美学 +0.085）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 384,
+      "score": 4.555,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.92（技术 -0.033 / 美学 +0.095）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 385,
+      "score": 3.0,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.042 / 美学 +0.067）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 386,
+      "score": 2.942,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.48（技术 -0.038 / 美学 +0.062）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 387,
+      "score": 2.892,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.40（技术 -0.032 / 美学 +0.052）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 388,
+      "score": 2.651,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.33（技术 -0.042 / 美学 +0.053）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 389,
+      "score": 3.05,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.45（技术 -0.041 / 美学 +0.062）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 390,
+      "score": 3.067,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.46（技术 -0.039 / 美学 +0.062）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 391,
+      "score": 2.095,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.15（技术 -0.046 / 美学 +0.037）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 392,
+      "score": 2.036,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.20（技术 -0.046 / 美学 +0.045）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 393,
+      "score": 2.203,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.19（技术 -0.054 / 美学 +0.051）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 394,
+      "score": 2.481,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.34（技术 -0.046 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 395,
+      "score": 2.111,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.22（技术 -0.033 / 美学 +0.038）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 396,
+      "score": 2.535,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.35（技术 -0.029 / 美学 +0.045）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 397,
+      "score": 4.388,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.93（技术 -0.036 / 美学 +0.100）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 398,
+      "score": 1.986,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.18（技术 -0.046 / 美学 +0.042）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 399,
+      "score": 1.696,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.03（技术 -0.057 / 美学 +0.007）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 400,
+      "score": 1.442,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.01（技术 -0.085 / 美学 -0.008）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 401,
+      "score": 4.663,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.96（技术 -0.028 / 美学 +0.098）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "b0f6010d8cdbbc67",
+      "index": 402,
+      "score": 3.388,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.96（技术 -0.043 / 美学 +0.114）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "画面偏糊（清晰度 352）"
+      ]
+    }
+  ]
+}
