@@ -250,3 +250,91 @@ def write_video(frames: Iterable[np.ndarray], out_path: Path) -> None:
                 container.mux(packet)
         for packet in stream.encode():
             container.mux(packet)
+
+
+# Scene material keeps the source's look: near-lossless H.264 and AAC audio.
+CUT_CRF = "18"
+CUT_AUDIO_BITRATE = 192_000
+
+
+def cut_clip(path: Path, spans: list[tuple[float, float]], out_path: Path) -> None:
+    """Re-encode the ``spans`` ([start, end) seconds, in order) of ``path``
+    back to back into one H.264 + AAC mp4, at the source's own size and frame
+    rate, with its first audio track. The source file is only read.
+
+    Re-encoding makes every cut frame-accurate (copying packets could only cut
+    at keyframes). Audio frames are kept whole and realigned at the start of
+    each span, so audio edges are off by at most one frame (about 20 ms) and
+    the error does not add up over spans. Written to a ``.partial`` file
+    first, so an interrupted run never leaves a clip that looks finished.
+    """
+    if not spans:
+        raise ValueError(f"No spans to cut from {path.name}")
+    for (start, end), nxt in zip(spans, [*spans[1:], None], strict=True):
+        if end <= start:
+            raise ValueError(f"Empty span {start}-{end} of {path.name}")
+        if nxt is not None and nxt[0] < end:
+            raise ValueError(f"Spans out of order or overlapping: {spans}")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    partial = out_path.with_name(out_path.stem + ".partial.mp4")
+    with av.open(str(path)) as src, av.open(str(partial), mode="w") as dst:
+        vin = src.streams.video[0]
+        rate = vin.average_rate or vin.guessed_rate
+        if not rate:
+            raise ValueError(f"{path.name}: no frame rate")
+        vout = dst.add_stream("libx264", rate=rate)
+        vout.width = vin.codec_context.width
+        vout.height = vin.codec_context.height
+        vout.pix_fmt = "yuv420p"
+        vout.options = {"crf": CUT_CRF, "preset": "veryfast"}
+        tick = Fraction(1) / Fraction(rate)
+        ain = src.streams.audio[0] if src.streams.audio else None
+        streams = [vin]
+        if ain is not None:
+            aout = dst.add_stream("aac", rate=ain.rate)
+            aout.layout = ain.layout.name
+            aout.bit_rate = CUT_AUDIO_BITRATE
+            resampler = av.AudioResampler(
+                format="fltp", layout=ain.layout.name, rate=ain.rate
+            )
+            streams.append(ain)
+        last_pts, samples, offset = -1, 0, 0.0
+        for start, end in spans:
+            first_pts = last_pts
+            if ain is not None:
+                samples = max(samples, round(offset * ain.rate))
+            src.seek(int(max(0.0, start - 1.0) / vin.time_base), stream=vin)
+            done = {s.index: False for s in streams}
+            for packet in src.demux(*streams):
+                if all(done.values()):
+                    break
+                for frame in packet.decode():
+                    if frame.time is None:
+                        continue
+                    t = float(frame.time)
+                    if t >= end:
+                        done[packet.stream.index] = True
+                        continue
+                    if t < start:
+                        continue
+                    if packet.stream is vin:
+                        pts = round((offset + t - start) / tick)
+                        # Variable frame rate: two source frames may land on
+                        # one output tick; keep the first.
+                        if pts <= last_pts:
+                            continue
+                        out = frame.reformat(format="yuv420p")
+                        out.pts, out.time_base, last_pts = pts, tick, pts
+                        dst.mux(vout.encode(out))
+                    else:
+                        for af in resampler.resample(frame):
+                            af.pts, af.time_base = samples, Fraction(1, ain.rate)
+                            samples += af.samples
+                            dst.mux(aout.encode(af))
+            if last_pts == first_pts:
+                raise ValueError(f"{path.name}: no video frames in {start}-{end}")
+            offset += end - start
+        dst.mux(vout.encode())
+        if ain is not None:
+            dst.mux(aout.encode())
+    partial.replace(out_path)

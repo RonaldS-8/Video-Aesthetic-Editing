@@ -216,7 +216,9 @@ data/raw/<集合>/*（原名）
   │                highlights 模式另写分块总结
   │                                → data/work/summaries/summary_<ID>.json
   ├─ ⑥ render     预览视频         → out/<集合>/<原名>/preview_<模式>.mp4
-  └─ ⑦ report     汇总报告         → out/<集合>/report_<模式>.html
+  ├─ ⑦ report     汇总报告         → out/<集合>/report_<模式>.html
+  └─ ⑧ scenes     场景素材（剔除废片）→ out/<集合>/<原名>/scenes/
+                   场景概况缓存     → data/work/scenes/scene_<ID>.json
 ```
 
 | 阶段 | 命令 | 做什么 | 读 | 写 |
@@ -231,6 +233,7 @@ data/raw/<集合>/*（原名）
 | ⑤ 剪辑 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 融合分 + 0.2 × 精彩度归一化）− 画质扣分。两种模式见下 | ①②③④ 的产出 | `timeline_<模式>.json` |
 | ⑥ 预览 | `render` | 按时间线从原视频截取并拼接（854×480、30 fps、无音轨） | 时间线、清单、原视频 | `preview_<模式>.mp4` |
 | ⑦ 报告 | `report` | 汇总切分评测、逐片段标签与分数、剪辑建议 | 以上全部 | `report_<模式>.html` |
+| ⑧ 场景素材 | `scenes` | 剪辑建议之外，把素材按场景交给用户自己组合，同时剔除废片。场景与精彩瞬间填槽用的完全相同（每 5 分钟一块，块内按向量相似度连成场景，不跨镜头）；场景里得分 ≤2 或短于 1.5 s 的片段（与选片规则相同）切掉，保留的片段按时间顺序接成一个视频，一个场景一个文件，保持原分辨率、原帧率和音轨（H.264 CRF 18 + AAC，切点精确到帧）；原片只读不改；整个场景都是废片的不出视频。Qwen3.5-4B 根据保留片段的描述给每个场景写短标题和概况（JSON 约束、校验、最多 3 次，失败报错），按视频缓存；需要 `index` 和 4B 服务（端口 8092）。已切好且起止未变的视频不重切，`--force` 全部重切；不再对应任何场景的旧视频只提示、不删除 | ①②③④④' 的产出、原视频 | `scenes/scene_<场景号>.mp4`、`scenes/scenes.json`、`scene_<ID>.json` |
 
 ⑤⑥⑦ 用 `--collection <集合>` 选数据（默认 `vlog`），输出到
 `out/<集合>/`；`vlog` 集合沿用 `out/dover/`。`--out <目录>` 可以改。
@@ -264,7 +267,10 @@ out/<集合>/                                输出（vlog 集合为 out/dover/�
 ├── <原名>/                                 每条视频一个目录，按原文件名
 │   ├── timeline_highlights.json            ⑤ 精彩瞬间时间线
 │   ├── timeline_ranked.json                ⑤ 只按得分的对照
-│   └── preview_<模式>.mp4                  ⑥ 预览（不入库）
+│   ├── preview_<模式>.mp4                  ⑥ 预览（不入库）
+│   └── scenes/                             ⑧ 场景素材
+│       ├── scene_<NN>.mp4                  场景 NN 剔除废片后的视频（不入库）
+│       └── scenes.json                     每段视频对应的场景、片段和描述
 ├── timeline_<模式>.json                    ⑤ 全集合的时间线
 ├── preview_<模式>.mp4                      ⑥ 全集合预览（不入库）
 ├── report_<模式>.html                      ⑦ 报告
@@ -376,6 +382,18 @@ out/<集合>/                                输出（vlog 集合为 out/dover/�
 | `clips` | 按播放顺序的片段：`order`、`role`（highlights：所属大纲部分的标题；ranked：覆盖 / 精彩）、`video`（视频 ID）、`index`、`src_start`、`src_end`、`duration`（整段）、`description`、`reason` |
 | `assessments` | 每个片段的评估：`video`（视频 ID）、`index`、`score`（1–5）、`keep`（`score` > 2 才可选）、`reasons` |
 
+`scenes/scenes.json`：
+
+| 字段 | 含义 |
+|---|---|
+| `video`、`file` | 视频 ID、原文件路径 |
+| `rule` | 废片规则的文字说明 |
+| `complete` | 是否全部切完（中断时为 false，重跑会接着切） |
+| `scenes_total`、`kept_sec`、`removed_sec` | 场景数、保留时长、剔除时长 |
+| `scenes` | 每个场景：`number`、`start`、`end`（原视频中的秒数）、`title`、`summary`（4B 写的短标题和概况；整个场景都是废片时没有）、`file`（场景视频，整个场景都是废片时为 null）、`duration`（场景视频时长）、`kept_sec`、`time_of_day`（保留片段里最多的时段）、`shot_sizes`、`tags`（出现最多的 8 个标签） |
+| `scenes[].parts` | 场景视频由哪几段原片接成：每段在原片中的 `start`、`end`，在场景视频中的起点 `at`，以及所含片段的 `index`、`start`、`end`、`score`、`description` |
+| `scenes[].removed` | 被剔除的片段：同上的字段，加 `why`（得分过低或过短）和完整的评分理由 `reasons` |
+
 ## 运行
 
 ### 安装（只需一次）
@@ -485,6 +503,13 @@ llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 
 
 ```bash
 .venv/Scripts/python -m video_demo report --collection long
+```
+
+⑧ 场景素材（与上面三步独立，需要 `index` 和同一个 4B 服务；原画质重新
+编码，1080p60 约每秒素材 0.6 s）：
+
+```bash
+.venv/Scripts/python -m video_demo scenes --collection long
 ```
 
 `tag`、`aesthetic`、`analyze` 支持 `--collection <集合>`、`--only <前缀>`

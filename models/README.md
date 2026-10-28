@@ -17,13 +17,13 @@ sha256sum models/*/*.pth models/*/*.litertlm models/*/*.gguf
 |---|---|---|---|
 | `models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf` | 打标签（VLM） | 1107409952 | Apache-2.0 |
 | `models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf` | 打标签的视觉投影 | 819394848 | Apache-2.0 |
-| `models/gguf/Qwen3.5-4B-Q4_K_M.gguf` | 精彩瞬间的分块摘要与大纲 | 2783446912 | Apache-2.0 |
+| `models/gguf/Qwen3.5-4B-Q4_K_M.gguf` | 精彩瞬间的分块摘要与大纲、场景素材的概况 | 2783446912 | Apache-2.0 |
 | `models/dover/DOVER.pth` | 美学打分（参与剪辑建议） | 239729097 | S-Lab，非商用 |
 | `models/dover/DOVER-Mobile.pth` | 质量模型对比 | 42794791 | S-Lab，非商用 |
 | `models/uvq/content_net.pth` | 质量模型对比（UVQ 1.5） | 15289209 | Apache-2.0 |
 | `models/uvq/distortion_net.pth` | 质量模型对比（UVQ 1.5） | 15290142 | Apache-2.0 |
 | `models/uvq/aggregation_net.pth` | 质量模型对比（UVQ 1.5） | 300021 | Apache-2.0 |
-| `models/embeddinggemma/embeddinggemma-2-740m.litertlm` | 检索的文本与图像向量 | 484622336 | 见下文 |
+| `models/embeddinggemma/embeddinggemma-2-740m.litertlm` | 检索和场景聚类用的文本与图像向量 | 484622336 | 见下文 |
 
 合计约 5.5 GB。剪辑建议（精彩瞬间）需要三个 gguf、`DOVER.pth` 和
 EmbeddingGemma 2；只按得分的对照（`--mode ranked`）不需要 Qwen3.5-4B

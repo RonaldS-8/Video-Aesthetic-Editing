@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import av
 import numpy as np
 import pytest
 
@@ -11,6 +12,7 @@ from video_demo.media import (
     OUT_FPS,
     OUT_SIZE,
     count_frames,
+    cut_clip,
     probe,
     read_clip,
     sample_frames,
@@ -91,3 +93,49 @@ def test_clip_running_to_the_end_of_the_video(tmp_path: Path) -> None:
     assert len(clip) == round((duration - 4.0) * OUT_FPS)
     with pytest.raises(ValueError, match="needed"):
         read_clip(video, 4.0, duration - 4.0 + 1.0)
+
+
+def _grey_steps_with_audio(path: Path, fps: int = 25, seconds: int = 4) -> None:
+    """640x360 video whose grey level steps up every second, with a tone."""
+    with av.open(str(path), mode="w") as container:
+        video = container.add_stream("libx264", rate=fps)
+        video.width, video.height, video.pix_fmt = 640, 360, "yuv420p"
+        audio = container.add_stream("aac", rate=48000)
+        audio.layout = "stereo"
+        for n in range(fps * seconds):
+            arr = np.full((360, 640, 3), 40 * (n // fps + 1), np.uint8)
+            frame = av.VideoFrame.from_ndarray(arr, format="rgb24")
+            frame.pts = n
+            container.mux(video.encode(frame))
+        t = np.arange(48000 * seconds) / 48000
+        tone = (0.2 * np.sin(2 * np.pi * 440 * t)).astype(np.float32)
+        for i in range(0, len(tone), 1024):
+            chunk = tone[i : i + 1024]
+            frame = av.AudioFrame.from_ndarray(
+                np.stack([chunk, chunk]), format="fltp", layout="stereo"
+            )
+            frame.rate, frame.pts = 48000, i
+            container.mux(audio.encode(frame))
+        container.mux(video.encode())
+        container.mux(audio.encode())
+
+
+def test_cut_clip_joins_spans_at_source_size_rate_and_audio(tmp_path: Path) -> None:
+    src, out = tmp_path / "steps.mp4", tmp_path / "cut" / "clip.mp4"
+    _grey_steps_with_audio(src)
+    before = src.read_bytes()
+    # Seconds 0 and 2 (grey 40 and 120), skipping second 1 (grey 80).
+    cut_clip(src, [(0.0, 1.0), (2.0, 3.0)], out)
+    assert src.read_bytes() == before
+    info = probe(out)
+    assert (info.width, info.height, round(info.fps)) == (640, 360, 25)
+    assert info.has_audio and abs(info.duration - 2.0) < 0.05
+    frames = read_clip(out, 0.0, 2.0)
+    greys = [round(f.mean()) for f in frames]
+    assert abs(greys[0] - 40) < 3 and abs(greys[-1] - 120) < 3
+    assert all(abs(g - 80) > 20 for g in greys)
+    assert not list(out.parent.glob("*.partial.mp4"))
+    with pytest.raises(ValueError, match="Empty span"):
+        cut_clip(src, [(2.0, 2.0)], out)
+    with pytest.raises(ValueError, match="overlapping"):
+        cut_clip(src, [(2.0, 3.0), (1.0, 2.0)], out)

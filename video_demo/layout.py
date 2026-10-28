@@ -288,6 +288,11 @@ def summary_path(work: Path, vid: str) -> Path:
     return work / "summaries" / f"summary_{vid}.json"
 
 
+def scene_summary_path(work: Path, vid: str) -> Path:
+    """Model-written scene titles and summaries (cached per video)."""
+    return work / "scenes" / f"scene_{vid}.json"
+
+
 def compare_path(work: Path, model: str, vid: str) -> Path:
     """Scores from a model compared against DOVER (``quality`` stage)."""
     kind = model.replace("-", "_")
@@ -330,3 +335,13 @@ def preview_path(folder: Path, mode: str) -> Path:
 
 def report_path(out: Path, mode: str) -> Path:
     return out / f"report_{mode}.html"
+
+
+# Scene material: one clip per scene (its kept segments back to back, the
+# rejected ones cut out) and scenes.json describing them.
+def scenes_dir(folder: Path) -> Path:
+    return folder / "scenes"
+
+
+def scene_clip_path(folder: Path, scene: int) -> Path:
+    return scenes_dir(folder) / f"scene_{scene:02d}.mp4"

@@ -26,8 +26,10 @@ from video_demo import (
     synth,
     tag,
 )
+from video_demo import scenes as scene_material
 from video_demo.media import (
     count_frames,
+    cut_clip,
     probe,
     read_clip,
     segment_frames_every,
@@ -894,6 +896,32 @@ def _chunks(
     return chunks
 
 
+Vectors = dict[tuple[str, int], np.ndarray]
+
+
+def _scene_groups(
+    chunk_members: list[list[int]],
+    cands: list[suggest.Candidate],
+    text: Vectors,
+    image: Vectors,
+) -> list[list[int]]:
+    """Candidate indices of each scene along the timeline; a scene never
+    crosses a chunk (``chunk_members``) or a shot cut."""
+    out: list[list[int]] = []
+    for ms in chunk_members:
+        keys = [(cands[i].video, cands[i].index) for i in ms]
+        sim = retrieve.boundary_similarity(
+            np.stack([text[k] for k in keys]), np.stack([image[k] for k in keys])
+        )
+        shots = [cands[i].shot for i in ms]
+        hard = {p for p in range(len(ms) - 1) if shots[p] != shots[p + 1]}
+        for g in retrieve.split_scenes(
+            [cands[i].start for i in ms], [cands[i].end for i in ms], sim, hard
+        ):
+            out.append([ms[p] for p in g])
+    return out
+
+
 class _Retrieval:
     """Query embedder and the segment vectors of the selected videos."""
 
@@ -934,21 +962,10 @@ class _Retrieval:
     ) -> list[outline.Scene]:
         """Scenes along the timeline; a scene never crosses a chunk or a
         shot cut."""
-        out: list[outline.Scene] = []
-        for ch in chunks:
-            ms = ch.members
-            keys = [self._key(cands[i]) for i in ms]
-            sim = retrieve.boundary_similarity(
-                np.stack([self.text[k] for k in keys]),
-                np.stack([self.image[k] for k in keys]),
-            )
-            shots = [cands[i].shot for i in ms]
-            hard = {p for p in range(len(ms) - 1) if shots[p] != shots[p + 1]}
-            for g in retrieve.split_scenes(
-                [cands[i].start for i in ms], [cands[i].end for i in ms], sim, hard
-            ):
-                out.append(outline.Scene(len(out) + 1, [ms[p] for p in g]))
-        return out
+        groups = _scene_groups(
+            [ch.members for ch in chunks], cands, self.text, self.image
+        )
+        return [outline.Scene(n, g) for n, g in enumerate(groups, start=1)]
 
     def relevance(
         self,
@@ -1197,6 +1214,167 @@ def cmd_render(args: argparse.Namespace) -> None:
         print(f"{target}: {time.perf_counter() - t0:.1f}s")
 
 
+def _index_vectors(video: layout.Video) -> tuple[Vectors, Vectors]:
+    """A video's stored text and image vectors. Scenes only compare vectors
+    within one video, so any complete index will do; no embedder is loaded."""
+    path = layout.index_path(WORK_DIR, video.id)
+    if not path.exists():
+        raise SystemExit(
+            f"{video.id} {video.file}：缺少 {path.name}，"
+            "先运行 python -m video_demo index"
+        )
+    try:
+        idx = retrieve.load_index(
+            path, retrieve.read_model(path), check_complete=len(_tag_rows(video.id))
+        )
+    except retrieve.RetrievalError as exc:
+        raise SystemExit(f"{video.id} {video.file}：{exc}") from exc
+    text: Vectors = {}
+    image: Vectors = {}
+    for i, t, m in zip(idx["index"], idx["text"], idx["image"], strict=True):
+        text[(video.id, int(i))] = t
+        image[(video.id, int(i))] = m
+    return text, image
+
+
+def _scene_summaries(
+    vid: str,
+    groups: list[list[int]],
+    cands: list[suggest.Candidate],
+    assessments: list[suggest.Assessment],
+) -> dict[int, dict[str, str]]:
+    """Title and summary per scene number, for scenes that keep footage.
+
+    Cached in scene_<ID>.json by the kept segments and SCENES_VERSION, and
+    saved after every new answer, so an interrupted run resumes.
+    """
+    path = layout.scene_summary_path(WORK_DIR, vid)
+    cached: dict[tuple[int, ...], dict] = {}
+    if path.exists():
+        data = json.loads(path.read_text("utf-8"))
+        if data["version"] == scene_material.SCENES_VERSION:
+            cached = {tuple(e["segments"]): e for e in data["scenes"]}
+    used: list[dict] = []
+    out: dict[int, dict[str, str]] = {}
+    for n, members in enumerate(groups, start=1):
+        runs = scene_material.kept_runs(members, cands, assessments)
+        kept = [i for r in runs for i in r]
+        if not kept:
+            continue
+        key = tuple(cands[i].index for i in kept)
+        entry = cached.get(key)
+        if entry is None:
+            try:
+                summary, raw, seconds, errors = scene_material.describe_scene(
+                    kept, cands, assessments
+                )
+            except outline.OutlineError as exc:
+                raise SystemExit(
+                    f"{vid} 场景 {n}：概况生成失败（3 次都没通过校验）：{exc}"
+                ) from exc
+            entry = {
+                "segments": list(key),
+                **summary,
+                "raw": raw,
+                "seconds": round(seconds, 1),
+                "failed_attempts": errors,
+            }
+            print(f"{vid} 场景 {n}/{len(groups)}：{summary['title']}（{seconds:.0f}s）")
+        used.append(entry)
+        out[n] = {"title": entry["title"], "summary": entry["summary"]}
+        if key not in cached:
+            cached[key] = entry
+            _write_json(
+                path, {"version": scene_material.SCENES_VERSION, "scenes": used}
+            )
+    _write_json(path, {"version": scene_material.SCENES_VERSION, "scenes": used})
+    return out
+
+
+def _scene_listing(
+    video: layout.Video, n_scenes: int, entries: list[dict], complete: bool
+) -> dict:
+    """scenes.json: ``complete`` is False while clips are still being cut."""
+    removed = sum(r["end"] - r["start"] for e in entries for r in e["removed"])
+    return {
+        "video": video.id,
+        "file": video.file,
+        "rule": f"片段得分 ≤ {suggest.DROP_SCORE:.0f} 或短于 "
+        f"{suggest.MIN_CLIP_SEC}s 的视为废片，从场景中切除；"
+        "每个场景的保留片段按时间顺序接成一个视频，原片不改动",
+        "complete": complete,
+        "scenes_total": n_scenes,
+        "kept_sec": round(sum(e["kept_sec"] for e in entries), 2),
+        "removed_sec": round(removed, 2),
+        "scenes": entries,
+    }
+
+
+def cmd_scenes(args: argparse.Namespace) -> None:
+    """Scene material besides the timelines: one clip per scene, its kept
+    segments back to back with the rejected ones cut out, at the source's
+    size, frame rate and audio, and scenes.json describing every clip."""
+    out = _out(args)
+    dirs = _result_dirs(args, out)
+    videos = _selected(args)
+    vectors = {v.id: _index_vectors(v) for v in videos}
+    try:
+        tag.check_server(outline.SERVER_URL)
+    except ConnectionError as exc:
+        raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
+    for video in videos:
+        cands = suggest.calibrate_by_time(_candidates(video))
+        assessments = [suggest.assess(c) for c in cands]
+        groups = _scene_groups(outline.split_chunks(cands), cands, *vectors[video.id])
+        summaries = _scene_summaries(video.id, groups, cands, assessments)
+        folder = dirs[video.id]
+        listing = layout.scenes_dir(folder) / "scenes.json"
+        # A clip on disk is reused only if the last listing cut it from the
+        # same source spans.
+        done: dict[str, list[list[float]]] = {}
+        if listing.exists() and not args.force:
+            for s in json.loads(listing.read_text("utf-8"))["scenes"]:
+                if s["file"]:
+                    done[s["file"]] = [[p["start"], p["end"]] for p in s["parts"]]
+        entries: list[dict] = []
+        for n, members in enumerate(groups, start=1):
+            runs = scene_material.kept_runs(members, cands, assessments)
+            path = layout.scene_clip_path(folder, n) if runs else None
+            if path is not None:
+                spans = scene_material.kept_spans(runs, cands)
+                if not path.exists() or done.get(path.name) != [list(s) for s in spans]:
+                    t0 = time.perf_counter()
+                    cut_clip(RAW_DIR / video.file, spans, path)
+                    print(
+                        f"  {path.name} {sum(e - s for s, e in spans):.1f}s "
+                        f"from {len(spans)} part(s) ({time.perf_counter() - t0:.1f}s)"
+                    )
+            entries.append(
+                scene_material.scene_entry(
+                    n,
+                    members,
+                    cands,
+                    assessments,
+                    summaries.get(n),
+                    path.name if path else None,
+                )
+            )
+            _write_json(listing, _scene_listing(video, len(groups), entries, False))
+        _write_json(listing, _scene_listing(video, len(groups), entries, True))
+        expected = {e["file"] for e in entries if e["file"]}
+        stale = sorted(
+            p.name
+            for p in layout.scenes_dir(folder).glob("scene_*.mp4")
+            if p.name not in expected and not p.name.endswith(".partial.mp4")
+        )
+        print(
+            f"{video.id} {video.file}: {len(groups)} scenes, {len(expected)} clips, "
+            f"kept {sum(e['kept_sec'] for e in entries):.0f}s -> {listing}"
+        )
+        if stale:
+            print(f"  以下旧文件不再对应任何场景（未删除）：{', '.join(stale)}")
+
+
 def cmd_report(args: argparse.Namespace) -> None:
     out = _out(args)
     path = report.write(
@@ -1298,6 +1476,7 @@ def main() -> None:
         ("compare-quality", cmd_compare_quality),
         ("render", cmd_render),
         ("report", cmd_report),
+        ("scenes", cmd_scenes),
     ):
         p = sub.add_parser(name)
         p.add_argument("--collection", default="vlog", help=COLLECTION_HELP)
@@ -1308,7 +1487,11 @@ def main() -> None:
             default=None,
             help="result dir (default out/<collection>; vlog uses out/dover)",
         )
-        if func is not cmd_compare_quality:
+        if func is cmd_scenes:
+            p.add_argument(
+                "--force", action="store_true", help="cut every scene clip again"
+            )
+        elif func is not cmd_compare_quality:
             p.add_argument(
                 "--mode",
                 choices=MODES,

@@ -163,12 +163,14 @@ def test_results_go_to_a_folder_named_after_the_video(tmp_path: Path) -> None:
         layout.preview_path(folder, "ranked"),
         layout.timeline_path(out, "highlights"),
         layout.report_path(out, "ranked"),
+        layout.scene_clip_path(folder, 3),
     ]
     assert [p.relative_to(out).as_posix() for p in names] == [
         "edinburgh_walk/timeline_highlights.json",
         "edinburgh_walk/preview_ranked.mp4",
         "timeline_highlights.json",
         "report_ranked.html",
+        "edinburgh_walk/scenes/scene_03.mp4",
     ]
 
 
