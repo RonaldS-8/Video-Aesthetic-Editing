@@ -143,6 +143,15 @@ def _clip_cards(
     return f'<div class="clips">{"".join(cards)}</div>'
 
 
+def keyframe_paths(
+    work: Path, vid: str, sig: list[dict], out_dir: Path
+) -> dict[tuple[str, int], str]:
+    """Each segment's first keyframe, relative to ``out_dir``; ``sig`` is
+    the video's signal records."""
+    rel = _rel(layout.keyframes_dir(work, vid), out_dir) + "/"
+    return {(vid, s["index"]): rel + s["keyframes"][0] for s in sig}
+
+
 def _video_section(
     root: Path, out_dir: Path, result_dir: Path, mode: str, video: layout.Video, n: int
 ) -> tuple[str, dict, dict]:
@@ -166,12 +175,8 @@ def _video_section(
     assess = {a["index"]: a for a in tl["assessments"]}
     selected = {c["index"] for c in tl["clips"]}
     analysed = seg["analysed_until"]
-    keyframes = layout.keyframes_dir(work, vid)
-    rel = Path(os.path.relpath(keyframes, out_dir)).as_posix() + "/"
-    frames = {
-        (vid, s["index"]): rel + sig[s["index"]]["keyframes"][0]
-        for s in seg["segments"]
-    }
+    rel = _rel(layout.keyframes_dir(work, vid), out_dir) + "/"
+    frames = keyframe_paths(work, vid, sig, out_dir)
 
     spans = []
     for s in seg["segments"]:
@@ -343,6 +348,26 @@ def outline_table(timeline: dict) -> str:
 PART_COLORS = ("#2b5fd9", "#d9822b", "#2f9d8f", "#b04aa8", "#8a9a2b", "#c4473a")
 
 
+def _scene_strip(
+    sc: dict,
+    frames: dict[tuple[str, int], str],
+    descriptions: dict[tuple[str, int], str],
+    taken: set[tuple[str, int]],
+    keep: dict[tuple[str, int], bool],
+) -> str:
+    """Every segment keyframe of a scene; taken ones framed, rejected faded."""
+    imgs = []
+    for i in sc["segments"]:
+        key = (sc["video"], i)
+        cls = "taken" if key in taken else ("" if keep[key] else "dropped")
+        title = f"#{i} {descriptions.get(key, '')}"
+        imgs.append(
+            f'<img class="{cls}" src="{escape(frames[key])}" '
+            f'title="{escape(title)}" alt="">'
+        )
+    return f'<div class="strip">{"".join(imgs)}</div>'
+
+
 def scene_slots(
     timeline: dict,
     frames: dict[tuple[str, int], str],
@@ -379,16 +404,7 @@ def scene_slots(
         )
 
     def strip(sc: dict) -> str:
-        imgs = []
-        for i in sc["segments"]:
-            key = (sc["video"], i)
-            cls = "taken" if key in taken else ("" if keep[key] else "dropped")
-            title = f"#{i} {descriptions.get(key, '')}"
-            imgs.append(
-                f'<img class="{cls}" src="{escape(frames[key])}" '
-                f'title="{escape(title)}" alt="">'
-            )
-        return f'<div class="strip">{"".join(imgs)}</div>'
+        return _scene_strip(sc, frames, descriptions, taken, keep)
 
     parts = []
     for k, (part, slots) in enumerate(
@@ -536,5 +552,125 @@ preload="metadata"></video>
 署名见 data/raw/SOURCES.md。</p>
 </main></body></html>"""
     path = layout.report_path(out_dir, mode)
+    path.write_text(page, encoding="utf-8")
+    return path
+
+
+def write_edit(
+    root: Path, folder: Path, videos: list[layout.Video], timeline: dict
+) -> Path:
+    """Write ``folder/report.html`` for an edit by instruction: the
+    instruction and how the model read it, each part's slots with the scene
+    retrieved for it, the preview and the clips."""
+    work = root / "data" / "work"
+    files = {v.id: v.file for v in videos}
+    frames: dict[tuple[str, int], str] = {}
+    descriptions: dict[tuple[str, int], str] = {}
+    for vid in timeline["videos"]:
+        frames.update(
+            keyframe_paths(
+                work, vid, _read_json(layout.signals_path(work, vid)), folder
+            )
+        )
+        for line in layout.tags_path(work, vid).read_text("utf-8").splitlines():
+            r = json.loads(line)
+            descriptions[(vid, r["index"])] = r["tags"]["description"]
+    plan = timeline["outline"]
+    scenes = {sc["number"]: sc for sc in timeline["scenes"]}
+    keep = {(a["video"], a["index"]): a["keep"] for a in timeline["assessments"]}
+    taken = {(c["video"], c["index"]) for c in timeline["clips"]}
+
+    def where(sc: dict) -> str:
+        name = files[sc["video"]].split("/")[-1]
+        return f"{escape(name)} {_fmt(sc['start'])}–{_fmt(sc['end'])}"
+
+    parts = []
+    for k, (part, slots) in enumerate(
+        zip(plan["parts"], timeline["slots"], strict=True)
+    ):
+        color = PART_COLORS[k % len(PART_COLORS)]
+        got = sum(c["duration"] for c in timeline["clips"] if c["role"] == part["name"])
+        short = got < 0.8 * part["duration_sec"]
+        cards = []
+        for slot in slots:
+            when = "" if slot["time_of_day"] == "不限" else f"（{slot['time_of_day']}）"
+            head = f"<b>「{escape(slot['query'])}」{escape(when)}</b>"
+            if slot["scene"] is None:
+                cards.append(
+                    f'<div class="slot">{head}<p class="miss">没有可用的场景</p></div>'
+                )
+                continue
+            sc = scenes[slot["scene"]]
+            others = "、".join(
+                f"场景 {n}（{where(scenes[n])}）"
+                for n in slot["top"]
+                if n != sc["number"]
+            )
+            cards.append(
+                f'<div class="slot">{head} → 场景 {sc["number"]}'
+                f"<span class='muted'>（{where(sc)}，"
+                f"{len(sc['segments'])} 段）</span><br>"
+                f"<span class='muted'>检索相关度 {slot['relevance']:.0%} · "
+                f"分到 {slot['seconds']:.0f}s</span>"
+                f"{_scene_strip(sc, frames, descriptions, taken, keep)}"
+                f"<span class='muted'>其他候选：{others or '—'}</span></div>"
+            )
+        parts.append(
+            f'<div class="part" style="border-left-color:{color}">'
+            f"<h3>{k + 1}. {escape(part['name'])} "
+            f"<span class='muted'>分量 {part['weight']} · "
+            f"目标 {part['duration_sec']}s · "
+            f"<span class='{'miss' if short else 'ok'}'>选到 {got:.0f}s</span>"
+            f"</span></h3><p class='muted'>{escape(part['summary'])}</p>"
+            f"{''.join(cards)}</div>"
+        )
+    source = timeline["target_source"]
+    if source["kind"] == "instruction":
+        target_note = f"指令里的「{escape(source['quote'])}」"
+    else:
+        target_note = f"指令没说时长，按素材的 {source['ratio']:.0%}"
+    analysed = sum(ch["end"] - ch["start"] for ch in timeline["chunks"])
+    cards_html = "".join(
+        f'<div class="card"><span class="muted">{k}</span><b>{v}</b>'
+        f'<span class="muted">{extra}</span></div>'
+        for k, v, extra in (
+            ("目标", f"{timeline['target_sec']:.0f}s", target_note),
+            ("选到", f"{timeline['total_sec']:.1f}s", f"{len(timeline['clips'])} 段"),
+            ("素材", f"{analysed / 60:.1f} 分钟", f"{len(timeline['videos'])} 条视频"),
+            ("场景", f"{len(timeline['scenes'])}", f"{len(timeline['chunks'])} 块总结"),
+        )
+    )
+    unmet = "、".join(escape(u) for u in plan["unmet"])
+    notes = "".join(f"<li>{escape(n)}</li>" for n in timeline["notes"])
+    tries = len(timeline["outline_failed_attempts"]) + len(
+        timeline["duration_failed_attempts"]
+    )
+    title = plan.get("title") or "按要求剪辑"
+    page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{escape(title)}</title><style>{CSS}</style></head>
+<body><main>
+<h1>{escape(title)}</h1>
+<p class="muted">{escape(timeline['created'])} · 按用户要求剪辑 · 大纲 Qwen3.5-4B
+（用时 {timeline['outline_seconds']}s{f"，重试 {tries} 次" if tries else ""}）·
+检索 EmbeddingGemma 2 文本、图像向量 + BM25</p>
+<div class="slot"><b>剪辑要求</b><p>{escape(timeline['instruction'])}</p>
+<b>模型的理解</b><p>{escape(plan['understanding'])}</p>
+{f'<p class="miss">素材里找不到：{unmet}</p>' if unmet else ""}</div>
+<div class="cards">{cards_html}</div>
+{f'<ul class="miss">{notes}</ul>' if notes else ""}
+<h2>大纲与检索到的场景</h2>
+<p class="muted">每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），
+相关度为主、画质为辅，一个场景只给一个槽位；槽位要求时段的，只在该时段为主的
+场景里找，找不到就空着。场景内按片段得分、相关度和分段总结点名的亮点整段选片。
+成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
+{''.join(parts)}
+<h2>预览</h2>
+<video src="{escape(_rel(layout.edit_preview_path(folder), folder))}" controls
+preload="metadata"></video>
+{_clip_cards(timeline['clips'], frames, files)}
+</main></body></html>"""
+    path = layout.edit_report_path(folder)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(page, encoding="utf-8")
     return path

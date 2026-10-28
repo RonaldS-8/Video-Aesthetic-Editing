@@ -345,3 +345,21 @@ def scenes_dir(folder: Path) -> Path:
 
 def scene_clip_path(folder: Path, scene: int) -> Path:
     return scenes_dir(folder) / f"scene_{scene:02d}.mp4"
+
+
+# Edits by instruction: one folder per instruction under the collection's
+# output directory, named by when it was made, so earlier edits are kept.
+def edit_dir(out: Path, stamp: str) -> Path:
+    return out / "edits" / stamp
+
+
+def edit_timeline_path(folder: Path) -> Path:
+    return folder / "timeline.json"
+
+
+def edit_preview_path(folder: Path) -> Path:
+    return folder / "preview.mp4"
+
+
+def edit_report_path(folder: Path) -> Path:
+    return folder / "report.html"

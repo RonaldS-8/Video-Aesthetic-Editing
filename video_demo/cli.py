@@ -15,6 +15,7 @@ import numpy as np
 
 from video_demo import (
     evaluate,
+    instruct,
     layout,
     outline,
     quality,
@@ -967,6 +968,45 @@ class _Retrieval:
         )
         return [outline.Scene(n, g) for n, g in enumerate(groups, start=1)]
 
+    def rank(
+        self,
+        queries: list[str],
+        pool: list[outline.Scene],
+        cands: list[suggest.Candidate],
+    ) -> tuple[list[dict[int, float]], list[dict[int, float]], list[dict]]:
+        """Per query: relevance of the scenes in ``pool`` and of their
+        segments, and the top five of each scene ranking."""
+        members = [i for s in pool for i in s.members]
+        keys = {i: self._key(cands[i]) for i in members}
+        docs = {i: self.docs[keys[i]] for i in members}
+        text = {i: self.text[keys[i]] for i in members}
+        image = {i: self.image[keys[i]] for i in members}
+        scene_docs = {s.number: "；".join(docs[i] for i in s.members) for s in pool}
+        scene_text = {
+            s.number: retrieve.pooled([text[i] for i in s.members]) for s in pool
+        }
+        scene_image = {
+            s.number: retrieve.pooled([image[i] for i in s.members]) for s in pool
+        }
+        numbers = [s.number for s in pool]
+        per_scene, per_segment, tops = [], [], []
+        for query in queries:
+            vec = self.embedder.embed_query(query)
+            rel, rankings = retrieve.relevance(
+                query, vec, numbers, scene_docs, scene_text, scene_image
+            )
+            per_scene.append(rel)
+            per_segment.append(
+                retrieve.relevance(query, vec, members, docs, text, image)[0]
+            )
+            tops.append(
+                {
+                    "query": query,
+                    "top": {name: ranking[:5] for name, ranking in rankings.items()},
+                }
+            )
+        return per_scene, per_segment, tops
+
     def relevance(
         self,
         plan: dict,
@@ -981,38 +1021,9 @@ class _Retrieval:
         segment_rel: list[list[dict[int, float]]] = []
         report: list[dict] = []
         for part in plan["parts"]:
-            pool = outline.part_scenes(part, chunks, scenes)
-            members = [i for s in pool for i in s.members]
-            keys = {i: self._key(cands[i]) for i in members}
-            docs = {i: self.docs[keys[i]] for i in members}
-            text = {i: self.text[keys[i]] for i in members}
-            image = {i: self.image[keys[i]] for i in members}
-            scene_docs = {s.number: "；".join(docs[i] for i in s.members) for s in pool}
-            scene_text = {
-                s.number: retrieve.pooled([text[i] for i in s.members]) for s in pool
-            }
-            scene_image = {
-                s.number: retrieve.pooled([image[i] for i in s.members]) for s in pool
-            }
-            numbers = [s.number for s in pool]
-            per_scene, per_segment, tops = [], [], []
-            for query in part["scenes"]:
-                vec = self.embedder.embed_query(query)
-                rel, rankings = retrieve.relevance(
-                    query, vec, numbers, scene_docs, scene_text, scene_image
-                )
-                per_scene.append(rel)
-                per_segment.append(
-                    retrieve.relevance(query, vec, members, docs, text, image)[0]
-                )
-                tops.append(
-                    {
-                        "query": query,
-                        "top": {
-                            name: ranking[:5] for name, ranking in rankings.items()
-                        },
-                    }
-                )
+            per_scene, per_segment, tops = self.rank(
+                part["scenes"], outline.part_scenes(part, chunks, scenes), cands
+            )
             scene_rel.append(per_scene)
             segment_rel.append(per_segment)
             report.append({"part": part["name"], "queries": tops})
@@ -1061,6 +1072,49 @@ def cmd_index(args: argparse.Namespace) -> None:
     embedder.close()
 
 
+def _chunk_rows(
+    chunks: list[outline.Chunk], cands: list[suggest.Candidate]
+) -> list[dict]:
+    return [
+        {
+            "number": ch.number,
+            "video": ch.video,
+            "start": round(ch.start, 2),
+            "end": round(ch.end, 2),
+            "segments": [cands[i].index for i in ch.members],
+            "summary": ch.summary,
+        }
+        for ch in chunks
+    ]
+
+
+def _scene_rows(
+    scenes: list[outline.Scene],
+    cands: list[suggest.Candidate],
+    offsets: dict[str, float],
+) -> list[dict]:
+    """Scenes with start and end on the timeline that ``offsets`` sets
+    (empty: within their own video)."""
+    return [
+        {
+            "number": sc.number,
+            "video": cands[sc.members[0]].video,
+            "start": round(
+                offsets.get(cands[sc.members[0]].video, 0.0)
+                + cands[sc.members[0]].start,
+                2,
+            ),
+            "end": round(
+                offsets.get(cands[sc.members[-1]].video, 0.0)
+                + cands[sc.members[-1]].end,
+                2,
+            ),
+            "segments": [cands[i].index for i in sc.members],
+        }
+        for sc in scenes
+    ]
+
+
 def _highlights_payload(
     name: str,
     cands: list[suggest.Candidate],
@@ -1101,35 +1155,8 @@ def _highlights_payload(
             "outline_raw": raw,
             "outline_seconds": round(seconds, 1),
             "outline_failed_attempts": errors,
-            "chunks": [
-                {
-                    "number": ch.number,
-                    "video": ch.video,
-                    "start": round(ch.start, 2),
-                    "end": round(ch.end, 2),
-                    "segments": [cands[i].index for i in ch.members],
-                    "summary": ch.summary,
-                }
-                for ch in chunks
-            ],
-            "scenes": [
-                {
-                    "number": sc.number,
-                    "video": cands[sc.members[0]].video,
-                    "start": round(
-                        offsets.get(cands[sc.members[0]].video, 0.0)
-                        + cands[sc.members[0]].start,
-                        2,
-                    ),
-                    "end": round(
-                        offsets.get(cands[sc.members[-1]].video, 0.0)
-                        + cands[sc.members[-1]].end,
-                        2,
-                    ),
-                    "segments": [cands[i].index for i in sc.members],
-                }
-                for sc in scenes
-            ],
+            "chunks": _chunk_rows(chunks, cands),
+            "scenes": _scene_rows(scenes, cands, offsets),
         }
     return {
         "name": name,
@@ -1193,6 +1220,116 @@ def cmd_suggest(args: argparse.Namespace) -> None:
         retrieval.embedder.close()
 
 
+def cmd_edit(args: argparse.Namespace) -> None:
+    """A cut for the user's instruction across the selected videos: the
+    outline model reads the instruction and the chunk summaries, every
+    scene is searched for its slots. Timeline, preview and report go to a
+    folder of their own under out/<collection>/edits/."""
+    instruction = args.instruction.strip()
+    if not instruction:
+        raise SystemExit("剪辑要求不能为空")
+    out = _out(args)
+    try:
+        tag.check_server(outline.SERVER_URL)
+    except ConnectionError as exc:
+        raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
+    videos = _selected(args)
+    cands: list[suggest.Candidate] = []
+    offsets: dict[str, float] = {}
+    total = 0.0
+    for video in videos:
+        cands += _candidates(video)
+        offsets[video.id] = total
+        total += _load_segments(video.id)[0]["analysed_until"]
+    chunks = _chunks(cands, offsets)
+    try:
+        duration, duration_raw, _, duration_errors = instruct.parse_duration(
+            instruction
+        )
+    except outline.OutlineError as exc:
+        raise SystemExit(f"读取成片时长失败（3 次都没通过校验）：{exc}") from exc
+    cands = suggest.calibrate_by_time(cands)
+    assessments = [suggest.assess(c) for c in cands]
+    usable = sum(
+        c.duration
+        for c, a in zip(cands, assessments, strict=True)
+        if a.keep and c.duration >= suggest.MIN_CLIP_SEC
+    )
+    if duration["target_sec"]:
+        target = float(duration["target_sec"])
+        source = {"kind": "instruction", "quote": duration["quote"]}
+    else:
+        target = args.ratio * total
+        source = {"kind": "ratio", "ratio": args.ratio}
+    if target > usable:
+        raise SystemExit(f"要求成片 {target:.0f}s，可用素材只有 {usable:.0f}s")
+    retrieval = _Retrieval(videos)
+    try:
+        scenes = retrieval.scenes(chunks, cands)
+        try:
+            plan, raw, seconds, errors = instruct.plan_request(
+                instruction, chunks, target
+            )
+        except outline.OutlineError as exc:
+            raise SystemExit(f"大纲生成失败（3 次都没通过校验）：{exc}") from exc
+        ranked = [
+            retrieval.rank([s["query"] for s in part["scenes"]], scenes, cands)
+            for part in plan["parts"]
+        ]
+    finally:
+        retrieval.embedder.close()
+    named = set().union(*(outline.highlight_members(ch) for ch in chunks))
+    clips, notes, slots = instruct.fill_request(
+        plan,
+        scenes,
+        cands,
+        assessments,
+        [r[0] for r in ranked],
+        [r[1] for r in ranked],
+        named,
+    )
+    if not clips:
+        raise SystemExit(f"没有选到任何片段：{'；'.join(notes)}")
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    folder = layout.edit_dir(out, stamp)
+    timeline = {
+        "name": "edit",
+        "mode": "edit",
+        "instruction": instruction,
+        "created": stamp,
+        "videos": [v.id for v in videos],
+        "target_sec": round(target, 1),
+        "target_source": source,
+        "duration_raw": duration_raw,
+        "duration_failed_attempts": duration_errors,
+        "total_sec": round(sum(c.duration for c in clips), 2),
+        "notes": notes,
+        "clips": [suggest.clip_to_dict(c) for c in clips],
+        "assessments": [vars(a) for a in assessments],
+        "slots": slots,
+        "retrieval": [
+            {"part": part["name"], "queries": r[2]}
+            for part, r in zip(plan["parts"], ranked, strict=True)
+        ],
+        "outline": plan,
+        "outline_raw": raw,
+        "outline_seconds": round(seconds, 1),
+        "outline_failed_attempts": errors,
+        "chunks": _chunk_rows(chunks, cands),
+        # Within their own video: the cut is not in shooting order.
+        "scenes": _scene_rows(scenes, cands, {}),
+    }
+    _write_json(layout.edit_timeline_path(folder), timeline)
+    print(
+        f"{plan['title']}：{len(clips)} clips {timeline['total_sec']}s / "
+        f"目标 {target:.0f}s {notes}"
+    )
+    _write_preview(
+        timeline, {v.id: v.file for v in videos}, layout.edit_preview_path(folder)
+    )
+    print(f"Wrote {report.write_edit(ROOT, folder, videos, timeline)}")
+
+
 def cmd_render(args: argparse.Namespace) -> None:
     out = _out(args)
     dirs = _result_dirs(args, out)
@@ -1201,17 +1338,22 @@ def cmd_render(args: argparse.Namespace) -> None:
     for folder in [dirs[v.id] for v in videos] + [out]:
         path = layout.timeline_path(folder, args.mode)
         timeline = json.loads(path.read_text("utf-8"))
+        _write_preview(timeline, files, layout.preview_path(folder, args.mode))
 
-        def frames(tl: dict = timeline):
-            for clip in tl["clips"]:
-                yield from read_clip(
-                    RAW_DIR / files[clip["video"]], clip["src_start"], clip["duration"]
-                )
 
-        target = layout.preview_path(folder, args.mode)
-        t0 = time.perf_counter()
-        write_video(frames(), target)
-        print(f"{target}: {time.perf_counter() - t0:.1f}s")
+def _write_preview(timeline: dict, files: dict[str, str], target: Path) -> None:
+    """The timeline's clips joined into one preview video; ``files`` maps
+    video ids to raw file names."""
+
+    def frames() -> Iterator:
+        for clip in timeline["clips"]:
+            yield from read_clip(
+                RAW_DIR / files[clip["video"]], clip["src_start"], clip["duration"]
+            )
+
+    t0 = time.perf_counter()
+    write_video(frames(), target)
+    print(f"{target}: {time.perf_counter() - t0:.1f}s")
 
 
 def _index_vectors(video: layout.Video) -> tuple[Vectors, Vectors]:
@@ -1507,6 +1649,27 @@ def main() -> None:
                 help="highlights length / input length (default 1/6)",
             )
         p.set_defaults(func=func)
+    p_edit = sub.add_parser(
+        "edit", help="a cut for one instruction: outline, retrieval fill, report"
+    )
+    p_edit.add_argument(
+        "instruction", help="剪辑要求，如：剪 60 秒的教堂，先外观后内部"
+    )
+    p_edit.add_argument("--collection", default="vlog", help=COLLECTION_HELP)
+    p_edit.add_argument("--only", default="", help=ONLY_HELP)
+    p_edit.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="result dir (default out/<collection>; vlog uses out/dover)",
+    )
+    p_edit.add_argument(
+        "--ratio",
+        type=float,
+        default=suggest.HIGHLIGHT_RATIO,
+        help="cut length / input length when the instruction gives none",
+    )
+    p_edit.set_defaults(func=cmd_edit)
     p_synth = sub.add_parser("synth")
     p_synth.add_argument("--set", choices=sorted(SYNTH_SETS), default="main")
     p_synth.set_defaults(func=cmd_synth)

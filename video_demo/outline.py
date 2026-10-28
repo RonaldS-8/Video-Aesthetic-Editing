@@ -504,6 +504,48 @@ def share(total: float, capacity: list[float]) -> list[float]:
     return out
 
 
+def pick_segments(
+    rel: dict[int, float],
+    seconds: float,
+    candidates: list[Candidate],
+    assessments: list[Assessment],
+    named: set[int],
+) -> list[int]:
+    """Whole segments of one scene for a slot of ``seconds``.
+
+    ``rel`` maps the scene's usable candidates to their rescaled relevance.
+    They are ranked by score + relevance + highlight bonus and taken while
+    a segment brings the total closer to ``seconds``, skipping near repeats.
+    """
+    members = sorted(
+        rel,
+        key=lambda i: (
+            -(
+                assessments[i].score
+                + MATCH_WEIGHT * rel[i]
+                + (HIGHLIGHT_BONUS if i in named else 0.0)
+            ),
+            candidates[i].start,
+        ),
+    )
+    picked: list[int] = []
+    total = 0.0
+    for i in members:
+        c = candidates[i]
+        if picked and total + c.duration / 2 > seconds:
+            continue
+        repeat = any(
+            abs(candidates[p].start - c.start) <= DUP_NEAR_SEC
+            and _jaccard(candidates[p].tags["tags"], c.tags["tags"]) >= DUP_JACCARD
+            for p in picked
+        )
+        if repeat:
+            continue
+        picked.append(i)
+        total += c.duration
+    return picked
+
+
 def fill(
     outline: dict[str, Any],
     chunks: list[Chunk],
@@ -590,35 +632,9 @@ def fill(
             )
             slot["relevance"] = round(scene_relevance[k][j][scene.number], 3)
             slot["seconds"] = round(seconds[j], 1)
-            members = sorted(
-                (i for i in scene.members if usable(i)),
-                key=lambda i: (
-                    -(
-                        assessments[i].score
-                        + MATCH_WEIGHT * rel[i]
-                        + (HIGHLIGHT_BONUS if i in named else 0.0)
-                    ),
-                    candidates[i].start,
-                ),
-            )
-            picked: list[int] = []
-            total = 0.0
-            for i in members:
-                c = candidates[i]
-                if picked and total + c.duration / 2 > seconds[j]:
-                    continue
-                repeat = any(
-                    abs(candidates[p].start - c.start) <= DUP_NEAR_SEC
-                    and _jaccard(candidates[p].tags["tags"], c.tags["tags"])
-                    >= DUP_JACCARD
-                    for p in picked
-                )
-                if repeat:
-                    continue
-                picked.append(i)
-                chosen.append((k, j, i))
-                total += c.duration
-            part_total += total
+            picked = pick_segments(rel, seconds[j], candidates, assessments, named)
+            chosen += [(k, j, i) for i in picked]
+            part_total += sum(candidates[i].duration for i in picked)
         slots_out.append(slots)
         if part_total < 0.8 * part["duration_sec"]:
             notes.append(
