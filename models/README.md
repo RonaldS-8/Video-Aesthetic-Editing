@@ -99,8 +99,8 @@ for f in aggregation_net.pth content_net.pth distortion_net.pth; do curl -sSfL -
 
 ## 检索向量：EmbeddingGemma 2 740M（LiteRT-LM）
 
-- 清单：`models/embeddinggemma/embeddinggemma-2-740m.json`（入库，抄自
-  A-NAS 的 `deploy/models/`），记录来源、修订号、大小和 SHA-256；
+- 清单：`models/embeddinggemma/embeddinggemma-2-740m.json`（入库，与端侧
+  相册客户端使用同一份），记录来源、修订号、大小和 SHA-256；
   加载时会核对，不一致就报错。
 - 来源：Hugging Face `litert-community/embeddinggemma-2-740m-litert-lm`，
   修订 `24d962e906c7d332c6428e71c9676855024569e2`。

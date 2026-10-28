@@ -31,5 +31,8 @@ models/**
 !models/README.md
 !models/**/*.json
 
-# Downloaded datasets and archives (see docs/plans/长素材精彩瞬间-数据与方案.md)
+# Internal notes and plans stay local
+docs/
+
+# Downloaded datasets and archives
 data/downloads/
