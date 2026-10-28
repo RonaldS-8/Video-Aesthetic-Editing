@@ -83,9 +83,12 @@ def build_samplers(sample_types: dict[str, Any]) -> dict[str, UnifiedFrameSample
     return samplers
 
 
-def weights_path(dover_root: Path, config_name: str = "dover.yml") -> Path:
+def weights_path(
+    dover_root: Path, weights_dir: Path, config_name: str = "dover.yml"
+) -> Path:
+    """The file the config's ``test_load_path`` names, looked up in ``weights_dir``."""
     config = yaml.safe_load((dover_root / config_name).read_text("utf-8"))
-    return (dover_root / config["test_load_path"]).resolve()
+    return (weights_dir / Path(config["test_load_path"]).name).resolve()
 
 
 class DoverAdapter:
@@ -107,13 +110,17 @@ class DoverAdapter:
 
     @classmethod
     def load(
-        cls, dover_root: Path, device: str = "cpu", config_name: str = "dover.yml"
+        cls,
+        dover_root: Path,
+        weights_dir: Path,
+        device: str = "cpu",
+        config_name: str = "dover.yml",
     ) -> DoverAdapter:
         config_path = dover_root / config_name
         if not config_path.exists():
             raise FileNotFoundError(f"DOVER config not found: {config_path}")
         config = yaml.safe_load(config_path.read_text("utf-8"))
-        weights = weights_path(dover_root, config_name)
+        weights = weights_path(dover_root, weights_dir, config_name)
         if not weights.exists():
             raise FileNotFoundError(f"DOVER weights not found: {weights}")
         # DOVER prints its backbone set-up ("Setting backbone: ...") on build.

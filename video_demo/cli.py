@@ -51,8 +51,13 @@ OUT_DIR = ROOT / "out"
 RESULT_DIR = OUT_DIR / "dover"
 BASELINE_REPORT = OUT_DIR / "report.html"
 SYNTH_PATH = ROOT / "data" / "synth" / "synth_cuts.mp4"
+# Third-party model code stays in third_party/; every weight file lives in
+# models/ (see models/README.md for sources, versions and SHA-256).
 DOVER_ROOT = ROOT / "third_party" / "DOVER"
 UVQ_ROOT = ROOT / "third_party" / "uvq"
+MODELS_DIR = ROOT / "models"
+DOVER_WEIGHTS = MODELS_DIR / "dover"
+UVQ_WEIGHTS = MODELS_DIR / "uvq"
 
 # Where a per-segment stage keeps its records for one video.
 PathFn = Callable[[Path, str], Path]
@@ -66,22 +71,23 @@ UVQ_COMMIT = "c204ecc04f093e90c941cb126c7ac3d5beca0414"
 SETUP_HINTS = {
     "dover-mobile": (
         "把 https://github.com/QualityAssessment/DOVER/releases/download/v0.5.0/"
-        "DOVER-Mobile.pth 下载到 third_party/DOVER/pretrained_weights/"
+        "DOVER-Mobile.pth 下载到 models/dover/"
     ),
     "uvq": (
         f"从 https://github.com/google/uvq/tree/{UVQ_COMMIT} 取 uvq1p5_pytorch/、"
-        "utils/ 与 LICENSE，放到 third_party/uvq/（见 README）"
+        "utils/ 与 LICENSE 放到 third_party/uvq/，三个 .pth 权重放到 models/uvq/"
+        "（见 models/README.md）"
     ),
 }
 LLAMA_SERVER_CMD = (
-    "llama-server -m Qwen3VL-2B-Instruct-Q4_K_M.gguf "
-    "--mmproj mmproj-Qwen3VL-2B-Instruct-F16.gguf "
+    "llama-server -m models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf "
+    "--mmproj models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf "
     "--host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1"
 )
 DOVER_SETUP_CMD = (
     "git clone https://github.com/VQAssessment/DOVER.git third_party/DOVER，"
     "再把 https://github.com/QualityAssessment/DOVER/releases/download/v0.1.0/"
-    "DOVER.pth 下载到 third_party/DOVER/pretrained_weights/"
+    "DOVER.pth 下载到 models/dover/"
 )
 NEXT_STEPS = "下一步：python -m video_demo suggest → render → report"
 
@@ -277,18 +283,19 @@ def _selected(args: argparse.Namespace) -> list[layout.Video]:
 
 
 def _out(args: argparse.Namespace) -> Path:
-    """``--out``, else out/<collection> (vlog keeps out/dover); highlights
-    and ranked go to a folder of that name inside it, since every mode
-    writes one timeline per video under the same names."""
+    """``--out``, else out/<collection> (vlog keeps out/dover)."""
     if args.out is not None:
         return args.out
-    base = RESULT_DIR if args.collection == "vlog" else OUT_DIR / args.collection
-    mode = getattr(args, "mode", "reel")
-    return base if mode == "reel" else base / mode
+    return RESULT_DIR if args.collection == "vlog" else OUT_DIR / args.collection
 
 
-def _summary_name(mode: str) -> str:
-    return REEL_NAME if mode == "reel" else HIGHLIGHTS_NAME
+def _result_dirs(args: argparse.Namespace, out: Path) -> dict[str, Path]:
+    """Result folder per video id, checked against every video of the
+    collection (not only ``--only``) so two videos never share a folder."""
+    collection = getattr(args, "collection", "")
+    return layout.result_dirs(
+        out, [v for v in _videos() if not collection or v.collection == collection]
+    )
 
 
 def _todo(vid: str, out: PathFn, limit: int) -> list[Segment]:
@@ -417,7 +424,7 @@ def _load_quality_adapter() -> Any:
     # stages need them.
     from video_demo.aesthetic import DoverAdapter
 
-    return DoverAdapter.load(DOVER_ROOT)
+    return DoverAdapter.load(DOVER_ROOT, DOVER_WEIGHTS)
 
 
 def _print_line(note: str) -> None:
@@ -438,10 +445,12 @@ def _load_compare_adapter(model: str) -> Any:
         if model == "dover-mobile":
             from video_demo.aesthetic import DoverAdapter
 
-            return DoverAdapter.load(DOVER_ROOT, config_name="dover-mobile.yml")
+            return DoverAdapter.load(
+                DOVER_ROOT, DOVER_WEIGHTS, config_name="dover-mobile.yml"
+            )
         from video_demo.uvq import UvqAdapter
 
-        return UvqAdapter.load(UVQ_ROOT)
+        return UvqAdapter.load(UVQ_ROOT, UVQ_WEIGHTS)
     except FileNotFoundError as exc:
         raise SystemExit(f"{exc}\n    {SETUP_HINTS[model]}") from exc
 
@@ -673,7 +682,7 @@ def missing_inputs(
             problems.append(f"{exc}\n    启动命令：{LLAMA_SERVER_CMD}")
     if need_quality:
         config = DOVER_ROOT / "dover.yml"
-        weights = DOVER_ROOT / "pretrained_weights" / "DOVER.pth"
+        weights = DOVER_WEIGHTS / "DOVER.pth"
         if not config.exists() or not weights.exists():
             problems.append(
                 f"未找到 DOVER 代码或权重（{weights}）\n    {DOVER_SETUP_CMD}"
@@ -737,15 +746,15 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print(NEXT_STEPS)
 
 
-PER_VIDEO_TARGET_SEC = 30.0
-REEL_TARGET_SEC = 45.0
-REEL_NAME = "all_videos_reel"
-# One timeline across the whole collection in highlights / ranked mode.
+# Name of the timeline across the whole collection.
 HIGHLIGHTS_NAME = "highlights"
-MODES = ("reel", "highlights", "ranked")
+# highlights: model outline filled by retrieval, for short and long videos
+# alike; ranked: the same length by score only, kept as a baseline to judge
+# the outline against.
+MODES = ("highlights", "ranked")
 OUTLINE_SERVER_CMD = (
-    "llama-server -m Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 "
-    "-ngl 99 -c 16384 -np 1（模型在 OCR_test/models/gguf）"
+    "llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 "
+    "--port 8092 -ngl 99 -c 16384 -np 1"
 )
 
 
@@ -792,23 +801,6 @@ def _candidates(video: layout.Video) -> list[suggest.Candidate]:
         )
         for s in segments
     ]
-
-
-def _timeline_payload(
-    name: str,
-    cands: list[suggest.Candidate],
-    target: float,
-) -> dict:
-    assessments = [suggest.assess(c) for c in cands]
-    clips, notes = suggest.build_timeline(cands, assessments, target)
-    return {
-        "name": name,
-        "target_sec": target,
-        "total_sec": round(sum(c.duration for c in clips), 2),
-        "notes": notes,
-        "clips": [suggest.clip_to_dict(c) for c in clips],
-        "assessments": [vars(a) for a in assessments],
-    }
 
 
 def _video_summaries(
@@ -1135,9 +1127,11 @@ def _highlights_payload(
 
 
 def cmd_suggest(args: argparse.Namespace) -> None:
-    """Reel mode: a 30 s cut per video and a 45 s reel. Highlights mode:
-    ``--ratio`` of each video, and of the whole collection, as whole segments."""
+    """``--ratio`` of each video, and of the whole collection, as whole
+    segments; one timeline per video in its result folder and one across the
+    collection at its root."""
     out = _out(args)
+    dirs = _result_dirs(args, out)
     if args.mode == "highlights":
         try:
             tag.check_server(outline.SERVER_URL)
@@ -1153,27 +1147,22 @@ def cmd_suggest(args: argparse.Namespace) -> None:
         analysed = _load_segments(video.id)[0]["analysed_until"]
         offsets[video.id] = total
         total += analysed
-        if args.mode == "reel":
-            payload = _timeline_payload(video.id, cands, PER_VIDEO_TARGET_SEC)
-        else:
-            payload = _highlights_payload(
-                video.id,
-                cands,
-                args.ratio * analysed,
-                {video.id: 0.0},
-                args.mode,
-                retrieval,
-            )
-        _write_json(layout.timeline_path(out, video.id), payload)
+        payload = _highlights_payload(
+            video.id,
+            cands,
+            args.ratio * analysed,
+            {video.id: 0.0},
+            args.mode,
+            retrieval,
+        )
+        _write_json(layout.timeline_path(dirs[video.id], args.mode), payload)
         kept = sum(a["keep"] for a in payload["assessments"])
         print(
             f"{video.id} {video.file}: keep {kept}/{len(cands)}, "
             f"{len(payload['clips'])} clips {payload['total_sec']}s {payload['notes']}"
         )
-    name = _summary_name(args.mode)
-    if args.mode == "reel":
-        summary = _timeline_payload(name, every, REEL_TARGET_SEC)
-    elif len(offsets) == 1:
+    name = HIGHLIGHTS_NAME
+    if len(offsets) == 1:
         # One video: the collection timeline is that video's; asking the
         # model for a second outline would only give a different one.
         summary = {**payload, "name": name}
@@ -1181,7 +1170,7 @@ def cmd_suggest(args: argparse.Namespace) -> None:
         summary = _highlights_payload(
             name, every, args.ratio * total, offsets, args.mode, retrieval
         )
-    _write_json(layout.timeline_path(out, name), summary)
+    _write_json(layout.timeline_path(out, args.mode), summary)
     print(f"{name}: {len(summary['clips'])} clips {summary['total_sec']}s")
     if retrieval:
         retrieval.embedder.close()
@@ -1189,10 +1178,12 @@ def cmd_suggest(args: argparse.Namespace) -> None:
 
 def cmd_render(args: argparse.Namespace) -> None:
     out = _out(args)
+    dirs = _result_dirs(args, out)
     videos = _selected(args)
     files = {v.id: v.file for v in videos}
-    for name in [v.id for v in videos] + [_summary_name(args.mode)]:
-        timeline = json.loads(layout.timeline_path(out, name).read_text("utf-8"))
+    for folder in [dirs[v.id] for v in videos] + [out]:
+        path = layout.timeline_path(folder, args.mode)
+        timeline = json.loads(path.read_text("utf-8"))
 
         def frames(tl: dict = timeline):
             for clip in tl["clips"]:
@@ -1200,18 +1191,19 @@ def cmd_render(args: argparse.Namespace) -> None:
                     RAW_DIR / files[clip["video"]], clip["src_start"], clip["duration"]
                 )
 
-        target = layout.preview_path(out, name)
+        target = layout.preview_path(folder, args.mode)
         t0 = time.perf_counter()
         write_video(frames(), target)
-        print(f"{target.name}: {time.perf_counter() - t0:.1f}s")
+        print(f"{target}: {time.perf_counter() - t0:.1f}s")
 
 
 def cmd_report(args: argparse.Namespace) -> None:
+    out = _out(args)
     path = report.write(
         ROOT,
-        _out(args),
+        out,
         _selected(args),
-        _summary_name(args.mode),
+        _result_dirs(args, out),
         BASELINE_REPORT,
         args.mode,
     )
@@ -1320,9 +1312,9 @@ def main() -> None:
             p.add_argument(
                 "--mode",
                 choices=MODES,
-                default="reel",
-                help="reel: 30 s per video + 45 s reel; highlights: model outline "
-                "filled with --ratio of input; ranked: --ratio by score only",
+                default="highlights",
+                help="highlights: model outline filled with --ratio of input; "
+                "ranked: --ratio by score only (baseline)",
             )
         if func is cmd_suggest:
             p.add_argument(

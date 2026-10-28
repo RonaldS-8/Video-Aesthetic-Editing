@@ -646,5 +646,5 @@ def fill(
                 f"{segment_relevance[k][j][i]:.0%}{mark}",
             )
         )
-    validate_timeline(clips, candidates, max_clip_sec=None)
+    validate_timeline(clips, candidates)
     return clips, notes, slots_out

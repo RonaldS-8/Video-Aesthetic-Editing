@@ -35,10 +35,6 @@ class UvqScore:
     per_frame: list[float]
 
 
-def checkpoint_dir(uvq_root: Path) -> Path:
-    return uvq_root / "uvq1p5_pytorch" / "checkpoints"
-
-
 def to_input(frame: np.ndarray) -> torch.Tensor:
     """HxWx3 uint8 RGB -> (1, 1, 3, H, W) float in [-1, 1], as the reader yields."""
     if frame.shape != (SIZE[1], SIZE[0], 3) or frame.dtype != np.uint8:
@@ -58,20 +54,26 @@ class UvqAdapter:
         self.weights_sha256 = weights_sha256
 
     @classmethod
-    def load(cls, uvq_root: Path) -> UvqAdapter:
-        ckpt = checkpoint_dir(uvq_root)
-        missing = [name for name in CHECKPOINTS if not (ckpt / name).exists()]
+    def load(cls, uvq_root: Path, weights_dir: Path) -> UvqAdapter:
+        missing = [name for name in CHECKPOINTS if not (weights_dir / name).exists()]
         if missing:
-            raise FileNotFoundError(f"UVQ 1.5 weights not found in {ckpt}: {missing}")
+            raise FileNotFoundError(
+                f"UVQ 1.5 weights not found in {weights_dir}: {missing}"
+            )
         # The official package imports its siblings by path, not as a package.
         sys.path.insert(0, str(uvq_root.resolve()))
         from uvq1p5_pytorch.utils import uvq1p5
 
-        model = uvq1p5.UVQ1p5()
+        # The official constructor reads weights next to its own code; build
+        # without them and load each network from weights_dir instead.
+        model = uvq1p5.UVQ1p5(pretrained=False)
+        nets = (model.content_net, model.distortion_net, model.aggregation_net)
+        for net, name in zip(nets, CHECKPOINTS, strict=True):
+            net.load_state_dict(str(weights_dir / name))
         model.uvq1p5_core.to(memory_format=torch.channels_last)
         digest = hashlib.sha256()
         for name in CHECKPOINTS:
-            digest.update((ckpt / name).read_bytes())
+            digest.update((weights_dir / name).read_bytes())
         return cls(model.uvq1p5_core, digest.hexdigest())
 
     def score(self, frames: list[np.ndarray]) -> UvqScore:

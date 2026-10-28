@@ -81,35 +81,6 @@ def test_assess_does_not_penalise_dark_night_scene() -> None:
     assert night.score == pytest.approx(3.2) and day.score == pytest.approx(2.2)
 
 
-def test_timeline_opens_wide_dedupes_and_validates() -> None:
-    cands = [
-        _cand(0, highlight=5, shot_size="远景", tags=["城市", "夜景", "灯光"]),
-        _cand(1, shot=0, highlight=5, tags=["x", "y", "z"]),  # next window, shot 0
-        _cand(2, highlight=5, tags=["城市", "夜景", "灯光"]),  # duplicate tags
-        _cand(3, highlight=4, tags=["船", "商场", "水"]),
-        _cand(4, highlight=3, shot_size="全景", tags=["极光", "夜空", "湖"]),
-        _cand(5, quality=0.1, highlight=2, tags=["p", "q", "r"]),  # dropped (1.52)
-    ]
-    assessments = [suggest.assess(c) for c in cands]
-    clips, notes = suggest.build_timeline(cands, assessments, target_sec=12.0)
-    assert clips[0].role == "开场" and clips[0].index == 0
-    assert clips[-1].role == "收尾" and clips[-1].index == 4
-    used = {c.index for c in clips}
-    assert used == {0, 3, 4}
-    assert all(c.duration <= suggest.MAX_CLIP_SEC for c in clips)
-    assert notes == []
-
-
-def test_distant_windows_of_one_long_take_are_both_usable() -> None:
-    cands = [
-        _cand(0, shot=0, highlight=5, shot_size="远景", tags=["a1", "a2", "a3"]),
-        _cand(1, shot=0, highlight=5, tags=["b1", "b2", "b3"]),
-        _cand(2, shot=0, highlight=5, tags=["c1", "c2", "c3"]),
-    ]
-    clips, _ = suggest.build_timeline(cands, [suggest.assess(c) for c in cands], 30.0)
-    assert {c.index for c in clips} == {0, 2}
-
-
 def _two_video_pool(names: tuple[str, str]) -> list[suggest.Candidate]:
     # Same VLM highlight everywhere; only content differs between segments.
     rel = {(0, 0): 1.9, (0, 1): 0.8, (0, 2): 1.0, (1, 0): 1.6, (1, 1): 1.2}
@@ -138,7 +109,7 @@ def _two_video_pool(names: tuple[str, str]) -> list[suggest.Candidate]:
 
 def test_selection_ignores_file_names_and_input_order() -> None:
     def picked(cands: list[suggest.Candidate]) -> list[str]:
-        clips, _ = suggest.build_timeline(
+        clips, _ = suggest.build_highlights(
             cands, [suggest.assess(c) for c in cands], 12.0
         )
         return [c.description for c in clips]
@@ -156,9 +127,9 @@ def test_negative_sharpness_is_rejected() -> None:
         suggest.assess(_cand(0, sharpness_rel=-1.0))
 
 
-def test_timeline_reports_shortfall_instead_of_padding() -> None:
+def test_highlights_report_shortfall_instead_of_padding() -> None:
     cands = [_cand(0, highlight=5, shot_size="远景")]
-    clips, notes = suggest.build_timeline(cands, [suggest.assess(cands[0])], 30.0)
+    clips, notes = suggest.build_highlights(cands, [suggest.assess(cands[0])], 30.0)
     assert len(clips) == 1 and notes and "不足" in notes[0]
 
 

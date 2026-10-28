@@ -3,8 +3,12 @@
 本地验证"打标签 + 剪辑建议"链路的第一步：把视频切成片段，
 逐段打标签和美学打分，再按规则给出剪辑建议。全部在本机离线运行。
 
-- 结果报告（浏览器直接打开，两版格式相同，对照着看）：
-  - DOVER 美学打分版：[out/dover/report.html](out/dover/report.html)
+- 结果报告（浏览器直接打开）：
+  - 短 vlog 精彩瞬间：[out/dover/report_highlights.html](out/dover/report_highlights.html)，
+    只按得分的对照：[out/dover/report_ranked.html](out/dover/report_ranked.html)
+  - 长素材（爱丁堡 67 分钟）精彩瞬间：
+    [out/long/report_highlights.html](out/long/report_highlights.html)，
+    对照：[out/long/report_ranked.html](out/long/report_ranked.html)
   - 基线版（VLM 精彩度打分，来自 `main`，冻结不再生成）：
     [out/report.html](out/report.html)
 - 测试素材与署名：[data/raw/SOURCES.md](data/raw/SOURCES.md)
@@ -48,13 +52,17 @@ Video/
 │   ├── raw/             原始视频（原名，不入库）、清单 manifest.json、SOURCES.md
 │   ├── synth/           合成评测视频（mp4 不入库）与真值
 │   └── work/            按类型分目录：切分、信号、关键帧、标签、美学分（见"流水线"）
-├── out/                 基线版报告与时间线、切分评测结果
-│   └── dover/           DOVER 版报告与时间线（suggest/render/report 默认写这里）
-│                        （两处的 previews/ 都不入库）
-├── third_party/DOVER/   DOVER 代码与权重（不入库）
-├── third_party/uvq/     UVQ 1.5 代码与权重（不入库，仅模型对比用）
-├── third_party/embeddinggemma/  EmbeddingGemma 2 模型文件（不入库）
-├── models/              模型清单（版本、SHA-256），与 A-NAS 一致
+├── out/                 基线版报告与时间线（来自 main）、切分评测结果
+│   ├── dover/           vlog 集合的精彩瞬间：每条视频一个原名目录 + 报告
+│   └── long/            长素材集合，结构同上（预览视频都不入库）
+├── third_party/DOVER/   DOVER 代码（不入库）
+├── third_party/uvq/     UVQ 1.5 代码（不入库，仅模型对比用）
+├── models/              全部模型权重（不入库）；来源、版本、SHA-256 见
+│   │                    models/README.md
+│   ├── dover/           DOVER、DOVER-Mobile
+│   ├── uvq/             UVQ 1.5 三个网络
+│   ├── embeddinggemma/  EmbeddingGemma 2 与清单（清单入库，与 A-NAS 一致）
+│   └── gguf/            打标签用 Qwen3-VL-2B、大纲用 Qwen3.5-4B
 ├── requirements.txt
 └── pyproject.toml
 ```
@@ -167,11 +175,11 @@ Video/
 - Python 3.11 虚拟环境 `.venv`，依赖见 `requirements.txt`。
   PyAV 自带 FFmpeg 库，不需要单独安装 ffmpeg。
 - 打标签模型：Qwen3-VL-2B-Instruct Q4_K_M（GGUF，约 1.1 GB）
-  加 F16 视觉投影（约 0.8 GB），复用 JoyAI 目录
-  `D:\users\018574\work\JoyAI\JoyAI-VL-Interaction-llamacpp\models\gguf\`
-  里的文件，由 llama.cpp Vulkan 版 `llama-server` 提供 OpenAI 兼容
-  接口（端口 8091）。
-- 美学打分模型：DOVER，代码与权重放在 `third_party/DOVER/`，不入库。
+  加 F16 视觉投影（约 0.8 GB），放在 `models/gguf/`，由 llama.cpp
+  Vulkan 版 `llama-server` 提供 OpenAI 兼容接口（端口 8091）。
+- 美学打分模型：DOVER，代码放在 `third_party/DOVER/`，权重放在
+  `models/dover/`，都不入库。
+- 所有权重的存放路径、来源和版本见 [models/README.md](models/README.md)。
 
 ## 流水线：切分 → 描述 → 打分 → 剪辑
 
@@ -203,12 +211,12 @@ data/raw/<集合>/*（原名）
   ├─ ④ aesthetic  美学打分         → data/work/aesthetic/aesthetic_<ID>.jsonl
   │      ③④ 可用 analyze 一起跑：打标签用核显，DOVER 用 CPU
   ├─ ④' index     文本与图像向量   → data/work/index/index_<ID>.npz
-  ├─ ⑤ suggest    片段评分与选片   → out/<集合>/timelines/timeline_<ID>.json
-  │                                  out/<集合>/timelines/timeline_<合集名>.json
+  ├─ ⑤ suggest    片段评分与选片   → out/<集合>/<原名>/timeline_<模式>.json
+  │                                  out/<集合>/timeline_<模式>.json（全集合）
   │                highlights 模式另写分块总结
   │                                → data/work/summaries/summary_<ID>.json
-  ├─ ⑥ render     预览视频         → out/<集合>/previews/preview_<ID>.mp4
-  └─ ⑦ report     汇总报告         → out/<集合>/report.html
+  ├─ ⑥ render     预览视频         → out/<集合>/<原名>/preview_<模式>.mp4
+  └─ ⑦ report     汇总报告         → out/<集合>/report_<模式>.html
 ```
 
 | 阶段 | 命令 | 做什么 | 读 | 写 |
@@ -220,21 +228,22 @@ data/raw/<集合>/*（原名）
 | ④ 打分 | `aesthetic` | 先按时间戳数出片段帧数，按 DOVER 的采样规则选出要用的帧（每段最多约 130 帧），只解码这些帧送 DOVER（CPU），长边超过 1920 的先缩小；得到技术分、美学分和官方融合分（0–1）；固定随机种子，可复现，与改造前逐项一致 | 原视频、`segment_<ID>.json` | `aesthetic_<ID>.jsonl` |
 | ③+④ | `analyze` | 先做开工检查（输入文件、llama-server、DOVER 权重），再并发运行 ③ 和 ④，双进度条 | 同上 | 同上 |
 | ④' 向量 | `index` | EmbeddingGemma 2 740M（与 A-NAS 客户端同一文件、同一调用方式）给每段算两个 768 维向量：标签文本（描述、场景、动作、主体、标签）一个，关键帧图像向量的平均一个；图片先按客户相册的缩略图处理（长边 512、JPEG 82）。每 20 段存一次，可续跑；换模型后要 `--force` 重建。CPU 上每张图约 1.35 s，67 分钟素材约 30 分钟 | `tag_<ID>.jsonl`、`signal_<ID>.json`、`keyframe_<ID>/` | `index_<ID>.npz` |
-| ⑤ 剪辑 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 融合分 + 0.2 × 精彩度归一化）− 画质扣分。两种模式见下 | ①②③④ 的产出 | `timeline_<ID>.json` |
-| ⑥ 预览 | `render` | 按时间线从原视频截取并拼接（854×480、30 fps、无音轨） | 时间线、清单、原视频 | `preview_<ID>.mp4` |
-| ⑦ 报告 | `report` | 汇总切分评测、逐片段标签与分数、剪辑建议 | 以上全部 | `report.html` |
+| ⑤ 剪辑 | `suggest` | 片段分 = 1 + 4 ×（0.8 × 融合分 + 0.2 × 精彩度归一化）− 画质扣分。两种模式见下 | ①②③④ 的产出 | `timeline_<模式>.json` |
+| ⑥ 预览 | `render` | 按时间线从原视频截取并拼接（854×480、30 fps、无音轨） | 时间线、清单、原视频 | `preview_<模式>.mp4` |
+| ⑦ 报告 | `report` | 汇总切分评测、逐片段标签与分数、剪辑建议 | 以上全部 | `report_<模式>.html` |
 
 ⑤⑥⑦ 用 `--collection <集合>` 选数据（默认 `vlog`），输出到
 `out/<集合>/`；`vlog` 集合沿用 `out/dover/`。`--out <目录>` 可以改。
+每条视频的结果放在以原文件名（去掉扩展名，按清单从 ID 查出）命名的
+子目录里；同一集合里两个文件只差扩展名时会报错，需要先改名。
 `segment`、`signals` 默认跳过已有结果的视频，`--force` 才会重做。
 
-剪辑建议的三种模式（`suggest --mode`，`render`、`report` 也要给同样的
-`--mode`）：
+剪辑建议的两种模式（`suggest --mode`，`render`、`report` 也要给同样的
+`--mode`）。长短视频都用同一套精彩瞬间流程，不再单独做固定时长的短片：
 
 | 模式 | 用途 | 规则 |
 |---|---|---|
-| `reel`（默认） | 短片：每条视频 30 s，全集合 45 s | 按"开场全景 → 主体 → 收尾"填槽，每段最多取 4 s；同镜头相邻片段和标签高度重合的去重 |
-| `highlights` | 精彩瞬间：从长素材里挑出约 1/6（1 小时 → 10 分钟）供用户再剪 | ① 每条视频按时间每 5 分钟分一块，Qwen3.5-4B 逐块读片段描述写总结（发生了什么、地点、主体、活动、最多 3 个值得留的片段），按视频缓存在 `data/work/summaries/summary_<ID>.json`，中断后接着跑；② 4B 读全部块总结生成大纲：2–8 个部分（不超过块数），每部分有标题、内容说明、覆盖的块范围、分量（1–10）和 1–4 个场景槽位（每个用短语说明要什么画面），程序校验（块有效、按时间不重叠、槽位不重复），按分量分配各部分秒数（每部分至少 10 s，总和等于目标），不合格重试，全部失败报错；③ 按场景填槽（需要先跑 `index`）：每块内相邻片段按向量相似度连成场景（前后各 2 段平均向量的相似度为局部最低且低于 0.89 处切开，场景 20–120 s，不跨镜头），每个槽位只在本部分的块里检索场景：场景向量取所含片段的平均，按文本向量、图像向量、标签 BM25（按字二元组）三路排序后用 RRF 融合；相关度在候选场景间拉开（最高 1、最低 0）后加 0.2 × 场景画质，一个场景只给一个槽位。部分的秒数在槽位间平分，场景装不下的让给其他槽位；槽位在自己的场景里按片段得分 + 片段相关度（场景内拉开）+ 总结点名的亮点加 0.5 分整段选片，60 s 内标签高度重合的只留一段；按拍摄时间排序。美学分先在同一时段内取百分位。需要 4B 服务（端口 8092）。每条视频一条时间线，另有全集合的 `timeline_highlights.json`（集合里只有一条视频时直接复用它的大纲）；`--ratio` 改比例 |
+| `highlights`（默认） | 精彩瞬间：从素材里挑出约 1/6（1 小时 → 10 分钟）供用户再剪 | ① 每条视频按时间每 5 分钟分一块，Qwen3.5-4B 逐块读片段描述写总结（发生了什么、地点、主体、活动、最多 3 个值得留的片段），按视频缓存在 `data/work/summaries/summary_<ID>.json`，中断后接着跑；② 4B 读全部块总结生成大纲：2–8 个部分（不超过块数），每部分有标题、内容说明、覆盖的块范围、分量（1–10）和 1–4 个场景槽位（每个用短语说明要什么画面），程序校验（块有效、按时间不重叠、槽位不重复），按分量分配各部分秒数（每部分至少 10 s，总和等于目标），不合格重试，全部失败报错；③ 按场景填槽（需要先跑 `index`）：每块内相邻片段按向量相似度连成场景（前后各 2 段平均向量的相似度为局部最低且低于 0.89 处切开，场景 20–120 s，不跨镜头），每个槽位只在本部分的块里检索场景：场景向量取所含片段的平均，按文本向量、图像向量、标签 BM25（按字二元组）三路排序后用 RRF 融合；相关度在候选场景间拉开（最高 1、最低 0）后加 0.2 × 场景画质，一个场景只给一个槽位。部分的秒数在槽位间平分，场景装不下的让给其他槽位；槽位在自己的场景里按片段得分 + 片段相关度（场景内拉开）+ 总结点名的亮点加 0.5 分整段选片，60 s 内标签高度重合的只留一段；按拍摄时间排序。美学分先在同一时段内取百分位。需要 4B 服务（端口 8092）。每条视频一条时间线，另有全集合的一条（集合里只有一条视频时直接复用它的大纲）；`--ratio` 改比例 |
 | `ranked` | 精彩瞬间的对照基线，不用大纲 | 只按得分整段选片；每 5 分钟的时间窗口至少选一段；其余同 `highlights` |
 
 ### 存放路径
@@ -252,12 +261,14 @@ data/
     ├── tags/tag_<ID>.jsonl                 ③ 描述与标签
     └── aesthetic/aesthetic_<ID>.jsonl      ④ 美学分
 out/<集合>/                                输出（vlog 集合为 out/dover/）
-├── timelines/timeline_<ID>.json            ⑤ 单条视频的时间线
-├── timelines/timeline_all_videos_reel.json ⑤ 全集合合集（reel 模式）
-├── highlights/、ranked/                    ⑤–⑦ 精彩瞬间两种模式的输出，结构同上；
-│                                          全集合时间线为 timeline_highlights.json
-├── previews/preview_<ID>.mp4               ⑥ 预览（不入库）
-└── report.html                             ⑦ 报告
+├── <原名>/                                 每条视频一个目录，按原文件名
+│   ├── timeline_highlights.json            ⑤ 精彩瞬间时间线
+│   ├── timeline_ranked.json                ⑤ 只按得分的对照
+│   └── preview_<模式>.mp4                  ⑥ 预览（不入库）
+├── timeline_<模式>.json                    ⑤ 全集合的时间线
+├── preview_<模式>.mp4                      ⑥ 全集合预览（不入库）
+├── report_<模式>.html                      ⑦ 报告
+└── quality_compare.json                    质量模型对比结果
 ```
 
 `data/work/quality/` 下是模型对比用的分数（DOVER-Mobile、UVQ 1.5），
@@ -353,16 +364,16 @@ out/<集合>/                                输出（vlog 集合为 out/dover/�
 | `n_frames`、`decoded_frames`、`seconds` | 片段帧数、实际解码的采样帧数（改造后才有）、推理耗时 |
 | `model`、`weights_sha256`、`seed` | 模型名、权重 sha256、随机种子 |
 
-`timeline_<ID>.json`：
+`timeline_<模式>.json`：
 
 | 字段 | 含义 |
 |---|---|
-| `name`、`target_sec`、`total_sec` | 时间线名、目标时长（reel：单条 30 s，合集 45 s；highlights：输入时长 × 比例）、实际时长 |
-| `mode` | `highlights` 或 `ranked`（reel 模式不写这个字段） |
+| `name`、`target_sec`、`total_sec` | 时间线名（视频 ID，全集合为 `highlights`）、目标时长（输入时长 × 比例）、实际时长 |
+| `mode` | `highlights` 或 `ranked` |
 | `outline`、`outline_raw`、`outline_seconds`、`outline_failed_attempts`、`chunks` | 仅 highlights：模型给出的大纲（`title`，`parts` 里每部分 `name`、`summary`、`first_chunk`、`last_chunk`、`weight`、`scenes`（场景槽位），以及程序算出的 `duration_sec`）、原始输出、用时、被拒绝的尝试，以及每块的编号、视频、起止、所含片段编号和总结（`summary`、`places`、`subjects`、`activities`、`highlights`） |
 | `scenes`、`slots`、`retrieval` | 仅 highlights：场景列表（编号、视频、起止、所含片段编号）；每部分每个槽位的查询、分到的场景、相关度、秒数和最合适的 5 个场景；每个槽位查询的文本、图像、BM25 三路排序前 5 个场景 |
 | `notes` | 说明，如"可用素材不足" |
-| `clips` | 按播放顺序的片段：`order`、`role`（reel：开场 / 主体 / 收尾；highlights：所属大纲部分的标题；ranked：覆盖 / 精彩）、`video`（视频 ID）、`index`、`src_start`、`src_end`、`duration`（reel ≤4 s；highlights 为整段）、`description`、`reason` |
+| `clips` | 按播放顺序的片段：`order`、`role`（highlights：所属大纲部分的标题；ranked：覆盖 / 精彩）、`video`（视频 ID）、`index`、`src_start`、`src_end`、`duration`（整段）、`description`、`reason` |
 | `assessments` | 每个片段的评估：`video`（视频 ID）、`index`、`score`（1–5）、`keep`（`score` > 2 才可选）、`reasons` |
 
 ## 运行
@@ -377,7 +388,10 @@ python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements.txt
 ```
 
-DOVER（torch CPU 版、代码和权重，权重约 240 MB）：
+权重都放在 `models/` 下，每个文件的路径、下载地址、版本和 SHA-256 见
+[models/README.md](models/README.md)；下面只列代码和依赖的安装。
+
+DOVER（torch CPU 版和代码；权重 `models/dover/DOVER.pth`，约 240 MB）：
 
 ```bash
 .venv/Scripts/python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
@@ -388,7 +402,7 @@ git clone https://github.com/VQAssessment/DOVER.git third_party/DOVER
 ```
 
 ```bash
-curl -L -o third_party/DOVER/pretrained_weights/DOVER.pth --create-dirs https://github.com/QualityAssessment/DOVER/releases/download/v0.1.0/DOVER.pth
+curl -L -o models/dover/DOVER.pth --create-dirs https://github.com/QualityAssessment/DOVER/releases/download/v0.1.0/DOVER.pth
 ```
 
 ```bash
@@ -399,11 +413,11 @@ curl -L -o third_party/DOVER/pretrained_weights/DOVER.pth --create-dirs https://
 `f4a42c0bbc94`。DOVER 采用 S-Lab 许可，仅限非商用，这里只做内部验证。
 
 EmbeddingGemma 2 740M（检索用，485 MB，Apache-2.0）。版本和 SHA-256 记在
-`models/embeddinggemma-2-740m.json`（抄自 A-NAS 的 `deploy/models/`），
-加载时会核对：
+`models/embeddinggemma/embeddinggemma-2-740m.json`（抄自 A-NAS 的
+`deploy/models/`），加载时会核对：
 
 ```bash
-curl -L -o third_party/embeddinggemma/embeddinggemma-2-740m.litertlm --create-dirs https://huggingface.co/litert-community/embeddinggemma-2-740m-litert-lm/resolve/24d962e906c7d332c6428e71c9676855024569e2/embeddinggemma-2-740m.litertlm
+curl -L -o models/embeddinggemma/embeddinggemma-2-740m.litertlm --create-dirs https://huggingface.co/litert-community/embeddinggemma-2-740m-litert-lm/resolve/24d962e906c7d332c6428e71c9676855024569e2/embeddinggemma-2-740m.litertlm
 ```
 
 MediaPipe 要不带依赖装：它会拉 opencv-contrib-python，和项目的
@@ -431,7 +445,7 @@ matplotlib 已在 requirements.txt 里）：
 ③ 描述 + ④ 打分。先在另一个终端启动 llama-server，并保持运行：
 
 ```bash
-llama-server -m D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf --host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1
+llama-server -m models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf --host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1
 ```
 
 然后并发跑打标签和美学打分。可中断，重跑会跳过已完成的片段，
@@ -445,25 +459,12 @@ llama-server -m D:/users/018574/work/JoyAI/JoyAI-VL-Interaction-llamacpp/models/
 也可以分开跑：`tag` 只打标签，`aesthetic` 只做美学打分。
 
 ⑤ 剪辑建议、⑥ 预览、⑦ 报告（每次都覆盖该集合的全部视频重新生成）。
-下面是默认的 vlog 集合、reel 模式：
+长短视频的步骤相同，下面以 `long` 集合为例（不带 `--collection` 时是
+默认的 vlog 集合；三步都要带相同的参数，`--mode ranked` 出对照）。先在
+另一个终端启动大纲用的 Qwen3.5-4B 服务，并保持运行：
 
 ```bash
-.venv/Scripts/python -m video_demo suggest
-```
-
-```bash
-.venv/Scripts/python -m video_demo render
-```
-
-```bash
-.venv/Scripts/python -m video_demo report
-```
-
-长素材出精彩瞬间（以 `long` 集合为例，三步都要带相同的参数）。先在另一个
-终端启动大纲用的 Qwen3.5-4B 服务，并保持运行：
-
-```bash
-llama-server -m D:/users/018574/work/OCR_test/models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 -ngl 99 -c 16384 -np 1
+llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 -ngl 99 -c 16384 -np 1
 ```
 
 先建向量索引（不需要 llama-server，可中断续跑）：
@@ -475,15 +476,15 @@ llama-server -m D:/users/018574/work/OCR_test/models/gguf/Qwen3.5-4B-Q4_K_M.gguf
 然后：
 
 ```bash
-.venv/Scripts/python -m video_demo suggest --collection long --mode highlights
+.venv/Scripts/python -m video_demo suggest --collection long
 ```
 
 ```bash
-.venv/Scripts/python -m video_demo render --collection long --mode highlights
+.venv/Scripts/python -m video_demo render --collection long
 ```
 
 ```bash
-.venv/Scripts/python -m video_demo report --collection long --mode highlights
+.venv/Scripts/python -m video_demo report --collection long
 ```
 
 `tag`、`aesthetic`、`analyze` 支持 `--collection <集合>`、`--only <前缀>`

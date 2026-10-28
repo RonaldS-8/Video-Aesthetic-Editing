@@ -144,7 +144,7 @@ def _clip_cards(
 
 
 def _video_section(
-    root: Path, out_dir: Path, video: layout.Video, n: int
+    root: Path, out_dir: Path, result_dir: Path, mode: str, video: layout.Video, n: int
 ) -> tuple[str, dict, dict]:
     work = root / "data" / "work"
     vid = video.id
@@ -162,7 +162,7 @@ def _video_section(
             layout.aesthetic_path(work, vid).read_text("utf-8").splitlines(),
         )
     }
-    tl = _read_json(layout.timeline_path(out_dir, vid))
+    tl = _read_json(layout.timeline_path(result_dir, mode))
     assess = {a["index"]: a for a in tl["assessments"]}
     selected = {c["index"] for c in tl["clips"]}
     analysed = seg["analysed_until"]
@@ -241,7 +241,7 @@ def _video_section(
 蓝框为入选建议时间线的片段。</p>
 <h3>建议时间线（{tl['total_sec']}s / 目标 {tl['target_sec']:.0f}s）</h3>{note}
 {outline_table(tl)}
-<video src="{escape(_rel(layout.preview_path(out_dir, vid), out_dir))}" controls
+<video src="{escape(_rel(layout.preview_path(result_dir, mode), out_dir))}" controls
 preload="metadata"></video>
 {_clip_cards(tl['clips'], frames, {vid: video.file})}
 <h3>逐片段标签</h3>
@@ -283,11 +283,7 @@ def summary_heading(mode: str, timeline: dict) -> str:
 <p class="muted">对照基线，不用大纲：以切分片段为单位整段选入（1–5 分：DOVER 美学分占
 80%、VLM 精彩度占 20%，再减画质扣分；美学分先在同一时段内取百分位）；
 每 5 分钟至少选一段，60 秒内标签高度重合的只留一段；按拍摄时间排列。</p>"""
-    return f"""<h2>2. 跨视频精华合集（{total}s / 目标 {target:.0f}s）</h2>
-<p class="muted">从全部片段里按得分取素材（1–5 分：DOVER 美学分占 80%、
-VLM 精彩度占 20%，再减画质扣分；与文件名和输入顺序无关），
-去掉同一镜头相邻窗口和标签高度重合的片段；
-按“开场全景 → 主体（白天 → 黄昏 → 夜晚）→ 收尾”排列。</p>"""
+    raise ValueError(f"Unknown mode: {mode}")
 
 
 def outline_table(timeline: dict) -> str:
@@ -453,11 +449,12 @@ def write(
     root: Path,
     out_dir: Path,
     videos: list[layout.Video],
-    reel_name: str,
+    result_dirs: dict[str, Path],
     baseline: Path,
-    mode: str = "reel",
+    mode: str,
 ) -> Path:
-    """Write ``out_dir/report.html`` from the timelines in ``out_dir``.
+    """Write ``out_dir/report_<mode>.html`` from the mode's timelines: one per
+    video in its folder (``result_dirs``) and one across all at ``out_dir``.
 
     ``baseline`` is the frozen VLM-only report kept for side-by-side review.
     """
@@ -475,7 +472,9 @@ def write(
         "kept": 0,
     }
     for n, video in enumerate(videos):
-        html, stats, frames = _video_section(root, out_dir, video, n)
+        html, stats, frames = _video_section(
+            root, out_dir, result_dirs[video.id], mode, video, n
+        )
         sections.append(html)
         all_frames.update(frames)
         descriptions.update(stats["descriptions"])
@@ -486,7 +485,7 @@ def write(
         totals["pairs"] += stats["highlight_vs_quality"]
         totals["detect"] += stats["detect_seconds"]
         totals["kept"] += stats["kept"]
-    reel = _read_json(layout.timeline_path(out_dir, reel_name))
+    summary = _read_json(layout.timeline_path(out_dir, mode))
     tag_times = totals["tag"]
     avg_tag = sum(tag_times) / len(tag_times)
     q_times = totals["quality"]
@@ -526,16 +525,16 @@ Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 <p class="muted">两层切分：PySceneDetect AdaptiveDetector 找硬切 + 线性混合检验找叠化，
 镜头内再按 ≤{MAX_SEGMENT_SEC:.0f} 秒切窗口，短于 1 秒的碎片并入相邻片段。</p>
 {''.join(_eval_section(ev) for ev in evals)}{EVAL_NOTE}
-{summary_heading(mode, reel)}
-{scene_slots(reel, all_frames, descriptions) if mode == "highlights" else ""}
-<video src="{escape(_rel(layout.preview_path(out_dir, reel_name), out_dir))}" controls
+{summary_heading(mode, summary)}
+{scene_slots(summary, all_frames, descriptions) if mode == "highlights" else ""}
+<video src="{escape(_rel(layout.preview_path(out_dir, mode), out_dir))}" controls
 preload="metadata"></video>
-{_clip_cards(reel['clips'], all_frames, {v.id: v.file for v in videos})}
+{_clip_cards(summary['clips'], all_frames, {v.id: v.file for v in videos})}
 <h2>3. 逐视频结果</h2>
 {''.join(sections)}
 <p class="muted">素材来自 Wikimedia Commons（CC BY / CC BY-SA 3.0），
 署名见 data/raw/SOURCES.md。</p>
 </main></body></html>"""
-    path = out_dir / "report.html"
+    path = layout.report_path(out_dir, mode)
     path.write_text(page, encoding="utf-8")
     return path

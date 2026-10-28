@@ -1,0 +1,1307 @@
+{
+  "name": "330ff4c78eabf568",
+  "mode": "highlights",
+  "target_sec": 30.2,
+  "total_sec": 16.85,
+  "notes": [
+    "「从寺庙到滨海湾的日落」素材不足：选到 16.9s，目标 30s"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "从寺庙到滨海湾的日落",
+      "video": "330ff4c78eabf568",
+      "index": 6,
+      "src_start": 16.975,
+      "src_end": 19.603,
+      "description": "镜头聚焦于一座色彩斑斓的印度教寺庙建筑顶部，一只白色神兽雕像卧在装饰华丽的屋顶上。",
+      "reason": "场景「中式寺庙的金色屋顶」→ 场景 7（相关度 93%），得分 3.7，片段相关度 93%",
+      "duration": 2.628
+    },
+    {
+      "order": 1,
+      "role": "从寺庙到滨海湾的日落",
+      "video": "330ff4c78eabf568",
+      "index": 7,
+      "src_start": 19.603,
+      "src_end": 23.607,
+      "description": "镜头聚焦于一座色彩斑斓、雕刻精美的印度教神庙塔门，展示了其复杂的建筑细节。",
+      "reason": "场景「印度教神庙的彩色雕刻」→ 场景 8（相关度 99%），得分 2.5，片段相关度 99%",
+      "duration": 4.004
+    },
+    {
+      "order": 2,
+      "role": "从寺庙到滨海湾的日落",
+      "video": "330ff4c78eabf568",
+      "index": 45,
+      "src_start": 152.486,
+      "src_end": 157.449,
+      "description": "新加坡鱼尾狮雕像喷水，周围有游客和城市景观。",
+      "reason": "场景「鱼尾狮雕像喷水」→ 场景 45（相关度 100%），得分 3.2，片段相关度 99%",
+      "duration": 4.963
+    },
+    {
+      "order": 3,
+      "role": "从寺庙到滨海湾的日落",
+      "video": "330ff4c78eabf568",
+      "index": 47,
+      "src_start": 162.412,
+      "src_end": 167.668,
+      "description": "夜晚的鱼尾狮雕像喷水，背景是滨海湾金沙酒店。",
+      "reason": "场景「新加坡滨海湾的日落天际线」→ 场景 47（相关度 98%），得分 4.3，片段相关度 98%",
+      "duration": 5.256
+    }
+  ],
+  "assessments": [
+    {
+      "video": "330ff4c78eabf568",
+      "index": 0,
+      "score": 1.609,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.32（技术 -0.047 / 美学 +0.049）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 1,
+      "score": 2.117,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.046 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 2,
+      "score": 3.939,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.79（技术 -0.028 / 美学 +0.116）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 3,
+      "score": 3.73,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.73（技术 -0.030 / 美学 +0.106）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 4,
+      "score": 4.061,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.71（技术 -0.030 / 美学 +0.105）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 5,
+      "score": 3.035,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.51（技术 -0.078 / 美学 +0.111）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 6,
+      "score": 3.722,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.66（技术 -0.045 / 美学 +0.108）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 7,
+      "score": 2.478,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.34（技术 -0.058 / 美学 +0.060）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 8,
+      "score": 2.113,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.10（技术 -0.066 / 美学 +0.000）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 9,
+      "score": 2.27,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.27（技术 -0.066 / 美学 +0.051）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 10,
+      "score": 1.622,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.16（技术 -0.055 / 美学 +0.016）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 11,
+      "score": 3.791,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.68（技术 -0.040 / 美学 +0.108）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 12,
+      "score": 2.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.25（技术 -0.068 / 美学 +0.042）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 13,
+      "score": 2.37,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.77（技术 -0.070 / 美学 +0.149）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 42）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 14,
+      "score": 3.352,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.64（技术 -0.049 / 美学 +0.110）",
+        "VLM 精彩度 5/5（权重 20%）",
+        "时长仅 1.4s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 15,
+      "score": -0.657,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.08（技术 -0.100 / 美学 +0.025）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 7）",
+        "抖动明显"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 16,
+      "score": 1.352,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.14（技术 -0.101 / 美学 +0.044）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 17,
+      "score": 2.674,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.55（技术 -0.078 / 美学 +0.112）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.5s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 18,
+      "score": 3.126,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.95（技术 -0.019 / 美学 +0.185）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 109）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 19,
+      "score": 2.896,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.47（技术 -0.082 / 美学 +0.107）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 20,
+      "score": 3.057,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.92（技术 -0.011 / 美学 +0.162）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 119）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 21,
+      "score": 4.696,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.97（技术 -0.014 / 美学 +0.188）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 22,
+      "score": 2.687,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.40（技术 -0.048 / 美学 +0.061）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 23,
+      "score": 2.061,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.21（技术 -0.063 / 美学 +0.033）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 24,
+      "score": 2.339,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.29（技术 -0.038 / 美学 +0.034）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 25,
+      "score": 1.491,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.18（技术 -0.054 / 美学 +0.021）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.0s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 26,
+      "score": 3.509,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.82（技术 -0.046 / 美学 +0.133）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 27,
+      "score": 0.826,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.45（技术 -0.057 / 美学 +0.081）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 78）",
+        "时长仅 1.3s"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 28,
+      "score": 1.435,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.01（技术 -0.087 / 美学 -0.046）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 29,
+      "score": 1.983,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.095 / 美学 +0.027）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 30,
+      "score": 2.548,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.36（技术 -0.060 / 美学 +0.068）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 31,
+      "score": 3.243,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.58（技术 -0.042 / 美学 +0.085）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 32,
+      "score": 4.217,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.022 / 美学 +0.147）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 33,
+      "score": 2.965,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.49（技术 -0.026 / 美学 +0.064）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 34,
+      "score": 4.287,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.90（技术 -0.010 / 美学 +0.148）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 35,
+      "score": 4.565,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.99（技术 -0.033 / 美学 +0.210）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 36,
+      "score": 4.148,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.86（技术 -0.027 / 美学 +0.144）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 37,
+      "score": 3.383,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.049 / 美学 +0.101）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 38,
+      "score": 1.774,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.05（技术 -0.085 / 美学 +0.002）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 39,
+      "score": 1.257,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.42（技术 -0.045 / 美学 +0.063）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 57）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 40,
+      "score": 1.504,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.03（技术 -0.102 / 美学 +0.012）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 41,
+      "score": 3.513,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.60（技术 -0.034 / 美学 +0.085）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 42,
+      "score": 3.104,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.53（技术 -0.039 / 美学 +0.081）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 43,
+      "score": 2.13,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.23（技术 -0.089 / 美学 +0.057）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 44,
+      "score": 2.778,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.84（技术 -0.030 / 美学 +0.134）",
+        "VLM 精彩度 4/5（权重 20%）",
+        "画面偏糊（清晰度 135）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 45,
+      "score": 3.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.039 / 美学 +0.075）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 46,
+      "score": 4.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.75（技术 -0.040 / 美学 +0.117）",
+        "VLM 精彩度 5/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 47,
+      "score": 4.267,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.83（技术 -0.050 / 美学 +0.081）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 48,
+      "score": 3.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.50（技术 -0.084 / 美学 -0.010）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "330ff4c78eabf568",
+      "index": 49,
+      "score": -0.567,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.17（技术 -0.118 / 美学 -0.028）",
+        "VLM 精彩度 3/5（权重 20%）",
+        "画面偏糊（清晰度 1）",
+        "抖动明显"
+      ]
+    }
+  ],
+  "slots": [
+    [
+      {
+        "query": "中式寺庙的金色屋顶",
+        "scene": 7,
+        "relevance": 0.931,
+        "seconds": 2.6,
+        "top": [
+          7,
+          3,
+          25,
+          8,
+          9
+        ]
+      },
+      {
+        "query": "印度教神庙的彩色雕刻",
+        "scene": 8,
+        "relevance": 0.989,
+        "seconds": 4.0,
+        "top": [
+          7,
+          8,
+          9,
+          23,
+          4
+        ]
+      },
+      {
+        "query": "新加坡滨海湾的日落天际线",
+        "scene": 47,
+        "relevance": 0.984,
+        "seconds": 5.3,
+        "top": [
+          47,
+          45,
+          46,
+          48,
+          3
+        ]
+      },
+      {
+        "query": "鱼尾狮雕像喷水",
+        "scene": 45,
+        "relevance": 0.995,
+        "seconds": 5.0,
+        "top": [
+          45,
+          46,
+          47,
+          48,
+          7
+        ]
+      }
+    ]
+  ],
+  "retrieval": [
+    {
+      "part": "从寺庙到滨海湾的日落",
+      "queries": [
+        {
+          "query": "中式寺庙的金色屋顶",
+          "top": {
+            "text": [
+              1,
+              28,
+              27,
+              7,
+              2
+            ],
+            "image": [
+              2,
+              28,
+              1,
+              25,
+              27
+            ],
+            "bm25": [
+              1,
+              2,
+              7,
+              28,
+              9
+            ]
+          }
+        },
+        {
+          "query": "印度教神庙的彩色雕刻",
+          "top": {
+            "text": [
+              8,
+              9,
+              7,
+              1,
+              2
+            ],
+            "image": [
+              7,
+              9,
+              8,
+              1,
+              2
+            ],
+            "bm25": [
+              8,
+              9,
+              7,
+              4,
+              23
+            ]
+          }
+        },
+        {
+          "query": "新加坡滨海湾的日落天际线",
+          "top": {
+            "text": [
+              40,
+              47,
+              48,
+              46,
+              45
+            ],
+            "image": [
+              47,
+              45,
+              40,
+              49,
+              43
+            ],
+            "bm25": [
+              40,
+              45,
+              47,
+              46,
+              49
+            ]
+          }
+        },
+        {
+          "query": "鱼尾狮雕像喷水",
+          "top": {
+            "text": [
+              45,
+              48,
+              46,
+              47,
+              38
+            ],
+            "image": [
+              45,
+              48,
+              47,
+              46,
+              7
+            ],
+            "bm25": [
+              46,
+              45,
+              48,
+              47,
+              7
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "outline": {
+    "title": "新加坡多元文化之旅",
+    "parts": [
+      {
+        "name": "从寺庙到滨海湾的日落",
+        "summary": "展示中式与印度教寺庙的庄严、新加坡城市天际线及鱼尾狮雕像的标志性景观。",
+        "first_chunk": 1,
+        "last_chunk": 1,
+        "weight": 10,
+        "scenes": [
+          "中式寺庙的金色屋顶",
+          "印度教神庙的彩色雕刻",
+          "新加坡滨海湾的日落天际线",
+          "鱼尾狮雕像喷水"
+        ],
+        "duration_sec": 30
+      }
+    ]
+  },
+  "outline_raw": "{\n  \"title\": \"新加坡多元文化之旅\",\n  \"parts\": [\n    {\n      \"name\": \"从寺庙到滨海湾的日落\",\n      \"summary\": \"展示中式与印度教寺庙的庄严、新加坡城市天际线及鱼尾狮雕像的标志性景观。\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"中式寺庙的金色屋顶\",\n        \"印度教神庙的彩色雕刻\",\n        \"新加坡滨海湾的日落天际线\",\n        \"鱼尾狮雕像喷水\"\n      ]\n    }\n  ]\n}",
+  "outline_seconds": 24.5,
+  "outline_failed_attempts": [],
+  "chunks": [
+    {
+      "number": 1,
+      "video": "330ff4c78eabf568",
+      "start": 0.0,
+      "end": 181.1,
+      "segments": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49
+      ],
+      "summary": {
+        "summary": "这段视频素材记录了从白天到夜晚的多元场景，涵盖了中式与印度教寺庙、新加坡城市风光、森林自然生态以及街头美食等丰富内容。",
+        "places": [
+          "中式寺庙",
+          "印度教神庙",
+          "新加坡滨海湾",
+          "森林",
+          "鱼尾狮雕像"
+        ],
+        "subjects": [
+          "游客",
+          "猴子",
+          "天鹅",
+          "女子",
+          "男子"
+        ],
+        "activities": [
+          "游览",
+          "品尝美食",
+          "攀爬",
+          "喷水",
+          "交谈"
+        ],
+        "highlights": [
+          {
+            "segment": 3,
+            "why": "红色灯笼与欧式建筑背景形成鲜明对比，画面色彩鲜艳且构图独特。"
+          },
+          {
+            "segment": 22,
+            "why": "男子吃冰淇淋的画面清晰温馨，背景彩色线轴增加了视觉趣味。"
+          },
+          {
+            "segment": 47,
+            "why": "鱼尾狮喷水与现代化高楼背景结合，展现了新加坡标志性的城市夜景。"
+          }
+        ]
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "number": 1,
+      "video": "330ff4c78eabf568",
+      "start": 0.0,
+      "end": 4.46,
+      "segments": [
+        0
+      ]
+    },
+    {
+      "number": 2,
+      "video": "330ff4c78eabf568",
+      "start": 4.46,
+      "end": 5.76,
+      "segments": [
+        1
+      ]
+    },
+    {
+      "number": 3,
+      "video": "330ff4c78eabf568",
+      "start": 5.76,
+      "end": 7.92,
+      "segments": [
+        2
+      ]
+    },
+    {
+      "number": 4,
+      "video": "330ff4c78eabf568",
+      "start": 7.92,
+      "end": 11.22,
+      "segments": [
+        3
+      ]
+    },
+    {
+      "number": 5,
+      "video": "330ff4c78eabf568",
+      "start": 11.22,
+      "end": 13.85,
+      "segments": [
+        4
+      ]
+    },
+    {
+      "number": 6,
+      "video": "330ff4c78eabf568",
+      "start": 13.85,
+      "end": 16.98,
+      "segments": [
+        5
+      ]
+    },
+    {
+      "number": 7,
+      "video": "330ff4c78eabf568",
+      "start": 16.98,
+      "end": 19.6,
+      "segments": [
+        6
+      ]
+    },
+    {
+      "number": 8,
+      "video": "330ff4c78eabf568",
+      "start": 19.6,
+      "end": 23.61,
+      "segments": [
+        7
+      ]
+    },
+    {
+      "number": 9,
+      "video": "330ff4c78eabf568",
+      "start": 23.61,
+      "end": 25.57,
+      "segments": [
+        8
+      ]
+    },
+    {
+      "number": 10,
+      "video": "330ff4c78eabf568",
+      "start": 25.57,
+      "end": 27.07,
+      "segments": [
+        9
+      ]
+    },
+    {
+      "number": 11,
+      "video": "330ff4c78eabf568",
+      "start": 27.07,
+      "end": 28.36,
+      "segments": [
+        10
+      ]
+    },
+    {
+      "number": 12,
+      "video": "330ff4c78eabf568",
+      "start": 28.36,
+      "end": 30.41,
+      "segments": [
+        11
+      ]
+    },
+    {
+      "number": 13,
+      "video": "330ff4c78eabf568",
+      "start": 30.41,
+      "end": 32.87,
+      "segments": [
+        12
+      ]
+    },
+    {
+      "number": 14,
+      "video": "330ff4c78eabf568",
+      "start": 32.87,
+      "end": 34.58,
+      "segments": [
+        13
+      ]
+    },
+    {
+      "number": 15,
+      "video": "330ff4c78eabf568",
+      "start": 34.58,
+      "end": 35.99,
+      "segments": [
+        14
+      ]
+    },
+    {
+      "number": 16,
+      "video": "330ff4c78eabf568",
+      "start": 35.99,
+      "end": 40.83,
+      "segments": [
+        15
+      ]
+    },
+    {
+      "number": 17,
+      "video": "330ff4c78eabf568",
+      "start": 40.83,
+      "end": 42.17,
+      "segments": [
+        16
+      ]
+    },
+    {
+      "number": 18,
+      "video": "330ff4c78eabf568",
+      "start": 42.17,
+      "end": 43.63,
+      "segments": [
+        17
+      ]
+    },
+    {
+      "number": 19,
+      "video": "330ff4c78eabf568",
+      "start": 43.63,
+      "end": 46.26,
+      "segments": [
+        18
+      ]
+    },
+    {
+      "number": 20,
+      "video": "330ff4c78eabf568",
+      "start": 46.26,
+      "end": 48.13,
+      "segments": [
+        19
+      ]
+    },
+    {
+      "number": 21,
+      "video": "330ff4c78eabf568",
+      "start": 48.13,
+      "end": 49.67,
+      "segments": [
+        20
+      ]
+    },
+    {
+      "number": 22,
+      "video": "330ff4c78eabf568",
+      "start": 49.67,
+      "end": 53.09,
+      "segments": [
+        21
+      ]
+    },
+    {
+      "number": 23,
+      "video": "330ff4c78eabf568",
+      "start": 53.09,
+      "end": 56.1,
+      "segments": [
+        22
+      ]
+    },
+    {
+      "number": 24,
+      "video": "330ff4c78eabf568",
+      "start": 56.1,
+      "end": 60.56,
+      "segments": [
+        23
+      ]
+    },
+    {
+      "number": 25,
+      "video": "330ff4c78eabf568",
+      "start": 60.56,
+      "end": 62.31,
+      "segments": [
+        24
+      ]
+    },
+    {
+      "number": 26,
+      "video": "330ff4c78eabf568",
+      "start": 62.31,
+      "end": 63.35,
+      "segments": [
+        25
+      ]
+    },
+    {
+      "number": 27,
+      "video": "330ff4c78eabf568",
+      "start": 63.35,
+      "end": 64.69,
+      "segments": [
+        26
+      ]
+    },
+    {
+      "number": 28,
+      "video": "330ff4c78eabf568",
+      "start": 64.69,
+      "end": 66.02,
+      "segments": [
+        27
+      ]
+    },
+    {
+      "number": 29,
+      "video": "330ff4c78eabf568",
+      "start": 66.02,
+      "end": 71.32,
+      "segments": [
+        28
+      ]
+    },
+    {
+      "number": 30,
+      "video": "330ff4c78eabf568",
+      "start": 71.32,
+      "end": 76.2,
+      "segments": [
+        29
+      ]
+    },
+    {
+      "number": 31,
+      "video": "330ff4c78eabf568",
+      "start": 76.2,
+      "end": 80.91,
+      "segments": [
+        30
+      ]
+    },
+    {
+      "number": 32,
+      "video": "330ff4c78eabf568",
+      "start": 80.91,
+      "end": 86.04,
+      "segments": [
+        31
+      ]
+    },
+    {
+      "number": 33,
+      "video": "330ff4c78eabf568",
+      "start": 86.04,
+      "end": 91.26,
+      "segments": [
+        32
+      ]
+    },
+    {
+      "number": 34,
+      "video": "330ff4c78eabf568",
+      "start": 91.26,
+      "end": 95.51,
+      "segments": [
+        33
+      ]
+    },
+    {
+      "number": 35,
+      "video": "330ff4c78eabf568",
+      "start": 95.51,
+      "end": 101.06,
+      "segments": [
+        34
+      ]
+    },
+    {
+      "number": 36,
+      "video": "330ff4c78eabf568",
+      "start": 101.06,
+      "end": 105.52,
+      "segments": [
+        35
+      ]
+    },
+    {
+      "number": 37,
+      "video": "330ff4c78eabf568",
+      "start": 105.52,
+      "end": 111.61,
+      "segments": [
+        36
+      ]
+    },
+    {
+      "number": 38,
+      "video": "330ff4c78eabf568",
+      "start": 111.61,
+      "end": 114.07,
+      "segments": [
+        37
+      ]
+    },
+    {
+      "number": 39,
+      "video": "330ff4c78eabf568",
+      "start": 114.07,
+      "end": 122.16,
+      "segments": [
+        38
+      ]
+    },
+    {
+      "number": 40,
+      "video": "330ff4c78eabf568",
+      "start": 122.16,
+      "end": 127.0,
+      "segments": [
+        39
+      ]
+    },
+    {
+      "number": 41,
+      "video": "330ff4c78eabf568",
+      "start": 127.0,
+      "end": 131.88,
+      "segments": [
+        40
+      ]
+    },
+    {
+      "number": 42,
+      "video": "330ff4c78eabf568",
+      "start": 131.88,
+      "end": 142.22,
+      "segments": [
+        41,
+        42
+      ]
+    },
+    {
+      "number": 43,
+      "video": "330ff4c78eabf568",
+      "start": 142.22,
+      "end": 147.23,
+      "segments": [
+        43
+      ]
+    },
+    {
+      "number": 44,
+      "video": "330ff4c78eabf568",
+      "start": 147.23,
+      "end": 152.49,
+      "segments": [
+        44
+      ]
+    },
+    {
+      "number": 45,
+      "video": "330ff4c78eabf568",
+      "start": 152.49,
+      "end": 157.45,
+      "segments": [
+        45
+      ]
+    },
+    {
+      "number": 46,
+      "video": "330ff4c78eabf568",
+      "start": 157.45,
+      "end": 162.41,
+      "segments": [
+        46
+      ]
+    },
+    {
+      "number": 47,
+      "video": "330ff4c78eabf568",
+      "start": 162.41,
+      "end": 167.67,
+      "segments": [
+        47
+      ]
+    },
+    {
+      "number": 48,
+      "video": "330ff4c78eabf568",
+      "start": 167.67,
+      "end": 172.71,
+      "segments": [
+        48
+      ]
+    },
+    {
+      "number": 49,
+      "video": "330ff4c78eabf568",
+      "start": 172.71,
+      "end": 181.1,
+      "segments": [
+        49
+      ]
+    }
+  ]
+}

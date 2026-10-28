@@ -87,12 +87,12 @@ def test_score_rejects_non_finite_model_output() -> None:
 
 def test_load_reports_missing_config_and_weights(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match="config"):
-        aesthetic.DoverAdapter.load(tmp_path)
+        aesthetic.DoverAdapter.load(tmp_path, tmp_path)
     (tmp_path / "dover.yml").write_text(
         "test_load_path: ./pretrained_weights/DOVER.pth\n", encoding="utf-8"
     )
     with pytest.raises(FileNotFoundError, match="weights"):
-        aesthetic.DoverAdapter.load(tmp_path)
+        aesthetic.DoverAdapter.load(tmp_path, tmp_path)
 
 
 def test_load_reads_the_named_config_for_dover_mobile(tmp_path: Path) -> None:
@@ -102,11 +102,12 @@ def test_load_reads_the_named_config_for_dover_mobile(tmp_path: Path) -> None:
     (tmp_path / "dover-mobile.yml").write_text(
         "test_load_path: ./pretrained_weights/DOVER-Mobile.pth\n", encoding="utf-8"
     )
-    assert aesthetic.weights_path(tmp_path, "dover-mobile.yml").name == (
-        "DOVER-Mobile.pth"
+    weights = tmp_path / "weights"
+    assert aesthetic.weights_path(tmp_path, weights, "dover-mobile.yml") == (
+        (weights / "DOVER-Mobile.pth").resolve()
     )
     with pytest.raises(FileNotFoundError, match="DOVER-Mobile.pth"):
-        aesthetic.DoverAdapter.load(tmp_path, config_name="dover-mobile.yml")
+        aesthetic.DoverAdapter.load(tmp_path, weights, config_name="dover-mobile.yml")
 
 
 def test_views_from_sampled_frames_equal_views_from_all() -> None:

@@ -1,0 +1,249 @@
+{
+  "name": "c951de956573afbc",
+  "mode": "highlights",
+  "target_sec": 5.1,
+  "total_sec": 7.63,
+  "notes": [
+    "「红色小船水上观光」场景「红色游船」没有可用的场景",
+    "「红色小船水上观光」场景「游客乘坐游玩」没有可用的场景",
+    "「红色小船水上观光」场景「水上观光视角」没有可用的场景"
+  ],
+  "clips": [
+    {
+      "order": 0,
+      "role": "红色小船水上观光",
+      "video": "c951de956573afbc",
+      "index": 0,
+      "src_start": 0.0,
+      "src_end": 7.63,
+      "description": "商场内的水道上，游客乘坐红色小船在水上缓缓移动。",
+      "reason": "场景「室内商场人工水道」→ 场景 1（相关度 100%），得分 4.2，片段相关度 97%，分段总结点名的亮点",
+      "duration": 7.63
+    }
+  ],
+  "assessments": [
+    {
+      "video": "c951de956573afbc",
+      "index": 0,
+      "score": 4.2,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.88（技术 -0.057 / 美学 +0.043）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "c951de956573afbc",
+      "index": 1,
+      "score": 3.4,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.62（技术 -0.050 / 美学 +0.036）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "c951de956573afbc",
+      "index": 2,
+      "score": 2.8,
+      "keep": true,
+      "reasons": [
+        "美学模型 0.38（技术 -0.058 / 美学 +0.040）",
+        "VLM 精彩度 4/5（权重 20%）"
+      ]
+    },
+    {
+      "video": "c951de956573afbc",
+      "index": 3,
+      "score": 1.8,
+      "keep": false,
+      "reasons": [
+        "美学模型 0.12（技术 -0.062 / 美学 +0.029）",
+        "VLM 精彩度 3/5（权重 20%）"
+      ]
+    }
+  ],
+  "slots": [
+    [
+      {
+        "query": "室内商场人工水道",
+        "scene": 1,
+        "relevance": 1.0,
+        "seconds": 5.0,
+        "top": [
+          1
+        ]
+      },
+      {
+        "query": "红色游船",
+        "scene": null,
+        "relevance": null,
+        "seconds": 0.0,
+        "top": [
+          1
+        ]
+      },
+      {
+        "query": "游客乘坐游玩",
+        "scene": null,
+        "relevance": null,
+        "seconds": 0.0,
+        "top": [
+          1
+        ]
+      },
+      {
+        "query": "水上观光视角",
+        "scene": null,
+        "relevance": null,
+        "seconds": 0.0,
+        "top": [
+          1
+        ]
+      }
+    ]
+  ],
+  "retrieval": [
+    {
+      "part": "红色小船水上观光",
+      "queries": [
+        {
+          "query": "室内商场人工水道",
+          "top": {
+            "text": [
+              1
+            ],
+            "image": [
+              1
+            ],
+            "bm25": [
+              1
+            ]
+          }
+        },
+        {
+          "query": "红色游船",
+          "top": {
+            "text": [
+              1
+            ],
+            "image": [
+              1
+            ],
+            "bm25": [
+              1
+            ]
+          }
+        },
+        {
+          "query": "游客乘坐游玩",
+          "top": {
+            "text": [
+              1
+            ],
+            "image": [
+              1
+            ],
+            "bm25": [
+              1
+            ]
+          }
+        },
+        {
+          "query": "水上观光视角",
+          "top": {
+            "text": [
+              1
+            ],
+            "image": [
+              1
+            ],
+            "bm25": [
+              1
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "outline": {
+    "title": "商场水上乐园游船之旅",
+    "parts": [
+      {
+        "name": "红色小船水上观光",
+        "summary": "游客乘坐红色小船在室内商场水道中缓缓移动游玩",
+        "first_chunk": 1,
+        "last_chunk": 1,
+        "weight": 10,
+        "scenes": [
+          "室内商场人工水道",
+          "红色游船",
+          "游客乘坐游玩",
+          "水上观光视角"
+        ],
+        "duration_sec": 5
+      }
+    ]
+  },
+  "outline_raw": "{\n  \"title\": \"商场水上乐园游船之旅\",\n  \"parts\": [\n    {\n      \"name\": \"红色小船水上观光\",\n      \"summary\": \"游客乘坐红色小船在室内商场水道中缓缓移动游玩\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"室内商场人工水道\",\n        \"红色游船\",\n        \"游客乘坐游玩\",\n        \"水上观光视角\"\n      ]\n    }\n  ]\n}",
+  "outline_seconds": 18.7,
+  "outline_failed_attempts": [],
+  "chunks": [
+    {
+      "number": 1,
+      "video": "c951de956573afbc",
+      "start": 0.0,
+      "end": 30.52,
+      "segments": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "summary": {
+        "summary": "这段视频展示了室内商场内的人工水道，游客乘坐红色小船或游船在水上缓缓移动游玩。",
+        "places": [
+          "商场",
+          "室内水道",
+          "水上乐园",
+          "购物中心",
+          "商业区"
+        ],
+        "subjects": [
+          "游客",
+          "红色小船",
+          "游船",
+          "乘客",
+          "岸边顾客"
+        ],
+        "activities": [
+          "乘坐小船",
+          "水上观光",
+          "划桨",
+          "游玩",
+          "驻足观看"
+        ],
+        "highlights": [
+          {
+            "segment": 1,
+            "why": "画面最精彩，游客乘坐红色小船在水道上缓缓移动，视觉效果好。"
+          }
+        ]
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "number": 1,
+      "video": "c951de956573afbc",
+      "start": 0.0,
+      "end": 30.52,
+      "segments": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

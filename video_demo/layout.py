@@ -12,7 +12,8 @@ video's *collection* (e.g. ``tvsum/``), which stages use to pick a data set.
 ``file`` in the manifest is the path relative to ``data/raw``.
 
 Every derived file is named ``<kind>_<id>`` inside a directory per kind, e.g.
-``data/work/tags/tag_330ff4c78eabf568.jsonl``.
+``data/work/tags/tag_330ff4c78eabf568.jsonl``. Results under ``out`` are the
+exception: they sit in a folder named after the video (``result_dirs``).
 """
 
 from __future__ import annotations
@@ -293,10 +294,39 @@ def compare_path(work: Path, model: str, vid: str) -> Path:
     return work / "quality" / f"quality_{kind}_{vid}.jsonl"
 
 
-def timeline_path(out: Path, name: str) -> Path:
-    """``name`` is a video id or the name of a multi-video reel."""
-    return out / "timelines" / f"timeline_{name}.json"
+# Results: one folder per video under the collection's output directory, named
+# after the video's file (looked up in the manifest), so people can find a
+# video's results by name. Files inside are named by mode; the same names at
+# the collection root hold the timeline across all of its videos.
+def result_dirs(out: Path, videos: list[Video]) -> dict[str, Path]:
+    """Each video's result folder: its path under the collection folder of
+    ``data/raw`` without the suffix (``long/a.mp4`` -> ``out/a``).
+
+    Raises if two videos would share a folder (same name, other suffix).
+    """
+    dirs: dict[str, Path] = {}
+    owner: dict[Path, str] = {}
+    for v in videos:
+        parts = Path(v.file).with_suffix("").parts
+        path = out.joinpath(*(parts[1:] if v.collection else parts))
+        if path in owner:
+            raise ValueError(
+                f"{owner[path]} 和 {v.file} 的结果目录同名（{path}），请重命名其一"
+            )
+        owner[path] = v.file
+        dirs[v.id] = path
+    return dirs
 
 
-def preview_path(out: Path, name: str) -> Path:
-    return out / "previews" / f"preview_{name}.mp4"
+def timeline_path(folder: Path, mode: str) -> Path:
+    """``folder`` is a video's result folder, or the collection's for the
+    timeline across all of its videos."""
+    return folder / f"timeline_{mode}.json"
+
+
+def preview_path(folder: Path, mode: str) -> Path:
+    return folder / f"preview_{mode}.mp4"
+
+
+def report_path(out: Path, mode: str) -> Path:
+    return out / f"report_{mode}.html"

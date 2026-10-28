@@ -121,7 +121,7 @@ def test_verify_catches_same_size_content_change(tmp_path: Path) -> None:
 
 def test_derived_files_are_named_kind_underscore_id(tmp_path: Path) -> None:
     vid = "330ff4c78eabf568"
-    work, out = tmp_path / "work", tmp_path / "out"
+    work = tmp_path / "work"
     names = [
         layout.segments_path(work, vid),
         layout.signals_path(work, vid),
@@ -129,8 +129,6 @@ def test_derived_files_are_named_kind_underscore_id(tmp_path: Path) -> None:
         layout.tags_path(work, vid),
         layout.aesthetic_path(work, vid),
         layout.compare_path(work, "dover-mobile", vid),
-        layout.timeline_path(out, vid),
-        layout.preview_path(out, vid),
     ]
     assert [p.relative_to(tmp_path).as_posix() for p in names] == [
         f"work/segments/segment_{vid}.json",
@@ -139,9 +137,45 @@ def test_derived_files_are_named_kind_underscore_id(tmp_path: Path) -> None:
         f"work/tags/tag_{vid}.jsonl",
         f"work/aesthetic/aesthetic_{vid}.jsonl",
         f"work/quality/quality_dover_mobile_{vid}.jsonl",
-        f"out/timelines/timeline_{vid}.json",
-        f"out/previews/preview_{vid}.mp4",
     ]
+
+
+def _listed(vid: str, file: str) -> layout.Video:
+    return layout.Video(vid, vid * 4, file, 1, 0)
+
+
+def test_results_go_to_a_folder_named_after_the_video(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    videos = [
+        _listed("a" * 16, "long/edinburgh_walk.webm"),
+        _listed("b" * 16, "long/trip/day1.MP4"),
+        _listed("c" * 16, "loose.mov"),
+    ]
+    dirs = layout.result_dirs(out, videos)
+    assert {k: p.relative_to(out).as_posix() for k, p in dirs.items()} == {
+        "a" * 16: "edinburgh_walk",
+        "b" * 16: "trip/day1",
+        "c" * 16: "loose",
+    }
+    folder = dirs["a" * 16]
+    names = [
+        layout.timeline_path(folder, "highlights"),
+        layout.preview_path(folder, "ranked"),
+        layout.timeline_path(out, "highlights"),
+        layout.report_path(out, "ranked"),
+    ]
+    assert [p.relative_to(out).as_posix() for p in names] == [
+        "edinburgh_walk/timeline_highlights.json",
+        "edinburgh_walk/preview_ranked.mp4",
+        "timeline_highlights.json",
+        "report_ranked.html",
+    ]
+
+
+def test_result_folders_must_not_collide(tmp_path: Path) -> None:
+    videos = [_listed("a" * 16, "long/walk.mp4"), _listed("b" * 16, "long/walk.mov")]
+    with pytest.raises(ValueError, match="结果目录同名"):
+        layout.result_dirs(tmp_path, videos)
 
 
 def test_videos_in_collection_folders_any_container(tmp_path: Path) -> None:

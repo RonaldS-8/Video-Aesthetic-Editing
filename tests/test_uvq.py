@@ -55,8 +55,6 @@ def test_score_rejects_empty_segment_and_non_finite_output() -> None:
 
 
 def test_load_names_missing_checkpoints(tmp_path: Path) -> None:
-    ckpt = uvq.checkpoint_dir(tmp_path)
-    ckpt.mkdir(parents=True)
-    (ckpt / "content_net.pth").write_bytes(b"")
+    (tmp_path / "content_net.pth").write_bytes(b"")
     with pytest.raises(FileNotFoundError, match="distortion_net.pth"):
-        uvq.UvqAdapter.load(tmp_path)
+        uvq.UvqAdapter.load(tmp_path / "uvq", tmp_path)

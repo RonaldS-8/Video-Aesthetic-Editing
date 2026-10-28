@@ -20,10 +20,15 @@ data/raw/**/*.MTS
 data/raw/**/*.m2ts
 data/synth/*.mp4
 out/**/previews/
+out/**/preview_*.mp4
 
-# Third-party code and model weights (see README for versions)
+# Third-party code (see README) and model weights; only the index
+# (models/README.md) and manifests are tracked
 third_party/
-*.pth
+models/**
+!models/*/
+!models/README.md
+!models/**/*.json
 
 # Downloaded datasets and archives (see docs/plans/长素材精彩瞬间-数据与方案.md)
 data/downloads/

@@ -83,6 +83,7 @@ def _workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, signals: bool) -
     monkeypatch.setattr(cli, "RAW_DIR", raw)
     monkeypatch.setattr(cli, "WORK_DIR", work)
     monkeypatch.setattr(cli, "DOVER_ROOT", tmp_path / "no_dover")
+    monkeypatch.setattr(cli, "DOVER_WEIGHTS", tmp_path / "no_dover_weights")
 
     def must_not_run(*_: object, **__: object) -> None:
         raise AssertionError("stages must not start when preflight fails")
@@ -141,7 +142,7 @@ def test_quality_explains_missing_weights(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, model: str, hint: str
 ) -> None:
     _workspace(tmp_path, monkeypatch, signals=True)
-    monkeypatch.setattr(cli, "UVQ_ROOT", tmp_path / "no_uvq")
+    monkeypatch.setattr(cli, "UVQ_WEIGHTS", tmp_path / "no_uvq_weights")
 
     class Args:
         only = ""
@@ -213,9 +214,9 @@ def test_collection_selects_videos_and_output_dir(
 
     assert [v.file for v in cli._selected(Args())] == ["tvsum/a.mp4"]
     assert cli._out(Args()) == cli.OUT_DIR / "tvsum"
-    Args.mode = "highlights"
-    assert cli._out(Args()) == cli.OUT_DIR / "tvsum" / "highlights"
-    Args.mode = "reel"
+    assert cli._result_dirs(Args(), cli._out(Args())) == {
+        cli._selected(Args())[0].id: cli.OUT_DIR / "tvsum" / "a"
+    }
     Args.collection = "vlog"
     assert cli._out(Args()) == cli.RESULT_DIR
     with pytest.raises(SystemExit, match="没有符合条件的视频"):

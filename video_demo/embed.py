@@ -1,7 +1,7 @@
 """Text and image vectors from EmbeddingGemma 2, as the A-NAS client makes them.
 
-Same model file (pinned in models/embeddinggemma-2-740m.json, copied from
-the client's deploy/models), same runtime (MediaPipe Universal Embedder,
+Same model file (pinned in models/embeddinggemma/embeddinggemma-2-740m.json,
+copied from the client's deploy/models), same runtime (MediaPipe Universal Embedder,
 L2-normalised, 70 vision tokens per image), same retrieval prompt for
 queries, and images go through the client's photo thumbnail first, so
 vectors here are comparable with the client's.
@@ -17,8 +17,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageOps
 
-MODEL_DIR = Path("third_party/embeddinggemma")
-MANIFEST = Path("models/embeddinggemma-2-740m.json")
+MODEL_DIR = Path("models/embeddinggemma")
+MANIFEST = MODEL_DIR / "embeddinggemma-2-740m.json"
 # The client's choice: the LiteRT package has 70 and 140 token image
 # signatures; 70 was about 3x faster with similar zero-shot results.
 VISION_TOKENS = 70
