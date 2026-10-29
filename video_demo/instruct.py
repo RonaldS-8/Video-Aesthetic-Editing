@@ -8,23 +8,29 @@ order (e.g. "60 秒的爱丁堡教堂，先外观后内部", "只要夜景"):
    asks for with the words that say so; the words must appear in the
    instruction, so a length the user never gave is rejected. No length in
    the instruction: the caller uses its ratio of the input.
-2. Outline: the model reads the chunk summaries (outline.py) and the
-   instruction and returns parts in the order of the cut, each with a
-   weight and 1-4 scene slots; a slot may require a time of day. It also
-   lists what the instruction asks for that the summaries do not have.
+2. Outline: the model reads the scene catalog (each scene's title and
+   summary, see scenes.py) and the instruction. Scenes are finer than the
+   chunk summaries, which turn one or two mistagged segments into a whole
+   chunk "白天至黄昏". The answer's fields are written in order, so they
+   double as its working: first the scenes that fit the instruction (scene
+   and content), then a design of the cut (what opens, what follows, why),
+   what the instruction asks for that the catalog does not have, and last
+   the parts in the order of the cut, each with a weight and 1-4 scene
+   slots. A slot names the catalog scenes it was designed from (shown in
+   the report; retrieval still searches every scene). Times of day are
+   not a filter: what the instruction asks of the picture goes into the
+   slot's query and acts through retrieval.
 3. Fill (rules): every scene of the footage is a candidate for every slot.
-   All (slot, scene) pairs are taken best first, so a scene is used once;
-   a slot with a time of day only takes scenes whose usable segments are
-   mostly of that time, and stays empty rather than take another. Inside
-   the scene, segments are picked as in the highlights (pick_segments).
-   Clips follow the outline: part, slot, then shooting time.
+   All (slot, scene) pairs are taken best first, so a scene is used once.
+   Inside the scene, segments are picked as in the highlights
+   (pick_segments). Clips follow the outline: part, slot, then shooting
+   time.
 """
 
 from __future__ import annotations
 
 import json
 import statistics
-from collections import Counter
 from typing import Any
 
 from video_demo import outline
@@ -33,7 +39,6 @@ from video_demo.outline import (
     MAX_WEIGHT,
     MIN_WEIGHT,
     SCENE_QUALITY_WEIGHT,
-    Chunk,
     OutlineError,
     Scene,
 )
@@ -45,12 +50,11 @@ from video_demo.suggest import (
     validate_timeline,
 )
 
-ANY_TIME = "不限"
-# Times of day a slot may require; the tag values minus 不确定. Whether the
-# instruction calls for one is left to the model (instructions can be
-# abstract), the prompt only tells it not to add one unasked.
-SLOT_TIMES = [ANY_TIME, "白天", "黄昏", "夜晚", "室内"]
 MAX_UNMET = 5
+MAX_MATERIALS = 8
+MAX_MATERIAL_CHARS = 40
+MAX_DESIGN_CHARS = 150
+MAX_SLOT_SOURCES = 3
 MAX_QUOTE_CHARS = 20
 MAX_TARGET_SEC = 36000
 # The words quoted for a length must hold a number and a unit of time, so
@@ -119,7 +123,24 @@ REQUEST_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "title": {"type": "string", "maxLength": 30},
-        "understanding": {"type": "string", "minLength": 1, "maxLength": 80},
+        "materials": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": MAX_MATERIALS,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "scene": {"type": "integer", "minimum": 1},
+                    "content": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": MAX_MATERIAL_CHARS,
+                    },
+                },
+                "required": ["scene", "content"],
+            },
+        },
+        "design": {"type": "string", "minLength": 1, "maxLength": MAX_DESIGN_CHARS},
         "unmet": {
             "type": "array",
             "items": {"type": "string", "minLength": 1, "maxLength": 30},
@@ -151,9 +172,14 @@ REQUEST_SCHEMA: dict[str, Any] = {
                                     "minLength": 1,
                                     "maxLength": 20,
                                 },
-                                "time_of_day": {"type": "string", "enum": SLOT_TIMES},
+                                "sources": {
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "maxItems": MAX_SLOT_SOURCES,
+                                    "items": {"type": "integer", "minimum": 1},
+                                },
                             },
-                            "required": ["query", "time_of_day"],
+                            "required": ["query", "sources"],
                         },
                     },
                 },
@@ -161,30 +187,34 @@ REQUEST_SCHEMA: dict[str, Any] = {
             },
         },
     },
-    "required": ["title", "understanding", "unmet", "parts"],
+    "required": ["title", "materials", "design", "unmet", "parts"],
 }
 
 REQUEST_PROMPT = """用户的剪辑要求：
 「{instruction}」
 
-下面是 {total_min:.1f} 分钟原始素材按时间分成的 {n} 块，每块已有总结。
-每行：[块编号] 起止时间 | 总结 | 地点 | 活动
+下面是 {total_min:.1f} 分钟原始素材切成的 {n} 个场景，按拍摄时间排列，
+每个场景有标题和概况。
+每行：[场景编号] 起止时间 | 标题 | 概况
 
-{chunks}
+{catalog}
 
-请按用户的要求设计一个约 {target_sec:.0f} 秒的成片大纲：
-- understanding 用一句话说明你怎么理解这个要求；
-- unmet 列出要求里提到、但上面的总结里找不到的内容，都找得到就留空；
-- 分成 1–{max_parts} 个部分（不能超过 {max_parts} 个），按成片里的先后排列，
-  先后由用户的要求决定，不必按拍摄时间；
-- name 是这一部分的标题，summary 用一句话说明这部分讲什么；
-- weight 是这一部分的分量（1–10 的整数），程序会按分量把 {target_sec:.0f} 秒
-  分给各部分，每部分至少 {min_part:.0f} 秒；
-- scenes 是这一部分要的 1–{max_slots} 个场景：query 用一个短语说明画面
-  （如“远处的城堡”“教堂里的彩色玻璃窗”），从上面的总结、地点和活动里选，
-  所有部分的场景互不重复；time_of_day 是这个场景要求的时段
-  （{times}），只有用户的要求里明确说了时段才填，否则一律填“{any_time}”。
-程序会为每个场景从全部素材里找一段连续的场景，一个场景只用一次。
+请按用户的要求，从这些场景里设计一个约 {target_sec:.0f} 秒的成片，按顺序写：
+1. materials：通读上面的场景，挑出符合要求的场景，每条写场景编号（scene）和
+   这个场景里能用的具体内容（content：地点、主体、画面，不超过 {max_material} 个字），
+   不超过 {max_materials} 条；
+2. design：用 2–3 句话写成片的设计：开头、中间、结尾分别用 materials 里的
+   哪些场景，为什么这样安排；写完对照用户的要求检查内容和先后顺序；
+3. unmet：要求里提到、但场景里找不到的内容，都找得到就留空；
+4. parts：照 design 分成 1–{max_parts} 个部分（不能超过 {max_parts} 个），按成片里的
+   先后排列，先后由 design 决定，不必按拍摄时间：
+   - name 是这一部分的标题，summary 用一句话说明这部分讲什么；
+   - weight 是这一部分的分量（1–10 的整数），程序会按分量把 {target_sec:.0f} 秒
+     分给各部分，每部分至少 {min_part:.0f} 秒；
+   - scenes 是这一部分要的 1–{max_slots} 个镜头：query 用一个短语说明要的画面
+     （如“远处的城堡”“教堂里的彩色玻璃窗”），所有部分的 query 互不重复；
+     sources 写这个画面取自 materials 里的哪几个场景（1–{max_sources} 个编号）。
+程序会按每个 query 从全部场景里检索一个最符合的场景，一个场景只用一次。
 只输出 JSON。"""
 
 
@@ -194,15 +224,36 @@ def request_schema(max_parts: int) -> dict[str, Any]:
     return schema
 
 
-def validate_request(plan: Any, target_sec: float) -> dict[str, Any]:
+def catalog_lines(catalog: list[dict[str, Any]]) -> str:
+    return "\n".join(
+        f"[{s['number']}] {outline._fmt(s['start'])}–{outline._fmt(s['end'])} | "
+        f"{s['title']} | {s['summary']}"
+        for s in catalog
+    )
+
+
+def validate_request(plan: Any, target_sec: float, numbers: set[int]) -> dict[str, Any]:
     """Deterministic checks on the model's outline; raises OutlineError.
 
-    Adds each part's ``duration_sec``, allocated from the weights.
+    Material scenes must be in the catalog (``numbers``), and a slot's
+    sources must be among the materials it was designed from. Adds each
+    part's ``duration_sec``, allocated from the weights.
     """
     if not isinstance(plan, dict) or not isinstance(plan.get("parts"), list):
         raise OutlineError("Expected an object with a parts list")
-    if not str(plan.get("understanding", "")).strip():
-        raise OutlineError("understanding must not be empty")
+    materials = plan.get("materials")
+    if not isinstance(materials, list) or not materials:
+        raise OutlineError("materials must be a non-empty list")
+    picked: set[int] = set()
+    for m in materials:
+        n = m.get("scene")
+        if not isinstance(n, int) or n not in numbers:
+            raise OutlineError(f"material scene {n!r} is not in the catalog")
+        if not str(m.get("content", "")).strip():
+            raise OutlineError(f"material of scene {n}: empty content")
+        picked.add(n)
+    if not str(plan.get("design", "")).strip():
+        raise OutlineError("design must not be empty")
     unmet = plan.get("unmet", [])
     if not isinstance(unmet, list) or any(not str(u).strip() for u in unmet):
         raise OutlineError("unmet must be a list of non-empty strings")
@@ -227,10 +278,18 @@ def validate_request(plan: Any, target_sec: float) -> dict[str, Any]:
             if query in queries:
                 raise OutlineError(f"part {k}: scene {query!r} listed twice")
             queries.add(query)
-            when = slot.get("time_of_day")
-            if when not in SLOT_TIMES:
+            sources = slot.get("sources")
+            if (
+                not isinstance(sources, list)
+                or not 1 <= len(sources) <= MAX_SLOT_SOURCES
+                or any(not isinstance(n, int) for n in sources)
+            ):
                 raise OutlineError(
-                    f"part {k}: time_of_day {when!r} not in {SLOT_TIMES}"
+                    f"part {k}: scene {query!r} needs 1-{MAX_SLOT_SOURCES} sources"
+                )
+            if not set(sources) <= picked:
+                raise OutlineError(
+                    f"part {k}: scene {query!r} sources {sources} not in materials"
                 )
     seconds = outline.allocate([p["weight"] for p in parts], target_sec)
     for p, sec in zip(parts, seconds, strict=True):
@@ -240,41 +299,41 @@ def validate_request(plan: Any, target_sec: float) -> dict[str, Any]:
 
 def plan_request(
     instruction: str,
-    chunks: list[Chunk],
+    catalog: list[dict[str, Any]],
+    total_sec: float,
     target_sec: float,
     server_url: str = outline.SERVER_URL,
 ) -> tuple[dict[str, Any], str, float, list[str]]:
-    """(outline, raw, seconds, failed tries) for the instruction."""
+    """(outline, raw, seconds, failed tries) for the instruction.
+
+    ``catalog`` is the scenes that keep footage, each with its number,
+    start, end, title and summary; ``total_sec`` the footage's length.
+    """
     min_part, max_parts = outline.part_limits(target_sec)
     prompt = REQUEST_PROMPT.format(
         instruction=instruction,
-        total_min=sum(c.end - c.start for c in chunks) / 60,
-        n=len(chunks),
-        chunks=outline.chunk_lines(chunks),
+        total_min=total_sec / 60,
+        n=len(catalog),
+        catalog=catalog_lines(catalog),
         target_sec=target_sec,
         max_parts=max_parts,
         min_part=min_part,
         max_slots=MAX_SLOTS,
-        times="、".join(SLOT_TIMES[1:]),
-        any_time=ANY_TIME,
+        max_material=MAX_MATERIAL_CHARS,
+        max_materials=MAX_MATERIALS,
+        max_sources=MAX_SLOT_SOURCES,
     )
+    numbers = {s["number"] for s in catalog}
     return outline._ask(
         prompt,
         request_schema(max_parts),
         "edit_outline",
-        lambda parsed: validate_request(parsed, target_sec),
+        lambda parsed: validate_request(parsed, target_sec, numbers),
         server_url,
     )
 
 
 # --- fill ----------------------------------------------------------------------
-
-
-def scene_time(candidates: list[Candidate], usable: list[int]) -> str | None:
-    """The time of day of more than half of the scene's usable segments."""
-    counts = Counter(candidates[i].tags["time_of_day"] for i in usable)
-    time, n = counts.most_common(1)[0]
-    return time if 2 * n > len(usable) else None
 
 
 def fill_request(
@@ -291,33 +350,27 @@ def fill_request(
     ``scene_relevance[part][slot]`` maps every scene number to retrieval
     relevance (0-1), ``segment_relevance[part][slot]`` every candidate;
     ``named`` are the candidates the chunk summaries called highlights.
-    A slot's pool is the scenes with usable segments and, when the slot
-    asks for a time of day, mostly of that time. All (slot, scene) pairs of
-    the outline are taken best first (relevance rescaled within the slot's
-    pool + quality), so a scene goes to one slot. A part's seconds are
-    shared among its filled slots as in outline.fill.
+    Every scene with usable segments is in every slot's pool. All (slot,
+    scene) pairs of the outline are taken best first (relevance rescaled
+    within the pool + quality), so a scene goes to one slot. A part's
+    seconds are shared among its filled slots as in outline.fill.
 
-    Returns (clips, notes, slots): per part, each slot's query, time of
-    day, scene, relevance, seconds and its five best scenes.
+    Returns (clips, notes, slots): per part, each slot's query, sources,
+    scene, relevance, seconds and its five best scenes.
     """
 
     def usable(i: int) -> bool:
         return assessments[i].keep and candidates[i].duration >= MIN_CLIP_SEC
 
     kept = {s.number: [i for i in s.members if usable(i)] for s in scenes}
-    by_number = {s.number: s for s in scenes if kept[s.number]}
-    times = {n: scene_time(candidates, kept[n]) for n in by_number}
+    pool = [s.number for s in scenes if kept[s.number]]
     quality = {
         n: statistics.mean((assessments[i].score - 1) / 4 for i in kept[n])
-        for n in by_number
+        for n in pool
     }
-    pools: dict[tuple[int, int], list[int]] = {}
     value: dict[tuple[int, int, int], float] = {}
     for k, part in enumerate(plan["parts"]):
-        for j, slot in enumerate(part["scenes"]):
-            want = slot["time_of_day"]
-            pool = [n for n in by_number if want == ANY_TIME or times[n] == want]
-            pools[(k, j)] = pool
+        for j in range(len(part["scenes"])):
             if pool:
                 rel = outline.rescale({n: scene_relevance[k][j][n] for n in pool})
                 for n, r in rel.items():
@@ -341,11 +394,10 @@ def fill_request(
         part_total = 0.0
         slots: list[dict[str, Any]] = []
         for j, query in enumerate(part["scenes"]):
-            pool = pools[(k, j)]
             ranked = sorted(pool, key=lambda n: (-value[(k, j, n)], n))
             slot: dict[str, Any] = {
                 "query": query["query"],
-                "time_of_day": query["time_of_day"],
+                "sources": query["sources"],
                 "scene": assigned.get((k, j)),
                 "relevance": None,
                 "seconds": 0.0,
@@ -353,11 +405,7 @@ def fill_request(
             }
             slots.append(slot)
             if (k, j) not in assigned:
-                why = (
-                    f"没有时段为「{query['time_of_day']}」的可用场景"
-                    if not pool
-                    else "符合的场景都已分给其他槽位"
-                )
+                why = "符合的场景都已分给其他槽位" if pool else "没有可用的场景"
                 notes.append(f"「{part['name']}」场景「{query['query']}」{why}")
                 continue
             n = assigned[(k, j)]
@@ -380,7 +428,6 @@ def fill_request(
     for order, (k, j, i) in enumerate(chosen):
         c = candidates[i]
         slot = slots_out[k][j]
-        when = "" if slot["time_of_day"] == ANY_TIME else f"，{slot['time_of_day']}"
         mark = "，分段总结点名的亮点" if i in named else ""
         clips.append(
             Clip(
@@ -391,7 +438,7 @@ def fill_request(
                 src_start=round(c.start, 3),
                 src_end=round(c.end, 3),
                 description=c.tags["description"],
-                reason=f"场景「{slot['query']}」{when}→ 场景 {slot['scene']}"
+                reason=f"场景「{slot['query']}」→ 场景 {slot['scene']}"
                 f"（相关度 {slot['relevance']:.0%}），得分 "
                 f"{assessments[i].score:.1f}，片段相关度 "
                 f"{segment_relevance[k][j][i]:.0%}{mark}",

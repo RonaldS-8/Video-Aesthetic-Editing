@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from video_demo import instruct, layout, outline, report, suggest
+from video_demo import cli, instruct, layout, outline, report, suggest
 
 
 def _cand(i: int, start: float, dur: float = 8.0, **kw: Any) -> suggest.Candidate:
@@ -41,15 +42,16 @@ def _scenes(groups: list[list[int]]) -> list[outline.Scene]:
     return [outline.Scene(n, g) for n, g in enumerate(groups, start=1)]
 
 
-def _slot(query: str, time_of_day: str = instruct.ANY_TIME) -> dict[str, str]:
-    return {"query": query, "time_of_day": time_of_day}
+def _slot(query: str, sources: list[int] | None = None) -> dict[str, Any]:
+    return {"query": query, "sources": sources or [1]}
 
 
 def _plan(parts: list[tuple[int, list[dict]]], seconds: list[int] | None = None):
     """Parts as (weight, slots); ``seconds`` sets duration_sec directly."""
     plan: dict[str, Any] = {
         "title": "t",
-        "understanding": "u",
+        "materials": [{"scene": 1, "content": "教堂正面"}],
+        "design": "先外观后内部",
         "unmet": [],
         "parts": [
             {"name": f"p{k}", "summary": "s", "weight": w, "scenes": slots}
@@ -118,19 +120,16 @@ def test_parse_duration_retries_then_raises(monkeypatch: pytest.MonkeyPatch) -> 
 # --- outline -------------------------------------------------------------------
 
 
+NUMBERS = {1, 2}
+
+
 def test_validate_request_allocates_seconds() -> None:
-    plan = instruct.validate_request(_plan([(5, [_slot("教堂")])]), 15.0)
+    plan = instruct.validate_request(_plan([(5, [_slot("教堂")])]), 15.0, NUMBERS)
     assert plan["parts"][0]["duration_sec"] == 15
     # part_limits(30) allows three parts of 10 s.
     plan = _plan([(1, [_slot("a")]), (1, [_slot("b")]), (2, [_slot("c")])])
-    assert [p["duration_sec"] for p in instruct.validate_request(plan, 30.0)["parts"]]
+    instruct.validate_request(plan, 30.0, NUMBERS)
     assert sum(p["duration_sec"] for p in plan["parts"]) == 30
-
-
-@pytest.mark.parametrize("when", instruct.SLOT_TIMES)
-def test_validate_request_takes_every_slot_time(when: str) -> None:
-    plan = instruct.validate_request(_plan([(5, [_slot("a", when)])]), 30.0)
-    assert plan["parts"][0]["scenes"][0]["time_of_day"] == when
 
 
 @pytest.mark.parametrize(
@@ -141,35 +140,34 @@ def test_validate_request_takes_every_slot_time(when: str) -> None:
         (_plan([(5, [_slot("a"), _slot("a")])]), "listed twice"),
         (_plan([(5, [_slot("a")]), (5, [_slot("a")])]), "listed twice"),
         (_plan([(5, [_slot(" ")])]), "empty scene"),
-        (_plan([(5, [_slot("a", "凌晨")])]), "time_of_day"),
-        (_plan([(5, [_slot("a", "不确定")])]), "time_of_day"),
         (_plan([(0, [_slot("a")])]), "weight"),
         (_plan([(5, [])]), "needs 1-4 scenes"),
-        ({**_plan([(5, [_slot("a")])]), "understanding": ""}, "understanding"),
+        ({**_plan([(5, [_slot("a")])]), "design": " "}, "design"),
+        ({**_plan([(5, [_slot("a")])]), "materials": []}, "materials"),
+        (
+            {**_plan([(5, [_slot("a")])]), "materials": [{"scene": 3, "content": "c"}]},
+            "not in the catalog",
+        ),
+        (
+            {**_plan([(5, [_slot("a")])]), "materials": [{"scene": 1, "content": ""}]},
+            "empty content",
+        ),
+        # A slot's sources come from the materials it was designed from.
+        (_plan([(5, [_slot("a", [2])])]), "not in materials"),
+        (_plan([(5, [{**_slot("a"), "sources": []}])]), "needs 1-3 sources"),
         ({**_plan([(5, [_slot("a")])]), "unmet": [""]}, "unmet"),
     ],
 )
 def test_validate_request_rejects(plan: dict, message: str) -> None:
     with pytest.raises(outline.OutlineError, match=message):
-        instruct.validate_request(plan, 30.0)
+        instruct.validate_request(plan, 30.0, NUMBERS)
 
 
 def test_plan_request_prompt_and_schema(monkeypatch: pytest.MonkeyPatch) -> None:
-    chunks = [
-        outline.Chunk(
-            1,
-            "v",
-            [0, 1, 2, 3],
-            0.0,
-            38.0,
-            {
-                "summary": "教堂",
-                "places": ["教堂"],
-                "subjects": [],
-                "activities": ["参观"],
-                "highlights": [],
-            },
-        )
+    # Scene 2 kept no footage, so it is not in the catalog.
+    catalog = [
+        {"number": 1, "start": 0.0, "end": 38.0, "title": "教堂", "summary": "正面"},
+        {"number": 3, "start": 50.0, "end": 70.0, "title": "街道", "summary": "车"},
     ]
     seen: list[tuple[str, dict]] = []
 
@@ -178,13 +176,39 @@ def test_plan_request_prompt_and_schema(monkeypatch: pytest.MonkeyPatch) -> None
         return json.dumps(_plan([(5, [_slot("教堂外观")])])), 1.0
 
     monkeypatch.setattr(outline, "_request", fake)
-    plan, _, _, errors = instruct.plan_request("剪 30 秒教堂", chunks, 30.0)
+    plan, _, _, errors = instruct.plan_request("剪 30 秒教堂", catalog, 70.0, 30.0)
     assert plan["parts"][0]["duration_sec"] == 30 and errors == []
     prompt, schema = seen[0]
-    assert "「剪 30 秒教堂」" in prompt and "[1] 0:00–0:38 | 教堂" in prompt
+    assert "「剪 30 秒教堂」" in prompt and "切成的 2 个场景" in prompt
+    assert "[1] 0:00–0:38 | 教堂 | 正面\n[3] 0:50–1:10 | 街道 | 车" in prompt
+    assert "时段" not in prompt
     assert schema["properties"]["parts"]["maxItems"] == 3
+    # Fields are generated in this order: material and design come first.
+    order = ["title", "materials", "design", "unmet", "parts"]
+    assert list(schema["properties"]) == order
     # The shared schema is not changed by the per-call limit.
     assert instruct.REQUEST_SCHEMA["properties"]["parts"]["maxItems"] == 8
+
+
+def test_scene_catalog_per_video_with_offsets(monkeypatch: pytest.MonkeyPatch) -> None:
+    cands = [_cand(i, 10.0 * i) for i in range(3)]
+    cands += [replace(_cand(i, 10.0 * i), video="w") for i in range(2)]
+    scenes = _scenes([[0, 1], [2], [3, 4]])
+    seen: list[tuple[str, list[list[int]], int]] = []
+
+    def fake(vid: str, groups: list[list[int]], cal: list, assessments: list):
+        seen.append((vid, groups, len(cal)))
+        # Scene 2 of video v kept nothing, so it has no summary.
+        return {1: {"title": f"{vid}1", "summary": "s"}}
+
+    monkeypatch.setattr(cli, "_scene_summaries", fake)
+    catalog = cli._scene_catalog(scenes, cands, {"v": 0.0, "w": 100.0})
+    # Each video is summarised on its own, with indices into its own segments.
+    assert seen == [("v", [[0, 1], [2]], 3), ("w", [[0, 1]], 2)]
+    assert catalog == [
+        {"number": 1, "start": 0.0, "end": 18.0, "title": "v1", "summary": "s"},
+        {"number": 3, "start": 100.0, "end": 118.0, "title": "w1", "summary": "s"},
+    ]
 
 
 # --- fill ----------------------------------------------------------------------
@@ -219,32 +243,6 @@ def test_fill_request_uses_a_scene_once() -> None:
     assert len({(c.video, c.index) for c in clips}) == len(clips) == 2
 
 
-def test_fill_request_time_of_day_never_takes_another_time() -> None:
-    cands = [
-        _cand(0, 0.0),
-        _cand(1, 10.0),
-        _cand(2, 20.0, time_of_day="夜晚"),
-        _cand(3, 30.0, time_of_day="夜晚"),
-    ]
-    scenes = _scenes([[0, 1], [2, 3]])
-    plan = _plan([(5, [_slot("灯光", "夜晚"), _slot("海边", "黄昏")])], seconds=[16])
-    # Scene 1 is the better text match, but it is daytime.
-    scene_rel = [[{1: 1.0, 2: 0.5}, {1: 1.0, 2: 1.0}]]
-    clips, notes, slots = instruct.fill_request(
-        plan, scenes, cands, _assess(cands), scene_rel, [[_flat(4)] * 2], set()
-    )
-    assert [s["scene"] for s in slots[0]] == [2, None]
-    assert slots[0][1]["top"] == []
-    assert "「p0」场景「海边」没有时段为「黄昏」的可用场景" in notes
-    assert {c.index for c in clips} <= {2, 3} and "，夜晚→" in clips[0].reason
-
-
-def test_fill_request_mixed_scene_has_no_time() -> None:
-    cands = [_cand(0, 0.0), _cand(1, 10.0, time_of_day="夜晚")]
-    assert instruct.scene_time(cands, [0, 1]) is None
-    assert instruct.scene_time(cands, [1]) == "夜晚"
-
-
 def test_fill_request_notes_taken_scenes_and_skips_rejects() -> None:
     cands = [
         _cand(0, 0.0),
@@ -268,7 +266,9 @@ def test_fill_request_notes_taken_scenes_and_skips_rejects() -> None:
 
 def test_fill_request_fills_a_target_equal_to_all_usable_footage() -> None:
     cands = [_cand(i, 10.0 * i) for i in range(4)]
-    plan = instruct.validate_request(_plan([(5, [_slot("a"), _slot("b")])]), 32.0)
+    plan = instruct.validate_request(
+        _plan([(5, [_slot("a"), _slot("b")])]), 32.0, NUMBERS
+    )
     scene_rel = [[{1: 1.0, 2: 0.0}, {1: 0.0, 2: 1.0}]]
     clips, notes, _ = instruct.fill_request(
         plan,
@@ -302,7 +302,7 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
         ),
         encoding="utf-8",
     )
-    plan = _plan([(5, [_slot("教堂"), _slot("灯光", "夜晚")])], seconds=[20])
+    plan = _plan([(5, [_slot("教堂"), _slot("灯光", [2])])], seconds=[20])
     plan["unmet"] = ["烟花"]
     timeline = {
         "instruction": "剪 20 秒<教堂>",
@@ -311,7 +311,7 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
         "target_sec": 20.0,
         "target_source": {"kind": "instruction", "quote": "20 秒"},
         "total_sec": 8.0,
-        "notes": ["「p0」场景「灯光」没有时段为「夜晚」的可用场景"],
+        "notes": ["「p0」场景「灯光」符合的场景都已分给其他槽位"],
         "clips": [
             {
                 "order": 0,
@@ -330,7 +330,7 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
             [
                 {
                     "query": "教堂",
-                    "time_of_day": "不限",
+                    "sources": [1],
                     "scene": 1,
                     "relevance": 1.0,
                     "seconds": 20.0,
@@ -338,7 +338,7 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
                 },
                 {
                     "query": "灯光",
-                    "time_of_day": "夜晚",
+                    "sources": [2],
                     "scene": None,
                     "relevance": None,
                     "seconds": 0.0,
@@ -347,10 +347,16 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
             ]
         ],
         "outline": plan,
+        "outline_raw": '{"title": "<t>"}',
         "outline_seconds": 3.0,
         "outline_failed_attempts": [],
         "duration_failed_attempts": ["x"],
-        "chunks": [{"start": 0.0, "end": 18.0}],
+        "chunks": [
+            {"number": 1, "video": "v", "start": 0.0, "end": 18.0, "segments": [0, 1]}
+        ],
+        "catalog": [
+            {"number": 1, "start": 0.0, "end": 18.0, "title": "<教堂>", "summary": "s"}
+        ],
         "scenes": [
             {"number": 1, "video": "v", "start": 0.0, "end": 18.0, "segments": [0, 1]}
         ],
@@ -362,8 +368,16 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
     assert path == folder / "report.html"
     assert "剪 20 秒&lt;教堂&gt;" in html and "素材里找不到：烟花" in html
     assert "指令里的「20 秒」" in html and "重试 1 次" in html
-    assert "「教堂」</b> → 场景 1" in html and "walk.mp4 0:00.0–0:18.0" in html
+    assert "<li>场景 1（0:00.0–0:18.0）「&lt;教堂&gt;」：教堂正面</li>" in html
+    assert "成片设计</b><p>先外观后内部" in html
+    assert (
+        "设计取自场景 1</span> → 场景 1" in html
+        and "是设计的场景" in html
+        and "walk.mp4 0:00.0–0:18.0" in html
+    )
     assert '<img class="taken" src="../../../data/work/keyframes/' in html
-    assert '「灯光」（夜晚）</b><p class="miss">没有可用的场景' in html
+    assert "「灯光」</b><span class='muted'> 设计取自场景 2" in html
+    assert "没有可用的场景" in html
     assert "<span class='miss'>选到 8s</span>" in html
     assert 'src="preview.mp4"' in html
+    assert '<pre class="raw">{&quot;title&quot;: &quot;&lt;t&gt;&quot;}</pre>' in html

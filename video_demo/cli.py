@@ -1220,11 +1220,56 @@ def cmd_suggest(args: argparse.Namespace) -> None:
         retrieval.embedder.close()
 
 
+def _scene_catalog(
+    scenes: list[outline.Scene],
+    cands: list[suggest.Candidate],
+    offsets: dict[str, float],
+) -> list[dict]:
+    """Number, start, end (on the timeline ``offsets`` sets), title and
+    summary of every scene that keeps footage.
+
+    ``cands`` are not calibrated: each video is calibrated and assessed on
+    its own, as ``scenes`` does, so the summaries cached by ``scenes`` are
+    reused and missing ones are written to the same cache.
+    """
+    catalog: list[dict] = []
+    start = 0
+    while start < len(cands):
+        vid = cands[start].video
+        end = start
+        while end < len(cands) and cands[end].video == vid:
+            end += 1
+        own = [s for s in scenes if start <= s.members[0] < end]
+        cal = suggest.calibrate_by_time(cands[start:end])
+        summaries = _scene_summaries(
+            vid,
+            [[i - start for i in s.members] for s in own],
+            cal,
+            [suggest.assess(c) for c in cal],
+        )
+        for n, sc in enumerate(own, start=1):
+            if n in summaries:
+                catalog.append(
+                    {
+                        "number": sc.number,
+                        "start": round(
+                            offsets.get(vid, 0.0) + cands[sc.members[0]].start, 2
+                        ),
+                        "end": round(
+                            offsets.get(vid, 0.0) + cands[sc.members[-1]].end, 2
+                        ),
+                        **summaries[n],
+                    }
+                )
+        start = end
+    return catalog
+
+
 def cmd_edit(args: argparse.Namespace) -> None:
     """A cut for the user's instruction across the selected videos: the
-    outline model reads the instruction and the chunk summaries, every
-    scene is searched for its slots. Timeline, preview and report go to a
-    folder of their own under out/<collection>/edits/."""
+    outline model reads the instruction and the scene catalog, every scene
+    is searched for its slots. Timeline, preview and report go to a folder
+    of their own under out/<collection>/edits/."""
     instruction = args.instruction.strip()
     if not instruction:
         raise SystemExit("剪辑要求不能为空")
@@ -1248,6 +1293,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
         )
     except outline.OutlineError as exc:
         raise SystemExit(f"读取成片时长失败（3 次都没通过校验）：{exc}") from exc
+    raw = cands
     cands = suggest.calibrate_by_time(cands)
     assessments = [suggest.assess(c) for c in cands]
     usable = sum(
@@ -1266,9 +1312,10 @@ def cmd_edit(args: argparse.Namespace) -> None:
     retrieval = _Retrieval(videos)
     try:
         scenes = retrieval.scenes(chunks, cands)
+        catalog = _scene_catalog(scenes, raw, offsets)
         try:
-            plan, raw, seconds, errors = instruct.plan_request(
-                instruction, chunks, target
+            plan, outline_raw, seconds, errors = instruct.plan_request(
+                instruction, catalog, total, target
             )
         except outline.OutlineError as exc:
             raise SystemExit(f"大纲生成失败（3 次都没通过校验）：{exc}") from exc
@@ -1312,10 +1359,11 @@ def cmd_edit(args: argparse.Namespace) -> None:
             for part, r in zip(plan["parts"], ranked, strict=True)
         ],
         "outline": plan,
-        "outline_raw": raw,
+        "outline_raw": outline_raw,
         "outline_seconds": round(seconds, 1),
         "outline_failed_attempts": errors,
         "chunks": _chunk_rows(chunks, cands),
+        "catalog": catalog,
         # Within their own video: the cut is not in shooting order.
         "scenes": _scene_rows(scenes, cands, {}),
     }

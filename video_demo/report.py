@@ -55,6 +55,8 @@ border-radius:8px;padding:8px 10px;margin:8px 0}
 .strip{display:flex;gap:4px;overflow-x:auto;margin:6px 0}
 .strip img{width:112px;flex:none;border-radius:4px;border:3px solid transparent}
 .strip img.taken{border-color:var(--sel)}.strip img.dropped{opacity:.35}
+pre.raw{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:10px 12px;overflow-x:auto;font-size:12px;white-space:pre-wrap}
 """
 
 
@@ -579,6 +581,14 @@ def write_edit(
     scenes = {sc["number"]: sc for sc in timeline["scenes"]}
     keep = {(a["video"], a["index"]): a["keep"] for a in timeline["assessments"]}
     taken = {(c["video"], c["index"]) for c in timeline["clips"]}
+    catalog = {s["number"]: s for s in timeline["catalog"]}
+
+    def catalog_entry(n: int) -> str:
+        s = catalog[n]
+        return (
+            f"场景 {n}（{_fmt(s['start'])}–{_fmt(s['end'])}）"
+            f"「{escape(s['title'])}」"
+        )
 
     def where(sc: dict) -> str:
         name = files[sc["video"]].split("/")[-1]
@@ -593,14 +603,22 @@ def write_edit(
         short = got < 0.8 * part["duration_sec"]
         cards = []
         for slot in slots:
-            when = "" if slot["time_of_day"] == "不限" else f"（{slot['time_of_day']}）"
-            head = f"<b>「{escape(slot['query'])}」{escape(when)}</b>"
+            head = (
+                f"<b>「{escape(slot['query'])}」</b>"
+                f"<span class='muted'> 设计取自场景 "
+                f"{'、'.join(map(str, slot['sources']))}</span>"
+            )
             if slot["scene"] is None:
                 cards.append(
                     f'<div class="slot">{head}<p class="miss">没有可用的场景</p></div>'
                 )
                 continue
             sc = scenes[slot["scene"]]
+            found = (
+                "<span class='ok'>是设计的场景</span>"
+                if sc["number"] in slot["sources"]
+                else "<span class='miss'>不是设计的场景</span>"
+            )
             others = "、".join(
                 f"场景 {n}（{where(scenes[n])}）"
                 for n in slot["top"]
@@ -611,7 +629,7 @@ def write_edit(
                 f"<span class='muted'>（{where(sc)}，"
                 f"{len(sc['segments'])} 段）</span><br>"
                 f"<span class='muted'>检索相关度 {slot['relevance']:.0%} · "
-                f"分到 {slot['seconds']:.0f}s</span>"
+                f"分到 {slot['seconds']:.0f}s · </span>{found}"
                 f"{_scene_strip(sc, frames, descriptions, taken, keep)}"
                 f"<span class='muted'>其他候选：{others or '—'}</span></div>"
             )
@@ -637,15 +655,27 @@ def write_edit(
             ("目标", f"{timeline['target_sec']:.0f}s", target_note),
             ("选到", f"{timeline['total_sec']:.1f}s", f"{len(timeline['clips'])} 段"),
             ("素材", f"{analysed / 60:.1f} 分钟", f"{len(timeline['videos'])} 条视频"),
-            ("场景", f"{len(timeline['scenes'])}", f"{len(timeline['chunks'])} 块总结"),
+            ("场景", f"{len(timeline['scenes'])}", f"{len(catalog)} 个有可用片段"),
         )
     )
     unmet = "、".join(escape(u) for u in plan["unmet"])
+    materials = "".join(
+        f"<li>{catalog_entry(m['scene'])}：{escape(m['content'])}</li>"
+        for m in plan["materials"]
+    )
     notes = "".join(f"<li>{escape(n)}</li>" for n in timeline["notes"])
     tries = len(timeline["outline_failed_attempts"]) + len(
         timeline["duration_failed_attempts"]
     )
     title = plan.get("title") or "按要求剪辑"
+    failed = timeline["outline_failed_attempts"]
+    raw_failed = (
+        f"<details><summary>未通过校验的 {len(failed)} 次</summary><ul>"
+        + "".join(f"<li>{escape(e)}</li>" for e in failed)
+        + "</ul></details>"
+        if failed
+        else ""
+    )
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)}</title><style>{CSS}</style></head>
@@ -655,20 +685,27 @@ def write_edit(
 （用时 {timeline['outline_seconds']}s{f"，重试 {tries} 次" if tries else ""}）·
 检索 EmbeddingGemma 2 文本、图像向量 + BM25</p>
 <div class="slot"><b>剪辑要求</b><p>{escape(timeline['instruction'])}</p>
-<b>模型的理解</b><p>{escape(plan['understanding'])}</p>
+<b>选用的素材</b><ul>{materials}</ul>
+<b>成片设计</b><p>{escape(plan['design'])}</p>
 {f'<p class="miss">素材里找不到：{unmet}</p>' if unmet else ""}</div>
 <div class="cards">{cards_html}</div>
 {f'<ul class="miss">{notes}</ul>' if notes else ""}
 <h2>大纲与检索到的场景</h2>
-<p class="muted">每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），
-相关度为主、画质为辅，一个场景只给一个槽位；槽位要求时段的，只在该时段为主的
-场景里找，找不到就空着。场景内按片段得分、相关度和分段总结点名的亮点整段选片。
-成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
+<p class="muted">大纲由模型读要求和场景目录（每个场景的标题和概况）写成：先挑场景，
+再写设计，最后按设计分部分、定场景槽位，并标出每个槽位取自哪几个场景。
+每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），相关度为主、
+画质为辅，一个场景只给一个槽位。场景内按片段得分、相关度和分段总结点名的亮点
+整段选片。成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。
+</p>
 {''.join(parts)}
 <h2>预览</h2>
 <video src="{escape(_rel(layout.edit_preview_path(folder), folder))}" controls
 preload="metadata"></video>
 {_clip_cards(timeline['clips'], frames, files)}
+<h2>大纲原文</h2>
+<p class="muted">模型输出的 JSON，未经改动；各部分的秒数由程序按 weight 另算。</p>
+<pre class="raw">{escape(timeline['outline_raw'])}</pre>
+{raw_failed}
 </main></body></html>"""
     path = layout.edit_report_path(folder)
     path.parent.mkdir(parents=True, exist_ok=True)
