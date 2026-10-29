@@ -63,7 +63,7 @@ def _chunks(
     return [
         outline.Chunk(
             number=k,
-            video=cands[g[0]].video,
+            videos=[cands[g[0]].video],
             members=g,
             start=cands[g[0]].start,
             end=cands[g[-1]].end,
@@ -334,3 +334,73 @@ def test_fill_reports_missing_scenes_and_short_parts() -> None:
     assert "「p0」场景「b」没有可用的场景" in notes[0]
     assert "「p0」素材不足" in notes[1]
     assert [c.index for c in clips] == [0, 1, 2, 3]
+
+
+# --- groups of short videos -----------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("lengths", "groups"),
+    [
+        # Short videos fill a group until it holds CHUNK_SEC.
+        ([181.0, 153.0, 128.0, 17.0, 31.0, 300.0], [[0, 1], [2, 3, 4], [5]]),
+        # A long video closes the open group and stands alone.
+        ([100.0, 4020.0, 50.0], [[0], [1], [2]]),
+        ([300.0], [[0]]),
+        ([10.0] * 3, [[0, 1, 2]]),
+        ([], []),
+    ],
+)
+def test_group_videos_never_splits_a_video(
+    lengths: list[float], groups: list[list[int]]
+) -> None:
+    assert outline.group_videos(lengths) == groups
+
+
+def test_group_highlights_renumber_along_the_group() -> None:
+    videos = [(3, _summary([2])), (2, _summary([1, 2]))]
+    assert [h["segment"] for h in outline.group_highlights(videos)] == [2, 4, 5]
+
+
+def test_summarize_group_reads_the_video_summaries(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[tuple[str, dict]] = []
+    reply = {
+        "summary": "先逛寺庙再看湖",
+        "places": [],
+        "subjects": [],
+        "activities": [],
+    }
+
+    def fake(prompt: str, _t: float, schema: dict, *_: Any) -> tuple[str, float]:
+        seen.append((prompt, schema))
+        return json.dumps(reply), 1.0
+
+    monkeypatch.setattr(outline, "_request", fake)
+    summary, _, _, _ = outline.summarize_group(
+        [(181.0, _summary(text="寺庙")), (153.0, _summary(text="湖"))]
+    )
+    assert summary == reply
+    prompt, schema = seen[0]
+    assert "连续拍摄的 2 段视频（共 5.6 分钟）" in prompt
+    assert "[1] 3:01 | 寺庙 | 森林 | 徒步\n[2] 2:33 | 湖" in prompt
+    assert "highlights" not in schema["properties"]
+    with pytest.raises(outline.OutlineError, match="non-empty"):
+        outline.validate_group({"summary": " "})
+
+
+def test_clip_span_keeps_the_middle() -> None:
+    c = _cand(0, 10.0, ["a"], dur=8.0)
+    assert outline.clip_span(c, None) == (10.0, 18.0)
+    assert outline.clip_span(c, 3.0) == (12.5, 15.5)
+    assert outline.clip_span(c, 10.0) == (10.0, 18.0)
+
+
+def test_pick_segments_counts_trimmed_lengths() -> None:
+    cands = [_cand(i, 10.0 * i, [f"t{i}"]) for i in range(4)]
+    rel = {i: 1.0 for i in range(4)}
+    # 12 s from 8 s segments: two whole ones, or four 3 s middles.
+    assert len(outline.pick_segments(rel, 12.0, cands, _assess(cands), set())) == 2
+    picked = outline.pick_segments(rel, 12.0, cands, _assess(cands), set(), 3.0)
+    assert len(picked) == 4

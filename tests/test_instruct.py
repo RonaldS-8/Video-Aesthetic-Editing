@@ -52,6 +52,7 @@ def _plan(parts: list[tuple[int, list[dict]]], seconds: list[int] | None = None)
         "title": "t",
         "materials": [{"scene": 1, "content": "教堂正面"}],
         "design": "先外观后内部",
+        "pace": "整段",
         "unmet": [],
         "parts": [
             {"name": f"p{k}", "summary": "s", "weight": w, "scenes": slots}
@@ -156,6 +157,7 @@ def test_validate_request_allocates_seconds() -> None:
         (_plan([(5, [_slot("a", [2])])]), "not in materials"),
         (_plan([(5, [{**_slot("a"), "sources": []}])]), "needs 1-3 sources"),
         ({**_plan([(5, [_slot("a")])]), "unmet": [""]}, "unmet"),
+        ({**_plan([(5, [_slot("a")])]), "pace": "慢"}, "pace"),
     ],
 )
 def test_validate_request_rejects(plan: dict, message: str) -> None:
@@ -166,9 +168,10 @@ def test_validate_request_rejects(plan: dict, message: str) -> None:
 def test_plan_request_prompt_and_schema(monkeypatch: pytest.MonkeyPatch) -> None:
     # Scene 2 kept no footage, so it is not in the catalog.
     catalog = [
-        {"number": 1, "start": 0.0, "end": 38.0, "title": "教堂", "summary": "正面"},
-        {"number": 3, "start": 50.0, "end": 70.0, "title": "街道", "summary": "车"},
+        {"number": 1, "start": 0.0, "end": 38.0, "videos": [1], "title": "教堂"},
+        {"number": 3, "start": 50.0, "end": 70.0, "videos": [1], "title": "街道"},
     ]
+    catalog[0]["summary"], catalog[1]["summary"] = "正面", "车"
     seen: list[tuple[str, dict]] = []
 
     def fake(prompt: str, _t: float, schema: dict, *_: Any) -> tuple[str, float]:
@@ -180,35 +183,71 @@ def test_plan_request_prompt_and_schema(monkeypatch: pytest.MonkeyPatch) -> None
     assert plan["parts"][0]["duration_sec"] == 30 and errors == []
     prompt, schema = seen[0]
     assert "「剪 30 秒教堂」" in prompt and "切成的 2 个场景" in prompt
+    # One video: no video numbers in the lines.
     assert "[1] 0:00–0:38 | 教堂 | 正面\n[3] 0:50–1:10 | 街道 | 车" in prompt
     assert "时段" not in prompt
     assert schema["properties"]["parts"]["maxItems"] == 3
     # Fields are generated in this order: material and design come first.
-    order = ["title", "materials", "design", "unmet", "parts"]
+    order = ["title", "materials", "design", "pace", "unmet", "parts"]
     assert list(schema["properties"]) == order
+    assert schema["properties"]["pace"]["enum"] == ["整段", "适中", "快"]
     # The shared schema is not changed by the per-call limit.
     assert instruct.REQUEST_SCHEMA["properties"]["parts"]["maxItems"] == 8
 
 
-def test_scene_catalog_per_video_with_offsets(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_catalog_lines_name_the_videos() -> None:
+    catalog = [
+        {"number": 1, "start": 0.0, "end": 20.0, "videos": [1], "title": "a"},
+        {"number": 2, "start": 20.0, "end": 45.0, "videos": [1, 2], "title": "b"},
+    ]
+    for s in catalog:
+        s["summary"] = "s"
+    assert instruct.catalog_lines(catalog) == (
+        "[1] 视频 1 0:00–0:20 | a | s\n[2] 视频 1–2 0:20–0:45 | b | s"
+    )
+
+
+def test_shortlist_keeps_the_most_relevant_in_timeline_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(instruct, "MAX_CATALOG_SCENES", 2)
+    catalog = [{"number": n} for n in (1, 2, 3, 5)]
+    relevance = {1: 0.2, 2: 0.9, 3: 0.1, 5: 1.0}
+    assert [s["number"] for s in instruct.shortlist(catalog, relevance)] == [2, 5]
+    assert instruct.shortlist(catalog[:2], relevance) == catalog[:2]
+
+
+def test_scene_catalog_per_video_and_across(monkeypatch: pytest.MonkeyPatch) -> None:
     cands = [_cand(i, 10.0 * i) for i in range(3)]
     cands += [replace(_cand(i, 10.0 * i), video="w") for i in range(2)]
-    scenes = _scenes([[0, 1], [2], [3, 4]])
-    seen: list[tuple[str, list[list[int]], int]] = []
+    # Scene 2 runs from the end of video v into video w.
+    scenes = _scenes([[0, 1], [2, 3], [4]])
+    seen: list[tuple] = []
 
     def fake(vid: str, groups: list[list[int]], cal: list, assessments: list):
         seen.append((vid, groups, len(cal)))
-        # Scene 2 of video v kept nothing, so it has no summary.
-        return {1: {"title": f"{vid}1", "summary": "s"}}
+        return {n: {"title": f"{vid}{n}", "summary": "s"} for n in range(1, 2)}
+
+    def fake_multi(path: Path, label: str, groups: list, cal: list, a: list, key):
+        seen.append((label, groups, key(cal[groups[0][-1]])))
+        return {1: {"title": "vw", "summary": "s"}}
 
     monkeypatch.setattr(cli, "_scene_summaries", fake)
+    monkeypatch.setattr(cli, "_cached_scene_summaries", fake_multi)
     catalog = cli._scene_catalog(scenes, cands, {"v": 0.0, "w": 100.0})
-    # Each video is summarised on its own, with indices into its own segments.
-    assert seen == [("v", [[0, 1], [2]], 3), ("w", [[0, 1]], 2)]
-    assert catalog == [
-        {"number": 1, "start": 0.0, "end": 18.0, "title": "v1", "summary": "s"},
-        {"number": 3, "start": 100.0, "end": 118.0, "title": "w1", "summary": "s"},
+    # Each video is summarised on its own, with indices into its own
+    # segments; the scene across videos is cached by video and index.
+    assert seen == [
+        ("v", [[0, 1]], 3),
+        ("w", [[1]], 2),
+        ("跨视频", [[2, 3]], "w:0"),
     ]
+    assert [(s["number"], s["start"], s["end"], s["videos"]) for s in catalog] == [
+        (1, 0.0, 18.0, [1]),
+        (2, 20.0, 108.0, [1, 2]),
+        (3, 110.0, 118.0, [2]),
+    ]
+    assert [s["title"] for s in catalog] == ["v1", "vw", "w1"]
 
 
 # --- fill ----------------------------------------------------------------------
@@ -228,6 +267,44 @@ def test_fill_request_follows_the_outline_not_shooting_time() -> None:
     assert [c.order for c in clips] == [0, 1] and notes == []
     assert [s[0]["scene"] for s in slots] == [2, 1]
     assert "场景「内部」→ 场景 2（相关度 100%）" in clips[0].reason
+
+
+def test_fill_request_fast_pace_takes_the_middle_of_each_segment() -> None:
+    cands = [_cand(i, 10.0 * i) for i in range(4)]
+    plan = {**_plan([(5, [_slot("a")])], seconds=[12]), "pace": "快"}
+    clips, notes, slots = instruct.fill_request(
+        plan,
+        _scenes([[0, 1, 2, 3]]),
+        cands,
+        _assess(cands),
+        [[{1: 1.0}]],
+        [[_flat(4)]],
+        set(),
+    )
+    # 12 s as four 3 s middles of the 8 s segments, in shooting order.
+    assert [(c.src_start, c.src_end) for c in clips] == [
+        (2.5, 5.5),
+        (12.5, 15.5),
+        (22.5, 25.5),
+        (32.5, 35.5),
+    ]
+    assert notes == [] and "取中间 3.0s" in clips[0].reason
+
+
+def test_fill_request_lets_relevance_lead_inside_the_scene() -> None:
+    # Segment 0 looks best but fits the slot least (a facade for an
+    # interior); segment 1 is darker and fits best.
+    cands = [_cand(0, 0.0, quality=1.0), _cand(1, 10.0, quality=0.2)]
+    assess = _assess(cands)
+    assert assess[0].score > assess[1].score
+    seg_rel = {0: 0.0, 1: 1.0}
+    plan = _plan([(5, [_slot("内部")])], seconds=[8])
+    clips, _, _ = instruct.fill_request(
+        plan, _scenes([[0, 1]]), cands, assess, [[{1: 1.0}]], [[seg_rel]], set()
+    )
+    assert [c.index for c in clips] == [1]
+    # The highlights' share keeps quality ahead.
+    assert outline.pick_segments(seg_rel, 8.0, cands, assess, set()) == [0]
 
 
 def test_fill_request_uses_a_scene_once() -> None:
@@ -352,13 +429,34 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
         "outline_failed_attempts": [],
         "duration_failed_attempts": ["x"],
         "chunks": [
-            {"number": 1, "video": "v", "start": 0.0, "end": 18.0, "segments": [0, 1]}
+            {
+                "number": 1,
+                "videos": ["v"],
+                "start": 0.0,
+                "end": 18.0,
+                "segments": [["v", 0], ["v", 1]],
+            }
         ],
         "catalog": [
-            {"number": 1, "start": 0.0, "end": 18.0, "title": "<教堂>", "summary": "s"}
+            {
+                "number": 1,
+                "start": 0.0,
+                "end": 18.0,
+                "videos": [1],
+                "title": "<教堂>",
+                "summary": "s",
+            }
         ],
+        "catalog_total": 1,
+        "order": "文件名",
         "scenes": [
-            {"number": 1, "video": "v", "start": 0.0, "end": 18.0, "segments": [0, 1]}
+            {
+                "number": 1,
+                "video": "v",
+                "start": 0.0,
+                "end": 18.0,
+                "segments": [["v", 0], ["v", 1]],
+            }
         ],
     }
     video = layout.Video(id="v", sha256="s", file="long/walk.mp4", size=1, mtime_ns=0)

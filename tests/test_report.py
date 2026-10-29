@@ -6,8 +6,20 @@ from video_demo import report
 def _timeline() -> dict:
     return {
         "scenes": [
-            {"number": 1, "video": "v", "start": 0.0, "end": 20.0, "segments": [0, 1]},
-            {"number": 2, "video": "v", "start": 20.0, "end": 40.0, "segments": [2, 3]},
+            {
+                "number": 1,
+                "video": "v",
+                "start": 0.0,
+                "end": 20.0,
+                "segments": [["v", 0], ["v", 1]],
+            },
+            {
+                "number": 2,
+                "video": "v",
+                "start": 20.0,
+                "end": 40.0,
+                "segments": [["v", 2], ["v", 3]],
+            },
         ],
         "slots": [
             [

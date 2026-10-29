@@ -154,3 +154,22 @@ def test_split_scenes_cuts_joins_and_splits() -> None:
     assert _split(long) == [list(range(10)), list(range(10, 15))]
     with pytest.raises(ValueError, match="similarities"):
         retrieve.split_scenes([0.0, 10.0], [10.0, 20.0], [], set())
+
+
+def test_split_scenes_joins_short_scenes_across_soft_cuts_only() -> None:
+    flat = [0.95] * 5
+    # A 10 s fragment at the start: joined to the rest across a soft cut,
+    # kept apart by a hard one even though it stays short.
+    assert retrieve.split_scenes(
+        [10.0 * i for i in range(6)],
+        [10.0 * i + 10.0 for i in range(6)],
+        flat,
+        set(),
+        {0},
+    ) == [list(range(6))]
+    assert retrieve.split_scenes(
+        [10.0 * i for i in range(6)],
+        [10.0 * i + 10.0 for i in range(6)],
+        flat,
+        {0},
+    ) == [[0], list(range(1, 6))]

@@ -55,6 +55,19 @@ MAX_MATERIALS = 8
 MAX_MATERIAL_CHARS = 40
 MAX_DESIGN_CHARS = 150
 MAX_SLOT_SOURCES = 3
+# Pace of the cut, chosen by the model from the instruction: the longest a
+# segment (about 10 s) may run in the cut; shorter ones keep their middle.
+PACE_CLIP_SEC: dict[str, float | None] = {"整段": None, "适中": 6.0, "快": 3.0}
+# Inside a scene the instruction decides what fits, so relevance leads
+# (outline.pick_segments; highlights use 0.2). On Edinburgh the cathedral
+# front (quality 0.95, last in all three rankings for 教堂内部穹顶) came
+# before the darker interior (0.46-0.58) at 0.5; from about 0.6 the
+# interior leads.
+RELEVANCE_SHARE = 0.7
+# The scene catalog in the prompt: Edinburgh's 59 scenes take ~3.4k tokens,
+# so 60 keeps the outline call inside a 6k context; longer footage gives
+# the model the scenes most relevant to the instruction.
+MAX_CATALOG_SCENES = 60
 MAX_QUOTE_CHARS = 20
 MAX_TARGET_SEC = 36000
 # The words quoted for a length must hold a number and a unit of time, so
@@ -141,6 +154,7 @@ REQUEST_SCHEMA: dict[str, Any] = {
             },
         },
         "design": {"type": "string", "minLength": 1, "maxLength": MAX_DESIGN_CHARS},
+        "pace": {"type": "string", "enum": list(PACE_CLIP_SEC)},
         "unmet": {
             "type": "array",
             "items": {"type": "string", "minLength": 1, "maxLength": 30},
@@ -187,7 +201,7 @@ REQUEST_SCHEMA: dict[str, Any] = {
             },
         },
     },
-    "required": ["title", "materials", "design", "unmet", "parts"],
+    "required": ["title", "materials", "design", "pace", "unmet", "parts"],
 }
 
 REQUEST_PROMPT = """用户的剪辑要求：
@@ -205,8 +219,11 @@ REQUEST_PROMPT = """用户的剪辑要求：
    不超过 {max_materials} 条；
 2. design：用 2–3 句话写成片的设计：开头、中间、结尾分别用 materials 里的
    哪些场景，为什么这样安排；写完对照用户的要求检查内容和先后顺序；
-3. unmet：要求里提到、但场景里找不到的内容，都找得到就留空；
-4. parts：照 design 分成 1–{max_parts} 个部分（不能超过 {max_parts} 个），按成片里的
+3. pace：成片的剪辑节奏，按用户的要求判断：整段（每段素材完整保留，约 10 秒，
+   适合慢慢看的风景、过程）、适中（每段最多 6 秒）、快（每段最多 3 秒，
+   适合节奏轻快的混剪）；
+4. unmet：要求里提到、但场景里找不到的内容，都找得到就留空；
+5. parts：照 design 分成 1–{max_parts} 个部分（不能超过 {max_parts} 个），按成片里的
    先后排列，先后由 design 决定，不必按拍摄时间：
    - name 是这一部分的标题，summary 用一句话说明这部分讲什么；
    - weight 是这一部分的分量（1–10 的整数），程序会按分量把 {target_sec:.0f} 秒
@@ -225,11 +242,33 @@ def request_schema(max_parts: int) -> dict[str, Any]:
 
 
 def catalog_lines(catalog: list[dict[str, Any]]) -> str:
+    """One line per scene; with more than one video, which video(s) the
+    scene is in (numbered in timeline order)."""
+    many = len({v for s in catalog for v in s["videos"]}) > 1
+
+    def where(s: dict[str, Any]) -> str:
+        if not many:
+            return ""
+        first, last = s["videos"][0], s["videos"][-1]
+        return f"视频 {first} " if first == last else f"视频 {first}–{last} "
+
     return "\n".join(
-        f"[{s['number']}] {outline._fmt(s['start'])}–{outline._fmt(s['end'])} | "
-        f"{s['title']} | {s['summary']}"
+        f"[{s['number']}] {where(s)}{outline._fmt(s['start'])}–"
+        f"{outline._fmt(s['end'])} | {s['title']} | {s['summary']}"
         for s in catalog
     )
+
+
+def shortlist(
+    catalog: list[dict[str, Any]], relevance: dict[int, float]
+) -> list[dict[str, Any]]:
+    """At most MAX_CATALOG_SCENES scenes for the prompt: the most relevant
+    to the instruction (``relevance`` by scene number), in timeline order."""
+    if len(catalog) <= MAX_CATALOG_SCENES:
+        return catalog
+    best = sorted(catalog, key=lambda s: (-relevance[s["number"]], s["number"]))
+    keep = {s["number"] for s in best[:MAX_CATALOG_SCENES]}
+    return [s for s in catalog if s["number"] in keep]
 
 
 def validate_request(plan: Any, target_sec: float, numbers: set[int]) -> dict[str, Any]:
@@ -254,6 +293,8 @@ def validate_request(plan: Any, target_sec: float, numbers: set[int]) -> dict[st
         picked.add(n)
     if not str(plan.get("design", "")).strip():
         raise OutlineError("design must not be empty")
+    if plan.get("pace") not in PACE_CLIP_SEC:
+        raise OutlineError(f"pace {plan.get('pace')!r} not in {list(PACE_CLIP_SEC)}")
     unmet = plan.get("unmet", [])
     if not isinstance(unmet, list) or any(not str(u).strip() for u in unmet):
         raise OutlineError("unmet must be a list of non-empty strings")
@@ -380,14 +421,17 @@ def fill_request(
         if (k, j) not in assigned and n not in assigned.values():
             assigned[(k, j)] = n
 
+    max_clip = PACE_CLIP_SEC[plan["pace"]]
+
+    def length(i: int) -> float:
+        return outline.clip_length(candidates[i], max_clip)
+
     notes: list[str] = []
     chosen: list[tuple[int, int, int]] = []  # (part, slot, candidate)
     slots_out: list[list[dict[str, Any]]] = []
     for k, part in enumerate(plan["parts"]):
         filled = [j for j in range(len(part["scenes"])) if (k, j) in assigned]
-        capacity = [
-            sum(candidates[i].duration for i in kept[assigned[(k, j)]]) for j in filled
-        ]
+        capacity = [sum(map(length, kept[assigned[(k, j)]])) for j in filled]
         seconds = dict(
             zip(filled, outline.share(part["duration_sec"], capacity), strict=True)
         )
@@ -413,30 +457,40 @@ def fill_request(
             slot["relevance"] = round(scene_relevance[k][j][n], 3)
             slot["seconds"] = round(seconds[j], 1)
             picked = outline.pick_segments(
-                rel, seconds[j], candidates, assessments, named
+                rel,
+                seconds[j],
+                candidates,
+                assessments,
+                named,
+                max_clip,
+                RELEVANCE_SHARE,
             )
             chosen += [(k, j, i) for i in picked]
-            part_total += sum(candidates[i].duration for i in picked)
+            part_total += sum(map(length, picked))
         slots_out.append(slots)
         if part_total < 0.8 * part["duration_sec"]:
             notes.append(
                 f"「{part['name']}」素材不足：选到 {part_total:.1f}s，"
                 f"目标 {part['duration_sec']}s"
             )
-    chosen.sort(key=lambda x: (x[0], x[1], candidates[x[2]].start))
+    # Candidates are in timeline order, also across videos.
+    chosen.sort()
     clips = []
     for order, (k, j, i) in enumerate(chosen):
         c = candidates[i]
         slot = slots_out[k][j]
+        start, end = outline.clip_span(c, max_clip)
         mark = "，分段总结点名的亮点" if i in named else ""
+        if end - start < c.duration:
+            mark += f"，取中间 {end - start:.1f}s"
         clips.append(
             Clip(
                 order=order,
                 role=plan["parts"][k]["name"],
                 video=c.video,
                 index=c.index,
-                src_start=round(c.start, 3),
-                src_end=round(c.end, 3),
+                src_start=round(start, 3),
+                src_end=round(end, 3),
                 description=c.tags["description"],
                 reason=f"场景「{slot['query']}」→ 场景 {slot['scene']}"
                 f"（相关度 {slot['relevance']:.0%}），得分 "

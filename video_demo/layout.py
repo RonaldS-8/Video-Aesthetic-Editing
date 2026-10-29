@@ -288,9 +288,20 @@ def summary_path(work: Path, vid: str) -> Path:
     return work / "summaries" / f"summary_{vid}.json"
 
 
+def group_summary_path(work: Path, key: str) -> Path:
+    """The summary of a group of short videos, by a hash of its videos'
+    summaries (cached; see outline.group_videos)."""
+    return work / "summaries" / f"group_{key}.json"
+
+
 def scene_summary_path(work: Path, vid: str) -> Path:
     """Model-written scene titles and summaries (cached per video)."""
     return work / "scenes" / f"scene_{vid}.json"
+
+
+def multi_scene_path(work: Path) -> Path:
+    """Summaries of scenes that run across videos (cached)."""
+    return work / "scenes" / "scene_multi.json"
 
 
 def compare_path(work: Path, model: str, vid: str) -> Path:

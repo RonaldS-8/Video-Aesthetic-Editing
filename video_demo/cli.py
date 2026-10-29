@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import time
@@ -29,6 +30,7 @@ from video_demo import (
 )
 from video_demo import scenes as scene_material
 from video_demo.media import (
+    capture_time,
     count_frames,
     cut_clip,
     probe,
@@ -283,6 +285,17 @@ def _selected(args: argparse.Namespace) -> list[layout.Video]:
             f"没有符合条件的视频（collection={collection!r}，only={only!r}）"
         )
     return videos
+
+
+def _ordered(videos: list[layout.Video]) -> tuple[list[layout.Video], str]:
+    """Videos in shooting order when every one carries its capture time,
+    else in the manifest's (file name) order; and which order it is. One
+    missing time keeps the file order rather than guess where it goes."""
+    times = [capture_time(RAW_DIR / v.file) for v in videos]
+    if all(t is not None for t in times):
+        order = sorted(range(len(videos)), key=lambda k: (times[k], k))
+        return [videos[k] for k in order], "拍摄时间"
+    return videos, "文件名"
 
 
 def _out(args: argparse.Namespace) -> Path:
@@ -870,30 +883,102 @@ def _video_summaries(
     return out
 
 
+def _video_spans(cands: list[suggest.Candidate]) -> list[tuple[str, int, int]]:
+    """(video, first, end) of each video's run of candidates, in order."""
+    spans: list[tuple[str, int, int]] = []
+    for i, c in enumerate(cands):
+        if spans and spans[-1][0] == c.video:
+            spans[-1] = (c.video, spans[-1][1], i + 1)
+        else:
+            spans.append((c.video, i, i + 1))
+    return spans
+
+
+def _group_summary(videos: list[tuple[str, float, dict]]) -> dict:
+    """Summary of a group of short videos, each (id, length, its summary).
+
+    Cached in group_<key>.json, the key a hash of the videos' summaries, so
+    a group is summarised again when any of its videos is.
+    """
+    blob = json.dumps([outline.SUMMARY_VERSION, videos], ensure_ascii=False)
+    key = hashlib.sha256(blob.encode("utf-8")).hexdigest()[: layout.ID_LENGTH]
+    path = layout.group_summary_path(WORK_DIR, key)
+    if path.exists():
+        return json.loads(path.read_text("utf-8"))["summary"]
+    ids = "、".join(v for v, _, _ in videos)
+    try:
+        summary, raw, seconds, errors = outline.summarize_group(
+            [(length, s) for _, length, s in videos]
+        )
+    except outline.OutlineError as exc:
+        raise SystemExit(f"视频组（{ids}）总结失败：{exc}") from exc
+    _write_json(
+        path,
+        {
+            "version": outline.SUMMARY_VERSION,
+            "videos": [v for v, _, _ in videos],
+            "summary": summary,
+            "raw": raw,
+            "seconds": round(seconds, 1),
+            "failed_attempts": errors,
+        },
+    )
+    print(f"视频组 {ids} 总结 {seconds:.0f}s：{summary['summary'][:40]}", flush=True)
+    return summary
+
+
 def _chunks(
     cands: list[suggest.Candidate], offsets: dict[str, float]
 ) -> list[outline.Chunk]:
-    """Chunks along the timeline, each video's from its own summaries."""
+    """Chunks along the timeline: a long video's own, and groups of whole
+    short videos (outline.group_videos) summarised from the videos'
+    summaries."""
+    spans = _video_spans(cands)
+    summaries = [_video_summaries(vid, cands[a:b]) for vid, a, b in spans]
+    lengths = [cands[b - 1].end for _, _, b in spans]
     chunks: list[outline.Chunk] = []
-    start = 0
-    while start < len(cands):
-        vid = cands[start].video
-        end = start
-        while end < len(cands) and cands[end].video == vid:
-            end += 1
-        for members, summary in _video_summaries(vid, cands[start:end]):
-            first, last = cands[start + members[0]], cands[start + members[-1]]
-            chunks.append(
-                outline.Chunk(
-                    number=len(chunks) + 1,
-                    video=vid,
-                    members=[start + i for i in members],
-                    start=offsets.get(vid, 0.0) + first.start,
-                    end=offsets.get(vid, 0.0) + last.end,
-                    summary=summary,
-                )
+
+    def add(videos: list[str], members: list[int], summary: dict) -> None:
+        first, last = cands[members[0]], cands[members[-1]]
+        chunks.append(
+            outline.Chunk(
+                number=len(chunks) + 1,
+                videos=videos,
+                members=members,
+                start=offsets.get(first.video, 0.0) + first.start,
+                end=offsets.get(last.video, 0.0) + last.end,
+                summary=summary,
             )
-        start = end
+        )
+
+    for group in outline.group_videos(lengths):
+        if len(group) == 1:
+            vid, a, _ = spans[group[0]]
+            for members, summary in summaries[group[0]]:
+                add([vid], [a + i for i in members], summary)
+            continue
+        # A short video is a single chunk of its own summaries.
+        whole = [summaries[k][0] for k in group]
+        summary = _group_summary(
+            [
+                (spans[k][0], lengths[k], s)
+                for k, (_, s) in zip(group, whole, strict=True)
+            ]
+        )
+        add(
+            [spans[k][0] for k in group],
+            [
+                spans[k][1] + i
+                for k, (ms, _) in zip(group, whole, strict=True)
+                for i in ms
+            ],
+            {
+                **summary,
+                "highlights": outline.group_highlights(
+                    [(len(ms), s) for ms, s in whole]
+                ),
+            },
+        )
     return chunks
 
 
@@ -905,19 +990,34 @@ def _scene_groups(
     cands: list[suggest.Candidate],
     text: Vectors,
     image: Vectors,
+    offsets: dict[str, float] | None = None,
 ) -> list[list[int]]:
     """Candidate indices of each scene along the timeline; a scene never
-    crosses a chunk (``chunk_members``) or a shot cut."""
+    crosses a chunk (``chunk_members``). Shot cuts and video boundaries
+    inside a chunk are joinable where the content either side is similar
+    (retrieve.FRAGMENT_JOIN_SIM). ``offsets`` place each video on the
+    chunk's timeline (needed when a chunk spans videos)."""
+    offsets = offsets or {}
     out: list[list[int]] = []
     for ms in chunk_members:
         keys = [(cands[i].video, cands[i].index) for i in ms]
         sim = retrieve.boundary_similarity(
             np.stack([text[k] for k in keys]), np.stack([image[k] for k in keys])
         )
-        shots = [cands[i].shot for i in ms]
-        hard = {p for p in range(len(ms) - 1) if shots[p] != shots[p + 1]}
+        cut = [
+            p
+            for p in range(len(ms) - 1)
+            if keys[p][0] != keys[p + 1][0]
+            or cands[ms[p]].shot != cands[ms[p + 1]].shot
+        ]
+        soft = {p for p in cut if sim[p] >= retrieve.FRAGMENT_JOIN_SIM}
+        at = [offsets.get(cands[i].video, 0.0) for i in ms]
         for g in retrieve.split_scenes(
-            [cands[i].start for i in ms], [cands[i].end for i in ms], sim, hard
+            [a + cands[i].start for a, i in zip(at, ms, strict=True)],
+            [a + cands[i].end for a, i in zip(at, ms, strict=True)],
+            sim,
+            set(cut) - soft,
+            soft,
         ):
             out.append([ms[p] for p in g])
     return out
@@ -959,12 +1059,14 @@ class _Retrieval:
         return (c.video, c.index)
 
     def scenes(
-        self, chunks: list[outline.Chunk], cands: list[suggest.Candidate]
+        self,
+        chunks: list[outline.Chunk],
+        cands: list[suggest.Candidate],
+        offsets: dict[str, float],
     ) -> list[outline.Scene]:
-        """Scenes along the timeline; a scene never crosses a chunk or a
-        shot cut."""
+        """Scenes along the timeline; a scene never crosses a chunk."""
         groups = _scene_groups(
-            [ch.members for ch in chunks], cands, self.text, self.image
+            [ch.members for ch in chunks], cands, self.text, self.image, offsets
         )
         return [outline.Scene(n, g) for n, g in enumerate(groups, start=1)]
 
@@ -1078,10 +1180,10 @@ def _chunk_rows(
     return [
         {
             "number": ch.number,
-            "video": ch.video,
+            "videos": ch.videos,
             "start": round(ch.start, 2),
             "end": round(ch.end, 2),
-            "segments": [cands[i].index for i in ch.members],
+            "segments": [[cands[i].video, cands[i].index] for i in ch.members],
             "summary": ch.summary,
         }
         for ch in chunks
@@ -1094,7 +1196,8 @@ def _scene_rows(
     offsets: dict[str, float],
 ) -> list[dict]:
     """Scenes with start and end on the timeline that ``offsets`` sets
-    (empty: within their own video)."""
+    (empty: within their own videos; a scene may run from one video into
+    the next, ``video`` is where it starts)."""
     return [
         {
             "number": sc.number,
@@ -1109,7 +1212,7 @@ def _scene_rows(
                 + cands[sc.members[-1]].end,
                 2,
             ),
-            "segments": [cands[i].index for i in sc.members],
+            "segments": [[cands[i].video, cands[i].index] for i in sc.members],
         }
         for sc in scenes
     ]
@@ -1135,7 +1238,7 @@ def _highlights_payload(
     else:
         if retrieval is None:
             raise ValueError("highlights mode needs retrieval")
-        scenes = retrieval.scenes(chunks, cands)
+        scenes = retrieval.scenes(chunks, cands, offsets)
         try:
             plan, raw, seconds, errors = outline.plan_outline(chunks, target)
         except outline.OutlineError as exc:
@@ -1185,7 +1288,8 @@ def cmd_suggest(args: argparse.Namespace) -> None:
     every: list[suggest.Candidate] = []
     offsets: dict[str, float] = {}
     total = 0.0
-    for video in _selected(args):
+    videos, order = _ordered(_selected(args))
+    for video in videos:
         cands = _candidates(video)
         every += cands
         analysed = _load_segments(video.id)[0]["analysed_until"]
@@ -1211,9 +1315,12 @@ def cmd_suggest(args: argparse.Namespace) -> None:
         # model for a second outline would only give a different one.
         summary = {**payload, "name": name}
     else:
-        summary = _highlights_payload(
-            name, every, args.ratio * total, offsets, args.mode, retrieval
-        )
+        summary = {
+            **_highlights_payload(
+                name, every, args.ratio * total, offsets, args.mode, retrieval
+            ),
+            "order": order,
+        }
     _write_json(layout.timeline_path(out, args.mode), summary)
     print(f"{name}: {len(summary['clips'])} clips {summary['total_sec']}s")
     if retrieval:
@@ -1225,43 +1332,53 @@ def _scene_catalog(
     cands: list[suggest.Candidate],
     offsets: dict[str, float],
 ) -> list[dict]:
-    """Number, start, end (on the timeline ``offsets`` sets), title and
-    summary of every scene that keeps footage.
+    """Number, start, end (on the timeline ``offsets`` sets), the videos it
+    is in (1-based, in timeline order), title and summary of every scene
+    that keeps footage.
 
     ``cands`` are not calibrated: each video is calibrated and assessed on
     its own, as ``scenes`` does, so the summaries cached by ``scenes`` are
-    reused and missing ones are written to the same cache.
+    reused and missing ones are written to the same cache. Scenes that run
+    across videos are cached in scene_multi.json.
     """
-    catalog: list[dict] = []
-    start = 0
-    while start < len(cands):
-        vid = cands[start].video
-        end = start
-        while end < len(cands) and cands[end].video == vid:
-            end += 1
-        own = [s for s in scenes if start <= s.members[0] < end]
-        cal = suggest.calibrate_by_time(cands[start:end])
-        summaries = _scene_summaries(
-            vid,
-            [[i - start for i in s.members] for s in own],
-            cal,
-            [suggest.assess(c) for c in cal],
+    spans = _video_spans(cands)
+    cal: list[suggest.Candidate] = []
+    for _, a, b in spans:
+        cal += suggest.calibrate_by_time(cands[a:b])
+    assessments = [suggest.assess(c) for c in cal]
+    summaries: dict[int, dict[str, str]] = {}
+    for vid, a, b in spans:
+        own = [s for s in scenes if a <= s.members[0] and s.members[-1] < b]
+        got = _scene_summaries(
+            vid, [[i - a for i in s.members] for s in own], cal[a:b], assessments[a:b]
         )
-        for n, sc in enumerate(own, start=1):
-            if n in summaries:
-                catalog.append(
-                    {
-                        "number": sc.number,
-                        "start": round(
-                            offsets.get(vid, 0.0) + cands[sc.members[0]].start, 2
-                        ),
-                        "end": round(
-                            offsets.get(vid, 0.0) + cands[sc.members[-1]].end, 2
-                        ),
-                        **summaries[n],
-                    }
-                )
-        start = end
+        summaries.update({own[n - 1].number: x for n, x in got.items()})
+    multi = [s for s in scenes if cal[s.members[0]].video != cal[s.members[-1]].video]
+    if multi:
+        got = _cached_scene_summaries(
+            layout.multi_scene_path(WORK_DIR),
+            "跨视频",
+            [s.members for s in multi],
+            cal,
+            assessments,
+            lambda c: f"{c.video}:{c.index}",
+        )
+        summaries.update({multi[n - 1].number: x for n, x in got.items()})
+    order = {vid: k for k, (vid, _, _) in enumerate(spans, start=1)}
+    catalog: list[dict] = []
+    for sc in scenes:
+        if sc.number not in summaries:
+            continue
+        first, last = cands[sc.members[0]], cands[sc.members[-1]]
+        catalog.append(
+            {
+                "number": sc.number,
+                "start": round(offsets.get(first.video, 0.0) + first.start, 2),
+                "end": round(offsets.get(last.video, 0.0) + last.end, 2),
+                "videos": sorted({order[cands[i].video] for i in sc.members}),
+                **summaries[sc.number],
+            }
+        )
     return catalog
 
 
@@ -1278,7 +1395,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
         tag.check_server(outline.SERVER_URL)
     except ConnectionError as exc:
         raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
-    videos = _selected(args)
+    videos, order = _ordered(_selected(args))
     cands: list[suggest.Candidate] = []
     offsets: dict[str, float] = {}
     total = 0.0
@@ -1311,11 +1428,18 @@ def cmd_edit(args: argparse.Namespace) -> None:
         raise SystemExit(f"要求成片 {target:.0f}s，可用素材只有 {usable:.0f}s")
     retrieval = _Retrieval(videos)
     try:
-        scenes = retrieval.scenes(chunks, cands)
+        scenes = retrieval.scenes(chunks, cands, offsets)
         catalog = _scene_catalog(scenes, raw, offsets)
+        shown = catalog
+        if len(catalog) > instruct.MAX_CATALOG_SCENES:
+            listed = {s["number"] for s in catalog}
+            relevance = retrieval.rank(
+                [instruction], [s for s in scenes if s.number in listed], cands
+            )[0][0]
+            shown = instruct.shortlist(catalog, relevance)
         try:
             plan, outline_raw, seconds, errors = instruct.plan_request(
-                instruction, catalog, total, target
+                instruction, shown, total, target
             )
         except outline.OutlineError as exc:
             raise SystemExit(f"大纲生成失败（3 次都没通过校验）：{exc}") from exc
@@ -1345,6 +1469,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
         "instruction": instruction,
         "created": stamp,
         "videos": [v.id for v in videos],
+        "order": order,
         "target_sec": round(target, 1),
         "target_source": source,
         "duration_raw": duration_raw,
@@ -1363,7 +1488,10 @@ def cmd_edit(args: argparse.Namespace) -> None:
         "outline_seconds": round(seconds, 1),
         "outline_failed_attempts": errors,
         "chunks": _chunk_rows(chunks, cands),
-        "catalog": catalog,
+        # The scenes the model read; catalog_total counts all that keep
+        # footage (more than MAX_CATALOG_SCENES are shortlisted).
+        "catalog": shown,
+        "catalog_total": len(catalog),
         # Within their own video: the cut is not in shooting order.
         "scenes": _scene_rows(scenes, cands, {}),
     }
@@ -1435,23 +1563,52 @@ def _scene_summaries(
 ) -> dict[int, dict[str, str]]:
     """Title and summary per scene number, for scenes that keep footage.
 
-    Cached in scene_<ID>.json by the kept segments and SCENES_VERSION, and
-    saved after every new answer, so an interrupted run resumes.
+    Cached in scene_<ID>.json by the kept segments and SCENES_VERSION.
     """
-    path = layout.scene_summary_path(WORK_DIR, vid)
-    cached: dict[tuple[int, ...], dict] = {}
+    return _cached_scene_summaries(
+        layout.scene_summary_path(WORK_DIR, vid),
+        vid,
+        groups,
+        cands,
+        assessments,
+        lambda c: c.index,
+    )
+
+
+def _cached_scene_summaries(
+    path: Path,
+    label: str,
+    groups: list[list[int]],
+    cands: list[suggest.Candidate],
+    assessments: list[suggest.Assessment],
+    key_of: Callable[[suggest.Candidate], int | str],
+) -> dict[int, dict[str, str]]:
+    """Scene summaries cached in ``path``, keyed by ``key_of`` of each kept
+    segment. Saved after every new answer, so an interrupted run resumes;
+    entries other runs wrote are kept (``edit`` and ``scenes`` share it).
+    """
+    cached: dict[tuple, dict] = {}
     if path.exists():
         data = json.loads(path.read_text("utf-8"))
         if data["version"] == scene_material.SCENES_VERSION:
             cached = {tuple(e["segments"]): e for e in data["scenes"]}
-    used: list[dict] = []
+
+    def save() -> None:
+        _write_json(
+            path,
+            {
+                "version": scene_material.SCENES_VERSION,
+                "scenes": list(cached.values()),
+            },
+        )
+
     out: dict[int, dict[str, str]] = {}
     for n, members in enumerate(groups, start=1):
         runs = scene_material.kept_runs(members, cands, assessments)
         kept = [i for r in runs for i in r]
         if not kept:
             continue
-        key = tuple(cands[i].index for i in kept)
+        key = tuple(key_of(cands[i]) for i in kept)
         entry = cached.get(key)
         if entry is None:
             try:
@@ -1460,7 +1617,7 @@ def _scene_summaries(
                 )
             except outline.OutlineError as exc:
                 raise SystemExit(
-                    f"{vid} 场景 {n}：概况生成失败（3 次都没通过校验）：{exc}"
+                    f"{label} 场景 {n}：概况生成失败（3 次都没通过校验）：{exc}"
                 ) from exc
             entry = {
                 "segments": list(key),
@@ -1469,15 +1626,13 @@ def _scene_summaries(
                 "seconds": round(seconds, 1),
                 "failed_attempts": errors,
             }
-            print(f"{vid} 场景 {n}/{len(groups)}：{summary['title']}（{seconds:.0f}s）")
-        used.append(entry)
-        out[n] = {"title": entry["title"], "summary": entry["summary"]}
-        if key not in cached:
-            cached[key] = entry
-            _write_json(
-                path, {"version": scene_material.SCENES_VERSION, "scenes": used}
+            print(
+                f"{label} 场景 {n}/{len(groups)}：{summary['title']}（{seconds:.0f}s）"
             )
-    _write_json(path, {"version": scene_material.SCENES_VERSION, "scenes": used})
+            cached[key] = entry
+            save()
+        out[n] = {"title": entry["title"], "summary": entry["summary"]}
+    save()
     return out
 
 

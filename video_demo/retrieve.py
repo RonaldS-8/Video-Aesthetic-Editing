@@ -221,6 +221,15 @@ def relevance(
 SCENE_WINDOW = 2
 SCENE_CUT_SIM = 0.89
 MIN_SCENE_SEC, MAX_SCENE_SEC = 20.0, 120.0
+# Clips shot on a trip (or the shots of a cut vlog) are a few seconds each,
+# so a scene may span shot cuts and video boundaries: such a boundary is
+# joinable when the content either side is at least this similar, and a
+# hard cut otherwise, even if that leaves a scene shorter than
+# MIN_SCENE_SEC. On the vlog collection (145 shots in 13.5 min) 0.80 gives
+# 33 scenes (median 25 s) that each keep to one place, e.g. Chinatown
+# lanterns, the forest walk, the Merlion by day and night; at 0.78 the
+# first unrelated videos join. Edinburgh (3 shot cuts) goes 61 -> 60.
+FRAGMENT_JOIN_SIM = 0.80
 
 
 def pooled(vectors: list[np.ndarray]) -> np.ndarray:
@@ -241,20 +250,24 @@ def boundary_similarity(
 
 
 def split_scenes(
-    starts: list[float], ends: list[float], sim: list[float], hard: set[int]
+    starts: list[float],
+    ends: list[float],
+    sim: list[float],
+    hard: set[int],
+    soft: set[int] | None = None,
 ) -> list[list[int]]:
     """Positions 0..n-1 grouped into scenes.
 
-    Cuts at every boundary in ``hard`` (shot cuts) and at local similarity
+    Cuts at every boundary in ``hard`` and ``soft`` and at local similarity
     minima below SCENE_CUT_SIM. Scenes shorter than MIN_SCENE_SEC then join
-    the more similar neighbour (never across a hard cut); scenes longer
-    than MAX_SCENE_SEC are cut at their least similar boundary that leaves
-    both sides at least MIN_SCENE_SEC.
+    the more similar neighbour (across a soft cut, never across a hard
+    one); scenes longer than MAX_SCENE_SEC are cut at their least similar
+    boundary that leaves both sides at least MIN_SCENE_SEC.
     """
     n = len(starts)
     if len(sim) != n - 1:
         raise ValueError(f"{len(sim)} similarities for {n} segments")
-    cuts = set(hard)
+    cuts = set(hard) | set(soft or ())
     for i, s in enumerate(sim):
         left = sim[i - 1] if i > 0 else math.inf
         right = sim[i + 1] if i + 1 < len(sim) else math.inf

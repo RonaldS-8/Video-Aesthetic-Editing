@@ -4,11 +4,15 @@ An hour of footage has hundreds of segments, too many for the model to read
 at once (the scene list of a 67-minute walk was ~20k tokens and the 4B model
 lost the order of its parts). So the work is split, map-reduce style:
 
-1. Chunks: consecutive segments of one video, cut every CHUNK_SEC.
-2. Chunk summaries: Qwen3.5-4B (llama-server) reads one chunk's segment
-   descriptions and returns a short summary, places, subjects, activities
-   and up to three highlight segments. Chunks are summarised independently,
-   so nothing earlier is forgotten; summaries are cached per video.
+1. Chunks: a long video is cut every CHUNK_SEC; shorter videos (clips
+   shot on a trip) are summarised whole, then consecutive ones are grouped
+   into chunks of at least CHUNK_SEC, never splitting a video.
+2. Chunk summaries: Qwen3.5-4B (llama-server) reads one chunk's (or short
+   video's) segment descriptions and returns a short summary, places,
+   subjects, activities and up to three highlight segments. A group of
+   videos gets a summary written from its videos' summaries. Chunks are
+   summarised independently, so nothing earlier is forgotten; summaries
+   are cached.
 3. Outline: the model reads all chunk summaries (a few hundred tokens) and
    returns parts in shooting order, each covering a range of chunks, with a
    weight and 1-4 scene slots (what each scene should show). Seconds per
@@ -70,14 +74,18 @@ MAX_SLOTS = 4  # scene slots per part
 # Choosing a scene for a slot: rescaled relevance + this x the mean quality
 # of its usable segments ((score - 1) / 4); relevance leads.
 SCENE_QUALITY_WEIGHT = 0.2
-# Ranking inside the chosen scene: segment score (1-5) + relevance to the
-# slot, rescaled among the scene's segments, x this,
-# + this bonus when the chunk summary named the segment as a highlight.
-MATCH_WEIGHT = 1.0
+# Ranking inside the chosen scene, on one 0-1 scale: quality ((score - 1)
+# / 4) x (1 - share) + relevance to the slot (rescaled among the scene's
+# segments) x share, + HIGHLIGHT_BONUS when the chunk summary named the
+# segment. Highlights keep the footage most worth keeping, so quality
+# leads; 0.2 is the order the earlier score (1-5) + relevance + 0.5 bonus
+# gave. An edit by instruction lets relevance lead (instruct.py).
+RELEVANCE_SHARE = 0.2
 # Checked on Edinburgh: most named segments already rank high without it;
-# 0.5 brings in the distinct ones (a landmark among plain street walks),
-# 1.0 also forces in ones the text-only summary overrated.
-HIGHLIGHT_BONUS = 0.5
+# 0.1 (0.5 on the 1-5 score) brings in the distinct ones (a landmark among
+# plain street walks), 0.2 also forces in ones the text-only summary
+# overrated.
+HIGHLIGHT_BONUS = 0.1
 
 
 class OutlineError(RuntimeError):
@@ -87,7 +95,7 @@ class OutlineError(RuntimeError):
 @dataclass(frozen=True)
 class Chunk:
     number: int  # 1-based along the timeline, as shown to the model
-    video: str
+    videos: list[str]  # one, or a group of whole short videos
     members: list[int]  # indices into the candidate list
     start: float  # on the shared timeline
     end: float
@@ -215,6 +223,92 @@ def summarize_chunk(
         lambda parsed: validate_summary(parsed, len(members)),
         server_url,
     )
+
+
+# --- groups of short videos ----------------------------------------------------
+
+
+def group_videos(lengths: list[float], chunk_sec: float = CHUNK_SEC) -> list[list[int]]:
+    """Positions of the videos (in timeline order) that form each chunk.
+
+    A video of ``chunk_sec`` or more stands alone (it is cut into chunks of
+    its own); shorter ones are grouped with the next until the group holds
+    ``chunk_sec``. A long video closes the group before it; what is left at
+    the end is a group too. A video is never split between groups.
+    """
+    groups: list[list[int]] = []
+    open_group: list[int] = []
+    held = 0.0
+    for k, length in enumerate(lengths):
+        if length >= chunk_sec:
+            if open_group:
+                groups.append(open_group)
+            groups.append([k])
+            open_group, held = [], 0.0
+            continue
+        open_group.append(k)
+        held += length
+        if held >= chunk_sec:
+            groups.append(open_group)
+            open_group, held = [], 0.0
+    if open_group:
+        groups.append(open_group)
+    return groups
+
+
+GROUP_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        k: v for k, v in SUMMARY_SCHEMA["properties"].items() if k != "highlights"
+    },
+    "required": ["summary", "places", "subjects", "activities"],
+}
+
+GROUP_PROMPT = """下面是连续拍摄的 {n} 段视频（共 {minutes:.1f} 分钟），按时间排列，
+每段已有总结。
+每行：[视频序号] 时长 | 总结 | 地点 | 活动
+
+{lines}
+
+请把这几段合起来总结：
+- summary 用 2–4 句话说明这些视频里依次发生了什么、在什么地方；
+- places、subjects、activities 分别列出主要地点、人物或主体、活动，各不超过 5 个。
+只输出 JSON。"""
+
+
+def validate_group(summary: Any) -> dict[str, Any]:
+    if not isinstance(summary, dict) or not str(summary.get("summary", "")).strip():
+        raise OutlineError("summary must be a non-empty string")
+    return summary
+
+
+def summarize_group(
+    videos: list[tuple[float, dict[str, Any]]], server_url: str = SERVER_URL
+) -> tuple[dict[str, Any], str, float, list[str]]:
+    """(summary, raw, seconds, failed tries) for a group of short videos,
+    each given as (length in seconds, its summary)."""
+    lines = "\n".join(
+        f"[{n}] {_fmt(length)} | {s['summary']} | "
+        f"{'、'.join(s['places']) or '—'} | {'、'.join(s['activities']) or '—'}"
+        for n, (length, s) in enumerate(videos, start=1)
+    )
+    prompt = GROUP_PROMPT.format(
+        n=len(videos), minutes=sum(x for x, _ in videos) / 60, lines=lines
+    )
+    return _ask(prompt, GROUP_SCHEMA, "group_summary", validate_group, server_url)
+
+
+def group_highlights(
+    videos: list[tuple[int, dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    """The videos' highlights renumbered along the group's segments; each
+    video is given as (its number of segments, its summary)."""
+    out: list[dict[str, Any]] = []
+    before = 0
+    for n_segments, summary in videos:
+        out += [{**h, "segment": before + h["segment"]} for h in summary["highlights"]]
+        before += n_segments
+    return out
 
 
 # --- outline -----------------------------------------------------------------
@@ -504,45 +598,65 @@ def share(total: float, capacity: list[float]) -> list[float]:
     return out
 
 
+def clip_length(c: Candidate, max_clip_sec: float | None) -> float:
+    """How long a segment runs in the cut: whole, or at most max_clip_sec."""
+    return c.duration if max_clip_sec is None else min(c.duration, max_clip_sec)
+
+
+def clip_span(c: Candidate, max_clip_sec: float | None) -> tuple[float, float]:
+    """The part of a segment that goes into the cut: all of it, or its
+    middle ``max_clip_sec`` (the start and end of a handheld segment are
+    where the camera is still moving into or out of the shot)."""
+    length = clip_length(c, max_clip_sec)
+    middle = (c.start + c.end) / 2
+    return middle - length / 2, middle + length / 2
+
+
 def pick_segments(
     rel: dict[int, float],
     seconds: float,
     candidates: list[Candidate],
     assessments: list[Assessment],
     named: set[int],
+    max_clip_sec: float | None = None,
+    relevance_share: float = RELEVANCE_SHARE,
 ) -> list[int]:
-    """Whole segments of one scene for a slot of ``seconds``.
+    """Segments of one scene for a slot of ``seconds``.
 
     ``rel`` maps the scene's usable candidates to their rescaled relevance.
-    They are ranked by score + relevance + highlight bonus and taken while
-    a segment brings the total closer to ``seconds``, skipping near repeats.
+    They are ranked by quality and relevance, both 0-1, weighed by
+    ``relevance_share``, + highlight bonus, and taken while a segment
+    brings the total closer to ``seconds``, skipping near repeats. A
+    segment counts whole, or as at most ``max_clip_sec`` (clip_span).
     """
-    members = sorted(
-        rel,
-        key=lambda i: (
-            -(
-                assessments[i].score
-                + MATCH_WEIGHT * rel[i]
-                + (HIGHLIGHT_BONUS if i in named else 0.0)
-            ),
-            candidates[i].start,
-        ),
-    )
+
+    def value(i: int) -> float:
+        quality = (assessments[i].score - 1) / 4
+        return (
+            (1 - relevance_share) * quality
+            + relevance_share * rel[i]
+            + (HIGHLIGHT_BONUS if i in named else 0.0)
+        )
+
+    # Ties in timeline order (candidate index), also across videos.
+    members = sorted(rel, key=lambda i: (-value(i), i))
     picked: list[int] = []
     total = 0.0
     for i in members:
         c = candidates[i]
-        if picked and total + c.duration / 2 > seconds:
+        length = clip_length(c, max_clip_sec)
+        if picked and total + length / 2 > seconds:
             continue
         repeat = any(
-            abs(candidates[p].start - c.start) <= DUP_NEAR_SEC
+            candidates[p].video == c.video
+            and abs(candidates[p].start - c.start) <= DUP_NEAR_SEC
             and _jaccard(candidates[p].tags["tags"], c.tags["tags"]) >= DUP_JACCARD
             for p in picked
         )
         if repeat:
             continue
         picked.append(i)
-        total += c.duration
+        total += length
     return picked
 
 
@@ -641,7 +755,8 @@ def fill(
                 f"「{part['name']}」素材不足：选到 {part_total:.1f}s，"
                 f"目标 {part['duration_sec']}s"
             )
-    chosen.sort(key=lambda x: (x[0], candidates[x[2]].start))
+    # Candidates are in timeline order, also across videos.
+    chosen.sort(key=lambda x: (x[0], x[2]))
     clips = []
     for order, (k, j, i) in enumerate(chosen):
         c = candidates[i]

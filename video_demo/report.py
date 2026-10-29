@@ -277,9 +277,11 @@ def summary_heading(mode: str, timeline: dict) -> str:
     minutes = f"全集合 {total / 60:.1f} 分钟 / 目标 {target / 60:.1f} 分钟"
     if mode == "highlights":
         return f"""<h2>2. 精彩瞬间（{minutes}）</h2>
-<p class="muted">按时间每 5 分钟一块，Qwen3.5-4B 先逐块写总结（发生了什么、地点、
-活动、值得留的片段），再读全部总结生成大纲：每部分的标题、内容、覆盖的块和
-1–4 个场景槽位。相邻片段按向量相似度连成场景（20–120 秒）；每个槽位在本部分的
+<p class="muted">按时间每 5 分钟一块（短视频各自总结后，整条凑满 5 分钟成一组），
+Qwen3.5-4B 先逐块写总结（发生了什么、地点、活动、值得留的片段），再读全部总结
+生成大纲：每部分的标题、内容、覆盖的块和 1–4 个场景槽位。视频按
+{escape(timeline.get('order', '文件名'))}排列。相邻片段按向量相似度连成场景
+（20–120 秒，内容相近时跨镜头、跨视频）；每个槽位在本部分的
 块里检索（文本向量、图像向量、BM25 融合），选一个场景，相关度为主、画质为辅，
 一个场景只给一个槽位。槽位的时长从这个场景里取：按片段得分（DOVER 美学分占
 80%、VLM 精彩度占 20%，美学分在同一时段内取百分位）加片段相关度、再给总结
@@ -312,6 +314,10 @@ def outline_table(timeline: dict) -> str:
             f"{slot['seconds']:.0f}s）</span>"
         )
 
+    def chunk_span(ch: dict) -> str:
+        many = f"<br>{len(ch['videos'])} 条视频" if len(ch["videos"]) > 1 else ""
+        return f"{_fmt(ch['start'])}–{_fmt(ch['end'])}{many}"
+
     filled: dict[str, float] = {}
     for c in timeline["clips"]:
         filled[c["role"]] = filled.get(c["role"], 0.0) + c["duration"]
@@ -327,7 +333,7 @@ def outline_table(timeline: dict) -> str:
         )
     )
     summary_rows = "".join(
-        f"<tr><td>{ch['number']}</td><td>{_fmt(ch['start'])}–{_fmt(ch['end'])}</td>"
+        f"<tr><td>{ch['number']}</td><td>{chunk_span(ch)}</td>"
         f"<td>{escape(ch['summary']['summary'])}<br><span class='muted'>"
         f"{escape('、'.join(ch['summary']['places']))} · "
         f"{escape('、'.join(ch['summary']['activities']))}</span></td>"
@@ -359,8 +365,8 @@ def _scene_strip(
 ) -> str:
     """Every segment keyframe of a scene; taken ones framed, rejected faded."""
     imgs = []
-    for i in sc["segments"]:
-        key = (sc["video"], i)
+    for vid, i in sc["segments"]:
+        key = (vid, i)
         cls = "taken" if key in taken else ("" if keep[key] else "dropped")
         title = f"#{i} {descriptions.get(key, '')}"
         imgs.append(
@@ -424,7 +430,7 @@ def scene_slots(
                 )
                 continue
             sc = scenes[slot["scene"]]
-            n_taken = sum((sc["video"], i) in taken for i in sc["segments"])
+            n_taken = sum(tuple(k) in taken for k in sc["segments"])
             others = "、".join(
                 f"场景 {n}（{_fmt(scenes[n]['start'])}）"
                 for n in slot["top"]
@@ -591,8 +597,14 @@ def write_edit(
         )
 
     def where(sc: dict) -> str:
-        name = files[sc["video"]].split("/")[-1]
-        return f"{escape(name)} {_fmt(sc['start'])}–{_fmt(sc['end'])}"
+        first = files[sc["video"]].split("/")[-1]
+        last = files[sc["segments"][-1][0]].split("/")[-1]
+        if first == last:
+            return f"{escape(first)} {_fmt(sc['start'])}–{_fmt(sc['end'])}"
+        return (
+            f"{escape(first)} {_fmt(sc['start'])} → "
+            f"{escape(last)} {_fmt(sc['end'])}"
+        )
 
     parts = []
     for k, (part, slots) in enumerate(
@@ -642,6 +654,18 @@ def write_edit(
             f"</span></h3><p class='muted'>{escape(part['summary'])}</p>"
             f"{''.join(cards)}</div>"
         )
+    pace_note = {
+        "整段": "每段素材完整保留",
+        "适中": "每段最多 6 秒，取中间",
+        "快": "每段最多 3 秒，取中间",
+    }[plan["pace"]]
+    total = timeline["catalog_total"]
+    catalog_note = (
+        f"{total} 个有可用片段"
+        if len(catalog) == total
+        else f"{total} 个有可用片段，按要求检索出 {len(catalog)} 个给模型"
+    )
+    order_note = f"视频按{escape(timeline['order'])}排列"
     source = timeline["target_source"]
     if source["kind"] == "instruction":
         target_note = f"指令里的「{escape(source['quote'])}」"
@@ -654,8 +678,12 @@ def write_edit(
         for k, v, extra in (
             ("目标", f"{timeline['target_sec']:.0f}s", target_note),
             ("选到", f"{timeline['total_sec']:.1f}s", f"{len(timeline['clips'])} 段"),
-            ("素材", f"{analysed / 60:.1f} 分钟", f"{len(timeline['videos'])} 条视频"),
-            ("场景", f"{len(timeline['scenes'])}", f"{len(catalog)} 个有可用片段"),
+            (
+                "素材",
+                f"{analysed / 60:.1f} 分钟",
+                f"{len(timeline['videos'])} 条视频，{order_note}",
+            ),
+            ("场景", f"{len(timeline['scenes'])}", catalog_note),
         )
     )
     unmet = "、".join(escape(u) for u in plan["unmet"])
@@ -687,6 +715,7 @@ def write_edit(
 <div class="slot"><b>剪辑要求</b><p>{escape(timeline['instruction'])}</p>
 <b>选用的素材</b><ul>{materials}</ul>
 <b>成片设计</b><p>{escape(plan['design'])}</p>
+<p class="muted">节奏：{escape(plan['pace'])}（{pace_note}）</p>
 {f'<p class="miss">素材里找不到：{unmet}</p>' if unmet else ""}</div>
 <div class="cards">{cards_html}</div>
 {f'<ul class="miss">{notes}</ul>' if notes else ""}
@@ -694,9 +723,9 @@ def write_edit(
 <p class="muted">大纲由模型读要求和场景目录（每个场景的标题和概况）写成：先挑场景，
 再写设计，最后按设计分部分、定场景槽位，并标出每个槽位取自哪几个场景。
 每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），相关度为主、
-画质为辅，一个场景只给一个槽位。场景内按片段得分、相关度和分段总结点名的亮点
-整段选片。成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。
-</p>
+画质为辅，一个场景只给一个槽位。场景内选片时相关度占 70%、画质占 30%（都缩放到
+0–1），分段总结点名的亮点另有加分；节奏为适中或快时只取片段中间。
+成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
 {''.join(parts)}
 <h2>预览</h2>
 <video src="{escape(_rel(layout.edit_preview_path(folder), folder))}" controls

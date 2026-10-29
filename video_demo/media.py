@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from datetime import datetime
 from fractions import Fraction
 from pathlib import Path
 
@@ -37,6 +38,17 @@ def probe(path: Path) -> VideoInfo:
             fps=float(stream.average_rate or 0.0),
             has_audio=len(container.streams.audio) > 0,
         )
+
+
+def capture_time(path: Path) -> datetime | None:
+    """When the video was shot: the container's (or its video stream's)
+    ``creation_time`` tag as phones and cameras write it, None if absent."""
+    with av.open(str(path)) as container:
+        tags = {**container.streams.video[0].metadata, **container.metadata}
+    value = next((v for k, v in tags.items() if k.lower() == "creation_time"), None)
+    if not value:
+        return None
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def sample_frames(
