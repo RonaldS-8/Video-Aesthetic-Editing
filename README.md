@@ -22,8 +22,8 @@
 
 - **切分**：PySceneDetect 找硬切，线性混合检验找叠化，镜头内再按
   ≤10 秒切成片段。
-- **描述**：Qwen3-VL-2B 读片段内全部关键帧（每 2 秒一张），按 JSON
-  Schema 输出描述、场景、景别、时段、标签等。
+- **描述**：Qwen3.5-4B（带视觉投影）读片段内全部关键帧（每 2 秒一张），
+  按 JSON Schema 输出描述、场景、景别、时段、标签等。
 - **美学打分**：[DOVER](https://github.com/VQAssessment/DOVER) 给出技术
   分、美学分和融合分，作为"这个镜头好不好"的主要依据。
 - **精彩瞬间**：Qwen3.5-4B 先逐块（每 5 分钟）总结素材，再写出 2–8
@@ -47,7 +47,7 @@ data/raw/<集合>/*
   ├─ ⓪ ingest     登记视频、按内容去重          → data/raw/manifest.json
   ├─ ① segment    镜头切分 + ≤10 s 片段         → data/work/segments/
   ├─ ② signals    亮度、清晰度、抖动、关键帧     → data/work/signals/、keyframes/
-  ├─ ③ tag        Qwen3-VL-2B 描述与标签        → data/work/tags/
+  ├─ ③ tag        Qwen3.5-4B 描述与标签         → data/work/tags/
   ├─ ④ aesthetic  DOVER 美学打分                → data/work/aesthetic/
   │      ③④ 可用 analyze 并发：打标签用核显，DOVER 用 CPU
   ├─ ④' index     EmbeddingGemma 2 文本与图像向量 → data/work/index/
@@ -55,7 +55,7 @@ data/raw/<集合>/*
   ├─ ⑥ render     预览视频                      → out/<集合>/<原名>/preview_<模式>.mp4
   ├─ ⑦ report     HTML 报告                     → out/<集合>/report_<模式>.html
   ├─ ⑧ scenes     场景素材（剔除废片）           → out/<集合>/<原名>/scenes/
-  └─ ⑨ edit       按指令：大纲 + 全素材检索       → out/<集合>/edits/<时间>/
+  └─ ⑨ edit       按指令：大纲 + 全素材检索       → out/<集合>/edits/<时间>_<指令>/
 ```
 
 片段得分 = 1 + 4 ×（0.8 × DOVER 融合分 + 0.2 × VLM 精彩度）− 画质扣分；
@@ -144,19 +144,19 @@ opencv-python-headless 冲突：
 .venv/Scripts/python -m pip install --no-deps mediapipe==1.1.1
 ```
 
-**模型权重**统一放在 `models/` 下（约 5.5 GB，不入库）。每个文件的
+**模型权重**统一放在 `models/` 下（约 3.9 GB，不入库）。每个文件的
 存放路径、下载地址、版本和 SHA-256 见 [models/README.md](models/README.md)。
 
 | 模型 | 用途 |
 |---|---|
-| Qwen3-VL-2B-Instruct Q4_K_M + 视觉投影 | 片段描述与标签 |
-| Qwen3.5-4B Q4_K_M | 分块总结、大纲、场景概况 |
+| Qwen3.5-4B Q4_K_M + 视觉投影（Q8_0） | 片段描述与标签、分块总结、大纲、场景概况 |
 | DOVER | 美学打分 |
 | EmbeddingGemma 2 740M | 检索与场景聚类的向量 |
 | DOVER-Mobile、UVQ 1.5 | 仅用于质量模型对比 |
 
-两个语言模型由 [llama.cpp](https://github.com/ggml-org/llama.cpp) 的
-`llama-server` 提供 OpenAI 兼容接口。
+Qwen3.5-4B 由 [llama.cpp](https://github.com/ggml-org/llama.cpp) 的
+`llama-server` 提供 OpenAI 兼容接口，看图和写文字共用一个服务（端口
+8092）。
 
 ## 快速开始
 
@@ -169,10 +169,10 @@ opencv-python-headless 冲突：
 .venv/Scripts/python -m video_demo ingest
 ```
 
-**2. 描述与打分**：先在另一个终端启动打标签服务。
+**2. 描述与打分**：先在另一个终端启动模型服务，后面各步共用。
 
 ```bash
-llama-server -m models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf --host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1
+llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --mmproj models/gguf/mmproj-Qwen3.5-4B-Q8_0.gguf --host 127.0.0.1 --port 8092 -ngl 99 -c 16384 -np 1
 ```
 
 ```bash
@@ -185,11 +185,7 @@ llama-server -m models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf --mmproj models/gguf
 .venv/Scripts/python -m video_demo index --collection long
 ```
 
-**4. 精彩瞬间与场景素材**：启动大纲服务，再依次运行。
-
-```bash
-llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 -ngl 99 -c 16384 -np 1
-```
+**4. 精彩瞬间与场景素材**：用第 2 步的模型服务，依次运行。
 
 ```bash
 .venv/Scripts/python -m video_demo suggest --collection long
@@ -214,13 +210,13 @@ llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 
 
 ## 按指令剪辑
 
-完成第 1–3 步并启动大纲服务后，用一句话说明想要的成片：
+完成第 1–3 步、模型服务在运行时，用一句话说明想要的成片：
 
 ```bash
 .venv/Scripts/python -m video_demo edit "剪 60 秒的爱丁堡教堂，先外观后内部" --collection long
 ```
 
-一条命令生成时间线、预览和报告，放在 `out/<集合>/edits/<时间>/` 下，
+一条命令生成时间线、预览和报告，放在 `out/<集合>/edits/<时间>_<指令开头>/` 下，
 每条指令一个目录，互不覆盖。做法：
 
 1. **时长**：模型从要求里读出成片时长，并照抄说时长的原话（如
@@ -269,16 +265,22 @@ llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 --port 8092 
 
 ## 输出
 
+先打开 `out/index.html`：每个集合的报告、预览、每次按指令剪辑（指令原文）
+和逐条视频的场景素材、标签都有链接。运行 `tag`、`scenes`、`report`、`edit`
+后自动更新。
+
 ```text
+out/index.html                    结果索引
 out/<集合>/
 ├── <原名>/                       每条视频一个目录，按原文件名
+│   ├── tags.jsonl                标签（data/work/tags 的副本，按原名好找）
 │   ├── timeline_highlights.json  精彩瞬间时间线
 │   ├── timeline_ranked.json      只按得分的对照
 │   ├── preview_<模式>.mp4        预览（854×480）
 │   └── scenes/
 │       ├── scene_<NN>.mp4        场景 NN 剔除废片后的原画质视频
 │       └── scenes.json           每个场景的描述与来源
-├── edits/<时间>/                 按指令剪辑，每条指令一个目录
+├── edits/<时间>_<指令开头>/      按指令剪辑，每条指令一个目录
 │   ├── timeline.json             时间线，另含指令、时长来源、场景目录、大纲
 │   ├── preview.mp4               预览
 │   └── report.html               报告
@@ -349,8 +351,9 @@ models/          模型权重（不入库）与索引 models/README.md
 third_party/     DOVER、UVQ 1.5 的代码（不入库）
 data/raw/        原始视频（不入库）、清单与来源说明
 data/work/       中间结果：切分、信号、关键帧、标签、美学分、向量、总结
-out/             剪辑建议、预览、报告与场景素材；out/report.html 为
-                 只用 VLM 精彩度选片的早期基线
+out/             剪辑建议、预览、报告与场景素材，入口 out/index.html；
+                 out/baseline/ 为只用 VLM 精彩度选片的早期基线，
+                 out/synth/ 为合成视频上的切分评测
 assets/          README 用图
 ```
 
@@ -392,7 +395,7 @@ assets/          README 用图
 许可：
 
 - DOVER、DOVER-Mobile：S-Lab License，**仅限非商业用途**。
-- UVQ 1.5、Qwen3-VL、Qwen3.5：Apache-2.0。
+- UVQ 1.5、Qwen3.5：Apache-2.0。
 - EmbeddingGemma 2：仓库元数据标为 Apache-2.0，模型卡指向 Gemma 许可，
   商用前请自行确认。
 - 示例视频：CC BY 3.0 / CC BY-SA 3.0，见

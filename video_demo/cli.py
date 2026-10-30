@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import statistics
 import time
 from collections.abc import Callable, Iterator
@@ -52,9 +53,8 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 WORK_DIR = ROOT / "data" / "work"
 OUT_DIR = ROOT / "out"
-# DOVER-scored results; the VLM-only baseline stays in OUT_DIR (from `main`).
-RESULT_DIR = OUT_DIR / "dover"
-BASELINE_REPORT = OUT_DIR / "report.html"
+# The frozen VLM-only report from `main`, linked from every report.
+BASELINE_REPORT = layout.baseline_report_path(OUT_DIR)
 SYNTH_PATH = ROOT / "data" / "synth" / "synth_cuts.mp4"
 # Third-party model code stays in third_party/; every weight file lives in
 # models/ (see models/README.md for sources, versions and SHA-256).
@@ -84,10 +84,12 @@ SETUP_HINTS = {
         "（见 models/README.md）"
     ),
 }
+# One Qwen3.5-4B server tags segments (with the vision projector) and
+# writes summaries and outlines.
 LLAMA_SERVER_CMD = (
-    "llama-server -m models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf "
-    "--mmproj models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf "
-    "--host 127.0.0.1 --port 8091 -ngl 99 -c 8192 -np 1"
+    "llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf "
+    "--mmproj models/gguf/mmproj-Qwen3.5-4B-Q8_0.gguf "
+    "--host 127.0.0.1 --port 8092 -ngl 99 -c 16384 -np 1"
 )
 DOVER_SETUP_CMD = (
     "git clone https://github.com/VQAssessment/DOVER.git third_party/DOVER，"
@@ -299,10 +301,25 @@ def _ordered(videos: list[layout.Video]) -> tuple[list[layout.Video], str]:
 
 
 def _out(args: argparse.Namespace) -> Path:
-    """``--out``, else out/<collection> (vlog keeps out/dover)."""
+    """``--out``, else out/<collection>."""
     if args.out is not None:
         return args.out
-    return RESULT_DIR if args.collection == "vlog" else OUT_DIR / args.collection
+    return OUT_DIR / args.collection
+
+
+def _copy_tags(video: layout.Video) -> None:
+    """Put the video's tags in its default result folder under its name."""
+    out = OUT_DIR / video.collection if video.collection else OUT_DIR
+    dirs = layout.result_dirs(
+        out, [v for v in _videos() if v.collection == video.collection]
+    )
+    path = layout.tags_copy_path(dirs[video.id])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(layout.tags_path(WORK_DIR, video.id), path)
+
+
+def _write_index() -> None:
+    print(f"Wrote {report.write_index(OUT_DIR)}")
 
 
 def _result_dirs(args: argparse.Namespace, out: Path) -> dict[str, Path]:
@@ -362,6 +379,8 @@ def _tag_stage(videos: list[layout.Video], limit: int) -> runner.StageFn:
                     f"{video.file} seg{seg.index:03d} {elapsed:5.1f}s{retry} "
                     f"h={tags['highlight']} {tags['description']}"
                 )
+            if out_path.exists():
+                _copy_tags(video)
 
     return run
 
@@ -449,6 +468,7 @@ def _print_line(note: str) -> None:
 
 def cmd_tag(args: argparse.Namespace) -> None:
     _tag_stage(_selected(args), args.limit)(_print_line)
+    _write_index()
 
 
 def cmd_aesthetic(args: argparse.Namespace) -> None:
@@ -768,10 +788,6 @@ HIGHLIGHTS_NAME = "highlights"
 # alike; ranked: the same length by score only, kept as a baseline to judge
 # the outline against.
 MODES = ("highlights", "ranked")
-OUTLINE_SERVER_CMD = (
-    "llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --host 127.0.0.1 "
-    "--port 8092 -ngl 99 -c 16384 -np 1"
-)
 
 
 def _candidates(video: layout.Video) -> list[suggest.Candidate]:
@@ -825,9 +841,10 @@ def _video_summaries(
     """(chunk members as indices into ``cands``, summary) for one video.
 
     ``cands`` are all of the video's segments in order. Summaries are cached
-    in summary_<ID>.json and reused while the chunk's segments, CHUNK_SEC
-    and SUMMARY_VERSION are unchanged; new ones are written chunk by chunk,
-    so an interrupted run resumes.
+    in summary_<ID>.json and reused while the chunk's segments, the text the
+    model reads (tags and scores, by hash), CHUNK_SEC and SUMMARY_VERSION
+    are unchanged; new ones are written chunk by chunk, so an interrupted
+    run resumes.
     """
     cal = suggest.calibrate_by_time(cands)
     assessments = [suggest.assess(c) for c in cal]
@@ -845,8 +862,9 @@ def _video_summaries(
     out: list[tuple[list[int], dict]] = []
     for k, members in enumerate(groups, start=1):
         key = tuple(cal[i].index for i in members)
+        digest = _digest(outline.segment_lines(members, cal, assessments))
         entry = cached.get(key)
-        if entry is None:
+        if entry is None or entry.get("input") != digest:
             try:
                 summary, raw, seconds, errors = outline.summarize_chunk(
                     members, cal, assessments
@@ -857,6 +875,7 @@ def _video_summaries(
                 ) from exc
             entry = {
                 "segments": list(key),
+                "input": digest,
                 "start": round(cal[members[0]].start, 2),
                 "end": round(cal[members[-1]].end, 2),
                 "summary": summary,
@@ -894,14 +913,18 @@ def _video_spans(cands: list[suggest.Candidate]) -> list[tuple[str, int, int]]:
     return spans
 
 
+def _digest(text: str) -> str:
+    """Short hash of a model input, to tell when a cached answer is stale."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[: layout.ID_LENGTH]
+
+
 def _group_summary(videos: list[tuple[str, float, dict]]) -> dict:
     """Summary of a group of short videos, each (id, length, its summary).
 
     Cached in group_<key>.json, the key a hash of the videos' summaries, so
     a group is summarised again when any of its videos is.
     """
-    blob = json.dumps([outline.SUMMARY_VERSION, videos], ensure_ascii=False)
-    key = hashlib.sha256(blob.encode("utf-8")).hexdigest()[: layout.ID_LENGTH]
+    key = _digest(json.dumps([outline.SUMMARY_VERSION, videos], ensure_ascii=False))
     path = layout.group_summary_path(WORK_DIR, key)
     if path.exists():
         return json.loads(path.read_text("utf-8"))["summary"]
@@ -1283,7 +1306,7 @@ def cmd_suggest(args: argparse.Namespace) -> None:
         try:
             tag.check_server(outline.SERVER_URL)
         except ConnectionError as exc:
-            raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
+            raise SystemExit(f"{exc}\n    启动命令：{LLAMA_SERVER_CMD}") from exc
     retrieval = _Retrieval(_selected(args)) if args.mode == "highlights" else None
     every: list[suggest.Candidate] = []
     offsets: dict[str, float] = {}
@@ -1394,7 +1417,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
     try:
         tag.check_server(outline.SERVER_URL)
     except ConnectionError as exc:
-        raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
+        raise SystemExit(f"{exc}\n    启动命令：{LLAMA_SERVER_CMD}") from exc
     videos, order = _ordered(_selected(args))
     cands: list[suggest.Candidate] = []
     offsets: dict[str, float] = {}
@@ -1462,7 +1485,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
     if not clips:
         raise SystemExit(f"没有选到任何片段：{'；'.join(notes)}")
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    folder = layout.edit_dir(out, stamp)
+    folder = layout.edit_dir(out, stamp, instruction)
     timeline = {
         "name": "edit",
         "mode": "edit",
@@ -1504,6 +1527,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
         timeline, {v.id: v.file for v in videos}, layout.edit_preview_path(folder)
     )
     print(f"Wrote {report.write_edit(ROOT, folder, videos, timeline)}")
+    _write_index()
 
 
 def cmd_render(args: argparse.Namespace) -> None:
@@ -1584,8 +1608,10 @@ def _cached_scene_summaries(
     key_of: Callable[[suggest.Candidate], int | str],
 ) -> dict[int, dict[str, str]]:
     """Scene summaries cached in ``path``, keyed by ``key_of`` of each kept
-    segment. Saved after every new answer, so an interrupted run resumes;
-    entries other runs wrote are kept (``edit`` and ``scenes`` share it).
+    segment and checked against the text the model reads (by hash), so new
+    tags or scores are summarised again. Saved after every new answer, so
+    an interrupted run resumes; entries other runs wrote are kept (``edit``
+    and ``scenes`` share it).
     """
     cached: dict[tuple, dict] = {}
     if path.exists():
@@ -1609,8 +1635,9 @@ def _cached_scene_summaries(
         if not kept:
             continue
         key = tuple(key_of(cands[i]) for i in kept)
+        digest = _digest(outline.segment_lines(kept, cands, assessments))
         entry = cached.get(key)
-        if entry is None:
+        if entry is None or entry.get("input") != digest:
             try:
                 summary, raw, seconds, errors = scene_material.describe_scene(
                     kept, cands, assessments
@@ -1621,6 +1648,7 @@ def _cached_scene_summaries(
                 ) from exc
             entry = {
                 "segments": list(key),
+                "input": digest,
                 **summary,
                 "raw": raw,
                 "seconds": round(seconds, 1),
@@ -1666,7 +1694,7 @@ def cmd_scenes(args: argparse.Namespace) -> None:
     try:
         tag.check_server(outline.SERVER_URL)
     except ConnectionError as exc:
-        raise SystemExit(f"{exc}\n    启动命令：{OUTLINE_SERVER_CMD}") from exc
+        raise SystemExit(f"{exc}\n    启动命令：{LLAMA_SERVER_CMD}") from exc
     for video in videos:
         cands = suggest.calibrate_by_time(_candidates(video))
         assessments = [suggest.assess(c) for c in cands]
@@ -1718,6 +1746,7 @@ def cmd_scenes(args: argparse.Namespace) -> None:
         )
         if stale:
             print(f"  以下旧文件不再对应任何场景（未删除）：{', '.join(stale)}")
+    _write_index()
 
 
 def cmd_report(args: argparse.Namespace) -> None:
@@ -1731,6 +1760,7 @@ def cmd_report(args: argparse.Namespace) -> None:
         args.mode,
     )
     print(f"Wrote {path}")
+    _write_index()
 
 
 def cmd_synth(args: argparse.Namespace) -> None:
@@ -1761,10 +1791,7 @@ def cmd_eval(args: argparse.Namespace) -> None:
         "missed": score.missed,
         "false_alarms": score.false_alarms,
     }
-    OUT_DIR.mkdir(exist_ok=True)
-    (OUT_DIR / f"synth_eval_{args.set}.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    _write_json(layout.synth_eval_path(OUT_DIR, args.set), result)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
@@ -1830,7 +1857,7 @@ def main() -> None:
             "--out",
             type=Path,
             default=None,
-            help="result dir (default out/<collection>; vlog uses out/dover)",
+            help="result dir (default out/<collection>)",
         )
         if func is cmd_scenes:
             p.add_argument(
@@ -1864,7 +1891,7 @@ def main() -> None:
         "--out",
         type=Path,
         default=None,
-        help="result dir (default out/<collection>; vlog uses out/dover)",
+        help="result dir (default out/<collection>)",
     )
     p_edit.add_argument(
         "--ratio",

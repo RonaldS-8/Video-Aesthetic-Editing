@@ -218,6 +218,6 @@ def test_collection_selects_videos_and_output_dir(
         cli._selected(Args())[0].id: cli.OUT_DIR / "tvsum" / "a"
     }
     Args.collection = "vlog"
-    assert cli._out(Args()) == cli.RESULT_DIR
+    assert cli._out(Args()) == cli.OUT_DIR / "vlog"
     with pytest.raises(SystemExit, match="没有符合条件的视频"):
         cli._selected(Args())

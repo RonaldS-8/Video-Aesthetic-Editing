@@ -174,6 +174,35 @@ def test_results_go_to_a_folder_named_after_the_video(tmp_path: Path) -> None:
     ]
 
 
+def test_edit_folders_carry_the_start_of_the_instruction(tmp_path: Path) -> None:
+    def name(instruction: str) -> str:
+        return layout.edit_dir(tmp_path, "20261029-120000", instruction).name
+
+    assert name("剪 60 秒的爱丁堡教堂，先外观后内部") == (
+        "20261029-120000_剪_60_秒的爱丁堡教堂，先外观后内部"
+    )
+    assert name('a/b\\c:"d"?*<e>|\n') == "20261029-120000_a_b_c_d_e"
+    assert name("  ...  ") == "20261029-120000"
+    assert layout.edit_dir(tmp_path, "s", "x").parent == tmp_path / "edits"
+
+
+def test_index_baseline_and_synth_sit_outside_the_collections(
+    tmp_path: Path,
+) -> None:
+    names = [
+        layout.index_page_path(tmp_path),
+        layout.baseline_report_path(tmp_path),
+        layout.synth_eval_path(tmp_path, "main"),
+        layout.tags_copy_path(tmp_path / "vlog" / "01"),
+    ]
+    assert [p.relative_to(tmp_path).as_posix() for p in names] == [
+        "index.html",
+        "baseline/report.html",
+        "synth/eval_main.json",
+        "vlog/01/tags.jsonl",
+    ]
+
+
 def test_result_folders_must_not_collide(tmp_path: Path) -> None:
     videos = [_listed("a" * 16, "long/walk.mp4"), _listed("b" * 16, "long/walk.mov")]
     with pytest.raises(ValueError, match="结果目录同名"):

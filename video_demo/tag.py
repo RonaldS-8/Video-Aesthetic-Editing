@@ -1,4 +1,5 @@
-"""Segment tagging with a local Qwen3-VL-2B served by llama-server."""
+"""Segment tagging with Qwen3.5-4B (with its vision projector) served by
+llama-server; the same server writes the summaries and outlines."""
 
 from __future__ import annotations
 
@@ -11,9 +12,9 @@ from typing import Any
 
 import requests
 
-SERVER_URL = "http://127.0.0.1:8091"
+SERVER_URL = "http://127.0.0.1:8092"
 TIMEOUT_SEC = 600
-# Re-ask with a stronger repeat penalty when the 2B model loops; every attempt
+# Re-ask with a stronger repeat penalty when the model loops; every attempt
 # is recorded and the last error is raised if none pass validation.
 REPEAT_PENALTIES = (1.1, 1.2, 1.3)
 # A 2-6 character unit repeated 4+ times in a row ("白天的白天的白天的...").
@@ -179,6 +180,9 @@ def _request(
         "temperature": 0.2,
         "repeat_penalty": penalty,
         "max_tokens": 400,
+        # Qwen3.5 thinks before answering by default and would spend
+        # max_tokens on it, leaving the answer empty.
+        "chat_template_kwargs": {"enable_thinking": False},
         "response_format": {
             "type": "json_schema",
             "json_schema": {"name": "segment_tags", "schema": TAG_SCHEMA},

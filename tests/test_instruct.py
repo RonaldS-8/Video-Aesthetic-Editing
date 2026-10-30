@@ -460,7 +460,9 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
         ],
     }
     video = layout.Video(id="v", sha256="s", file="long/walk.mp4", size=1, mtime_ns=0)
-    folder = layout.edit_dir(tmp_path / "out", "20261028-120000")
+    folder = layout.edit_dir(
+        tmp_path / "out", "20261028-120000", timeline["instruction"]
+    )
     path = report.write_edit(tmp_path, folder, [video], timeline)
     html = path.read_text("utf-8")
     assert path == folder / "report.html"

@@ -482,7 +482,7 @@ def write(
 
     ``baseline`` is the frozen VLM-only report kept for side-by-side review.
     """
-    evals = [_read_json(root / "out" / f"synth_eval_{n}.json") for n in SET_TITLES]
+    evals = [_read_json(layout.synth_eval_path(root / "out", n)) for n in SET_TITLES]
     sections: list[str] = []
     all_frames: dict[tuple[str, int], str] = {}
     descriptions: dict[tuple[str, int], str] = {}
@@ -541,7 +541,7 @@ def write(
 选片；本版切分 ≤{MAX_SEGMENT_SEC:.0f} 秒（2026-10-26 前切分的视频仍是 ≤8 秒）、
 关键帧每 {KEYFRAME_STEP_SEC:.0f} 秒一张，片段得分以 DOVER 美学分为主。</p>
 <p class="muted">{date.today().isoformat()} · 本机 Core Ultra 5 225U / 15.4 GB，无独显 ·
-切分 PySceneDetect AdaptiveDetector + 叠化检测 · 打标签 Qwen3-VL-2B Q4_K_M（llama.cpp
+切分 PySceneDetect AdaptiveDetector + 叠化检测 · 打标签 Qwen3.5-4B Q4_K_M（llama.cpp
 Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 剪辑建议为规则打分 + 槽位填充</p>
 <div class="cards">{card_html}</div>
@@ -738,5 +738,113 @@ preload="metadata"></video>
 </main></body></html>"""
     path = layout.edit_report_path(folder)
     path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(page, encoding="utf-8")
+    return path
+
+
+# Folders directly under out/ that are not collections.
+NOT_COLLECTIONS = frozenset({"baseline", "synth"})
+MODE_TITLES = {"highlights": "精彩瞬间", "ranked": "只按得分的对照"}
+
+
+def _link(path: Path, start: Path, text: str) -> str:
+    if not path.exists():
+        return '<span class="muted">—</span>'
+    return f'<a href="{escape(_rel(path, start))}">{escape(text)}</a>'
+
+
+def _edit_rows(collection: Path, out: Path) -> list[str]:
+    """One row per edit by instruction, newest first."""
+    rows = []
+    for path in sorted(
+        collection.glob("edits/*/timeline.json"), key=lambda p: p.parent.name
+    ):
+        t = _read_json(path)
+        folder = path.parent
+        rows.append(
+            f"<tr><td>{escape(t['created'])}</td>"
+            f"<td>{escape(t['instruction'])}</td>"
+            f"<td>{escape(t['outline'].get('title') or '')}</td>"
+            f"<td>{t['total_sec']:.1f}s / {t['target_sec']:.0f}s</td>"
+            f"<td>{_link(layout.edit_report_path(folder), out, '报告')} · "
+            f"{_link(layout.edit_preview_path(folder), out, '预览')}</td></tr>"
+        )
+    return rows[::-1]
+
+
+def _video_rows(collection: Path, out: Path) -> list[str]:
+    rows = []
+    for folder in sorted(p for p in collection.iterdir() if p.is_dir()):
+        listing = layout.scenes_dir(folder) / "scenes.json"
+        tags = layout.tags_copy_path(folder)
+        timelines = [layout.timeline_path(folder, m) for m in MODE_TITLES]
+        if not any(p.exists() for p in (listing, tags, *timelines)):
+            continue
+        scenes = (
+            f"{_link(layout.scenes_dir(folder), out, '目录')}"
+            f"（{len(_read_json(listing)['scenes'])} 个）"
+            if listing.exists()
+            else _link(listing, out, "")
+        )
+        rows.append(
+            f"<tr><td>{escape(folder.name)}</td><td>{scenes}</td>"
+            f"<td>{_link(tags, out, 'tags.jsonl')}</td>"
+            f"<td>{' · '.join(_link(t, out, t.name) for t in timelines)}</td></tr>"
+        )
+    return rows
+
+
+def write_index(out: Path) -> Path:
+    """Write ``out/index.html``: every collection's reports, previews, edits
+    by instruction and per-video results, with links, rebuilt from what is
+    on disk."""
+    sections = []
+    for collection in sorted(
+        p for p in out.iterdir() if p.is_dir() and p.name not in NOT_COLLECTIONS
+    ):
+        reports = [
+            f"<li>{MODE_TITLES[m]}："
+            f"{_link(layout.report_path(collection, m), out, '报告')} · "
+            f"{_link(layout.preview_path(collection, m), out, '预览')}</li>"
+            for m in MODE_TITLES
+            if layout.report_path(collection, m).exists()
+        ]
+        edits = _edit_rows(collection, out)
+        videos = _video_rows(collection, out)
+        if not (reports or edits or videos):
+            continue
+        edit_table = (
+            '<div class="scroll"><table><tr><th>时间</th><th>指令</th>'
+            "<th>标题</th><th>选到 / 目标</th><th></th></tr>"
+            f"{''.join(edits)}</table></div>"
+            if edits
+            else '<p class="muted">还没有</p>'
+        )
+        sections.append(
+            f"<h2>{escape(collection.name)}</h2><ul>{''.join(reports)}</ul>"
+            f"<h3>按指令剪辑（{len(edits)} 次）</h3>{edit_table}"
+            '<h3>逐条视频</h3><div class="scroll"><table><tr><th>视频</th>'
+            "<th>场景素材</th><th>标签</th><th>时间线</th></tr>"
+            f"{''.join(videos)}</table></div>"
+        )
+    evals = [
+        _link(layout.synth_eval_path(out, n), out, f"{n}（{SET_TITLES[n][:3]}）")
+        for n in SET_TITLES
+    ]
+    page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>结果索引</title><style>{CSS}</style></head>
+<body><main>
+<h1>结果索引</h1>
+<p class="muted">每个集合（data/raw 下的第一层文件夹）一节；运行 tag、scenes、
+report、edit 后自动更新。中间结果在 data/work，按视频 ID 命名，ID 与文件名的
+对应见 data/raw/manifest.json。</p>
+{''.join(sections)}
+<h2>其他</h2>
+<ul><li>早期基线：{_link(layout.baseline_report_path(out), out, '报告')}
+（只用 VLM 精彩度选片）</li>
+<li>切分评测（合成视频）：{' · '.join(evals)}</li></ul>
+</main></body></html>"""
+    path = layout.index_page_path(out)
     path.write_text(page, encoding="utf-8")
     return path

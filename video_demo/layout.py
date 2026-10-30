@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -334,6 +335,12 @@ def result_dirs(out: Path, videos: list[Video]) -> dict[str, Path]:
     return dirs
 
 
+def tags_copy_path(folder: Path) -> Path:
+    """A copy of the video's tags in its result folder, so they can be found
+    by file name; ``data/work/tags`` stays the source the stages read."""
+    return folder / "tags.jsonl"
+
+
 def timeline_path(folder: Path, mode: str) -> Path:
     """``folder`` is a video's result folder, or the collection's for the
     timeline across all of its videos."""
@@ -359,9 +366,17 @@ def scene_clip_path(folder: Path, scene: int) -> Path:
 
 
 # Edits by instruction: one folder per instruction under the collection's
-# output directory, named by when it was made, so earlier edits are kept.
-def edit_dir(out: Path, stamp: str) -> Path:
-    return out / "edits" / stamp
+# output directory, named by when it was made and the start of the
+# instruction, so earlier edits are kept and can be told apart.
+EDIT_NAME_CHARS = 20
+# Characters Windows does not allow in a file name, and whitespace.
+_UNSAFE_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f\s]+')
+
+
+def edit_dir(out: Path, stamp: str, instruction: str) -> Path:
+    name = _UNSAFE_NAME.sub("_", instruction.strip())[:EDIT_NAME_CHARS]
+    name = name.strip("._")
+    return out / "edits" / (f"{stamp}_{name}" if name else stamp)
 
 
 def edit_timeline_path(folder: Path) -> Path:
@@ -374,3 +389,17 @@ def edit_preview_path(folder: Path) -> Path:
 
 def edit_report_path(folder: Path) -> Path:
     return folder / "report.html"
+
+
+# Outside the collections: the page linking every result, the frozen
+# VLM-only baseline, and the cut-detection evaluation on synthetic videos.
+def index_page_path(out: Path) -> Path:
+    return out / "index.html"
+
+
+def baseline_report_path(out: Path) -> Path:
+    return out / "baseline" / "report.html"
+
+
+def synth_eval_path(out: Path, name: str) -> Path:
+    return out / "synth" / f"eval_{name}.json"

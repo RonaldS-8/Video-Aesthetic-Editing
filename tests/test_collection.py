@@ -141,3 +141,48 @@ def test_cached_scene_summaries_keep_other_entries(
     assert got == {1: {"title": "新", "summary": "s"}}
     saved: list[dict[str, Any]] = json.loads(path.read_text("utf-8"))["scenes"]
     assert [e["segments"] for e in saved] == [["x:9"], ["a:0", "b:0"]]
+
+
+def test_cached_scene_summaries_redo_when_tags_change(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    calls: list[int] = []
+
+    def describe(*_: Any) -> tuple[dict, str, float, list[str]]:
+        calls.append(1)
+        return {"title": "t", "summary": "s"}, "{}", 1.0, []
+
+    monkeypatch.setattr(scenes, "describe_scene", describe)
+    path = tmp_path / "scene_a.json"
+    cands = [_cand("a", 0, 0.0)]
+
+    def run(cs: list[suggest.Candidate]) -> None:
+        cli._cached_scene_summaries(
+            path, "a", [[0]], cs, [suggest.assess(c) for c in cs], lambda c: c.index
+        )
+
+    run(cands)
+    run(cands)
+    assert len(calls) == 1
+    # Same segment, a new description (e.g. tagged by another model).
+    retagged = replace(cands[0], tags={**cands[0].tags, "description": "新"})
+    run([retagged])
+    assert len(calls) == 2
+
+
+def test_tags_are_copied_to_the_result_folder_by_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    videos = [
+        layout.Video("a" * 16, "s", "vlog/01_trip.webm", 1, 0),
+        layout.Video("b" * 16, "s", "long/walk.mp4", 1, 0),
+    ]
+    monkeypatch.setattr(cli, "WORK_DIR", tmp_path / "work")
+    monkeypatch.setattr(cli, "OUT_DIR", tmp_path / "out")
+    monkeypatch.setattr(cli, "_videos", lambda: videos)
+    source = layout.tags_path(tmp_path / "work", "a" * 16)
+    source.parent.mkdir(parents=True)
+    source.write_text('{"index": 0}\n', "utf-8")
+    cli._copy_tags(videos[0])
+    copy = tmp_path / "out" / "vlog" / "01_trip" / "tags.jsonl"
+    assert copy.read_text("utf-8") == '{"index": 0}\n'

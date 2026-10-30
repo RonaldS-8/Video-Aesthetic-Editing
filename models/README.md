@@ -15,9 +15,8 @@ sha256sum models/*/*.pth models/*/*.litertlm models/*/*.gguf
 
 | 路径 | 用途 | 大小（字节） | 许可 |
 |---|---|---|---|
-| `models/gguf/Qwen3VL-2B-Instruct-Q4_K_M.gguf` | 打标签（VLM） | 1107409952 | Apache-2.0 |
-| `models/gguf/mmproj-Qwen3VL-2B-Instruct-F16.gguf` | 打标签的视觉投影 | 819394848 | Apache-2.0 |
-| `models/gguf/Qwen3.5-4B-Q4_K_M.gguf` | 精彩瞬间的分块摘要与大纲、场景素材的概况 | 2783446912 | Apache-2.0 |
+| `models/gguf/Qwen3.5-4B-Q4_K_M.gguf` | 打标签、分块摘要、大纲、场景概况 | 2783446912 | Apache-2.0 |
+| `models/gguf/mmproj-Qwen3.5-4B-Q8_0.gguf` | 打标签的视觉投影 | 366894656 | Apache-2.0 |
 | `models/dover/DOVER.pth` | 美学打分（参与剪辑建议） | 239729097 | S-Lab，非商用 |
 | `models/dover/DOVER-Mobile.pth` | 质量模型对比 | 42794791 | S-Lab，非商用 |
 | `models/uvq/content_net.pth` | 质量模型对比（UVQ 1.5） | 15289209 | Apache-2.0 |
@@ -25,39 +24,26 @@ sha256sum models/*/*.pth models/*/*.litertlm models/*/*.gguf
 | `models/uvq/aggregation_net.pth` | 质量模型对比（UVQ 1.5） | 300021 | Apache-2.0 |
 | `models/embeddinggemma/embeddinggemma-2-740m.litertlm` | 检索和场景聚类用的文本与图像向量 | 484622336 | 见下文 |
 
-合计约 5.5 GB。剪辑建议（精彩瞬间）需要三个 gguf、`DOVER.pth` 和
-EmbeddingGemma 2；只按得分的对照（`--mode ranked`）不需要 Qwen3.5-4B
-和 EmbeddingGemma 2。DOVER-Mobile 与 UVQ 1.5 只在 `quality` /
+合计约 3.9 GB。剪辑建议（精彩瞬间）需要两个 gguf、`DOVER.pth` 和
+EmbeddingGemma 2；只按得分的对照（`--mode ranked`）只用 Qwen3.5-4B
+打标签，不需要 EmbeddingGemma 2。DOVER-Mobile 与 UVQ 1.5 只在 `quality` /
 `compare-quality` 阶段用到。
 
-## 打标签：Qwen3-VL-2B-Instruct（GGUF）
-
-- 来源：ModelScope `Qwen/Qwen3-VL-2B-Instruct-GGUF`，文件修订
-  `1d49f1a70c0c1ea52f82fd46ea44b388183aa16c`。
-- 运行：llama.cpp `llama-server`（Vulkan 版），端口 8091，命令见项目
-  README 的"依次运行"。
-
-| 文件 | SHA-256 |
-|---|---|
-| `Qwen3VL-2B-Instruct-Q4_K_M.gguf` | `089d75c52f4b7ffc56ba998ffc50aae89fcafc755f9e7208aacca281dca6c2ae` |
-| `mmproj-Qwen3VL-2B-Instruct-F16.gguf` | `c3d5afbef5287953acd57b4043d2269456e5761a4eaccb3b71b062996970aea5` |
-
-两个哈希与 ModelScope 文件列表中的值一致。
-
-```bash
-for f in Qwen3VL-2B-Instruct-Q4_K_M.gguf mmproj-Qwen3VL-2B-Instruct-F16.gguf; do curl -L --create-dirs -o "models/gguf/$f" "https://www.modelscope.cn/models/Qwen/Qwen3-VL-2B-Instruct-GGUF/resolve/master/$f"; done
-```
-
-## 大纲：Qwen3.5-4B（GGUF，Q4_K_M）
+## 打标签与大纲：Qwen3.5-4B（GGUF，Q4_K_M）
 
 - 来源：官方权重 `Qwen/Qwen3.5-4B`（Transformers 格式），在本机用
   llama.cpp（提交 `e36df60`，2026-10-15）转为 GGUF 后量化为 Q4_K_M。
   转换时的命令没有留下记录，以下面的 SHA-256 为准。
-- 运行：llama.cpp `llama-server`，端口 8092，不需要视觉投影。
+- 视觉投影 `mmproj-Qwen3.5-4B-Q8_0.gguf` 与上面的权重配套，同样没有留下
+  转换记录，以 SHA-256 为准。
+- 运行：llama.cpp `llama-server`（Vulkan 版），端口 8092，带 `--mmproj`；
+  看图打标签和写摘要、大纲共用这一个服务，命令见项目 README 的
+  "快速开始"。
 
 | 文件 | SHA-256 |
 |---|---|
 | `Qwen3.5-4B-Q4_K_M.gguf` | `28f8d724a519e33e7b8b394dafde357c02f14ae44855fb224296e4318f2861cd` |
+| `mmproj-Qwen3.5-4B-Q8_0.gguf` | `40a4f07d7bbdbb43011d6cf35ef751e4b1829ff47ee8aa4964c6296f571725ad` |
 
 ## 美学打分：DOVER / DOVER-Mobile
 
