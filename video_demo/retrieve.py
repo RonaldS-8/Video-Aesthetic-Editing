@@ -21,7 +21,7 @@ from typing import Any, Protocol
 import numpy as np
 from PIL import Image
 
-INDEX_VERSION = 1
+INDEX_VERSION = 2  # 2: segment text includes overlapping speech
 SAVE_EVERY = 20  # segments between partial saves, so a run can resume
 RRF_K = 60  # the usual constant; damps the weight of the very top ranks
 BM25_K1, BM25_B = 1.5, 0.75
@@ -41,17 +41,19 @@ class Embedder(Protocol):
     def embed_image(self, image: Image.Image) -> np.ndarray: ...
 
 
-def segment_text(tags: dict[str, Any]) -> str:
-    """What a segment is about, as one text for vectors and BM25."""
-    return "；".join(
-        [
-            tags["description"],
-            tags["scene"],
-            tags["action"],
-            "、".join(tags["subjects"]),
-            "、".join(tags["tags"]),
-        ]
-    )
+def segment_text(tags: dict[str, Any], speech: str = "") -> str:
+    """What a segment is about, as one text for vectors and BM25; ``speech``
+    is what is said during it (subtitles), so instructions can match it."""
+    parts = [
+        tags["description"],
+        tags["scene"],
+        tags["action"],
+        "、".join(tags["subjects"]),
+        "、".join(tags["tags"]),
+    ]
+    if speech:
+        parts.append(f"台词：{speech}")
+    return "；".join(parts)
 
 
 def _unit(v: np.ndarray) -> np.ndarray:
@@ -61,32 +63,34 @@ def _unit(v: np.ndarray) -> np.ndarray:
 def build_index(
     path: Path,
     model: str,
-    segments: list[tuple[int, dict[str, Any], list[Path]]],
+    segments: list[tuple[int, dict[str, Any], list[Path], str]],
     embedder: Embedder,
+    speech: str,
     progress: Callable[[int, int], None] | None = None,
 ) -> dict[str, Any]:
-    """Vectors for (segment index, tags, keyframe files); resumes from
-    ``path`` when it holds a partial index from the same model."""
+    """Vectors for (segment index, tags, keyframe files, speech); resumes
+    from ``path`` when it holds a partial index from the same model and
+    speech (``speech`` fingerprints the subtitles, "" for none)."""
     done: dict[int, tuple[np.ndarray, np.ndarray]] = {}
     if path.exists():
-        old = load_index(path, model, check_complete=None)
+        old = load_index(path, model, check_complete=None, speech=speech)
         done = {
             int(i): (t, m)
             for i, t, m in zip(old["index"], old["text"], old["image"], strict=True)
         }
-    for n, (idx, tags, frames) in enumerate(segments, start=1):
+    for n, (idx, tags, frames, said) in enumerate(segments, start=1):
         if idx not in done:
             if not frames:
                 raise RetrievalError(f"segment {idx} has no keyframes")
-            text = embedder.embed_text(segment_text(tags))
+            text = embedder.embed_text(segment_text(tags, said))
             images = [embedder.embed_image(Image.open(f)) for f in frames]
             done[idx] = (text, _unit(np.mean(images, axis=0)))
             if len(done) % SAVE_EVERY == 0:
-                _save(path, model, done, len(segments))
+                _save(path, model, done, len(segments), speech)
         if progress:
             progress(n, len(segments))
-    _save(path, model, done, len(segments))
-    return load_index(path, model, check_complete=len(segments))
+    _save(path, model, done, len(segments), speech)
+    return load_index(path, model, check_complete=len(segments), speech=speech)
 
 
 def _save(
@@ -94,13 +98,16 @@ def _save(
     model: str,
     done: dict[int, tuple[np.ndarray, np.ndarray]],
     total: int,
+    speech: str,
 ) -> None:
     keys = sorted(done)
     path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_suffix(".partial.npz")
     np.savez(
         partial,
-        meta=json.dumps({"version": INDEX_VERSION, "model": model, "total": total}),
+        meta=json.dumps(
+            {"version": INDEX_VERSION, "model": model, "total": total, "speech": speech}
+        ),
         index=np.array(keys),
         text=np.stack([done[k][0] for k in keys]),
         image=np.stack([done[k][1] for k in keys]),
@@ -108,9 +115,12 @@ def _save(
     partial.replace(path)
 
 
-def load_index(path: Path, model: str, check_complete: int | None) -> dict[str, Any]:
+def load_index(
+    path: Path, model: str, check_complete: int | None, speech: str | None = None
+) -> dict[str, Any]:
     """The index at ``path``; raises unless it is from ``model`` (and, with
-    ``check_complete``, has that many segments)."""
+    ``check_complete``, has that many segments; with ``speech``, was built
+    from subtitles with that fingerprint)."""
     if not path.exists():
         raise RetrievalError(f"{path} not found; run `python -m video_demo index`")
     with np.load(path) as data:
@@ -120,6 +130,10 @@ def load_index(path: Path, model: str, check_complete: int | None) -> dict[str, 
         raise RetrievalError(
             f"{path} is from {meta['model']} v{meta['version']}, "
             f"need {model} v{INDEX_VERSION}; rebuild with --force"
+        )
+    if speech is not None and meta["speech"] != speech:
+        raise RetrievalError(
+            f"{path} was built from other subtitles; rebuild with --force"
         )
     if check_complete is not None and len(out["index"]) != check_complete:
         raise RetrievalError(

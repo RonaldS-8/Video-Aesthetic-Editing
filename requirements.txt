@@ -35,6 +35,9 @@ tqdm>=4.66
 absl-py>=2.0
 flatbuffers>=25.0
 matplotlib>=3.9
+# AI subtitles: silero VAD + SenseVoice-Small speech recognition, CPU
+# only, bundles onnxruntime (no torch); models go in models/asr/
+sherpa-onnx>=1.12
 # Dev tools
 pytest>=8.0
 ruff>=0.6

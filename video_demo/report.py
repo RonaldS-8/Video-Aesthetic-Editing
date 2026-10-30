@@ -236,6 +236,9 @@ def _video_section(
         else ""
     )
     audio = "有音轨" if seg["has_audio"] else "无音轨"
+    srt = layout.srt_path(result_dir, mode)
+    if srt.exists():
+        audio += f' · <a href="{escape(_rel(srt, out_dir))}">字幕</a>'
     title = escape(f"{video.file}（{vid}）{partial}")
     html = f"""
 <details{' open' if n == 0 else ''}><summary>{title}</summary>

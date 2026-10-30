@@ -55,6 +55,8 @@ def _frames(tmp_path: Path, idx: int, n: int) -> list[Path]:
 def test_segment_text_joins_tag_fields() -> None:
     text = retrieve.segment_text(_tags("教堂外景", ["教堂", "巴士"]))
     assert text == "教堂外景；街道；行走；行人；教堂、巴士"
+    spoken = retrieve.segment_text(_tags("教堂外景", ["教堂"]), "这是圣母教堂")
+    assert spoken.endswith("；台词：这是圣母教堂")
 
 
 def test_bm25_prefers_matching_docs() -> None:
@@ -85,14 +87,14 @@ def test_rrf_and_relevance_scale() -> None:
 
 def test_build_index_resumes_and_checks_model(tmp_path: Path) -> None:
     path = tmp_path / "index_v.npz"
-    segs = [(i, _tags(f"d{i}", ["t"]), _frames(tmp_path, i, 2)) for i in range(3)]
+    segs = [(i, _tags(f"d{i}", ["t"]), _frames(tmp_path, i, 2), "") for i in range(3)]
     emb = FakeEmbedder()
-    idx = retrieve.build_index(path, emb.model, segs[:2], emb)
+    idx = retrieve.build_index(path, emb.model, segs[:2], emb, "s1")
     assert list(idx["index"]) == [0, 1] and emb.calls == 2 * 3
     # Image vector is the renormalised mean of the keyframes.
     assert np.linalg.norm(idx["image"][0]) == pytest.approx(1.0)
     emb.calls = 0
-    idx = retrieve.build_index(path, emb.model, segs, emb)
+    idx = retrieve.build_index(path, emb.model, segs, emb, "s1")
     assert list(idx["index"]) == [0, 1, 2] and emb.calls == 3
     with pytest.raises(retrieve.RetrievalError, match="fake@1"):
         retrieve.load_index(path, "other@2", check_complete=3)
@@ -100,8 +102,12 @@ def test_build_index_resumes_and_checks_model(tmp_path: Path) -> None:
         retrieve.load_index(path, emb.model, check_complete=4)
     with pytest.raises(retrieve.RetrievalError, match="not found"):
         retrieve.load_index(tmp_path / "none.npz", emb.model, check_complete=1)
+    with pytest.raises(retrieve.RetrievalError, match="other subtitles"):
+        retrieve.load_index(path, emb.model, check_complete=3, speech="s2")
+    with pytest.raises(retrieve.RetrievalError, match="other subtitles"):
+        retrieve.build_index(path, emb.model, segs, emb, "s2")
     with pytest.raises(retrieve.RetrievalError, match="no keyframes"):
-        retrieve.build_index(path, emb.model, [(9, _tags("x", []), [])], emb)
+        retrieve.build_index(path, emb.model, [(9, _tags("x", []), [], "")], emb, "s1")
 
 
 def test_thumbnail_matches_client_rules() -> None:
