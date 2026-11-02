@@ -230,26 +230,80 @@ def test_make_cues_min_length_without_overlap() -> None:
 # --- timeline mapping ------------------------------------------------------------
 
 
-def test_map_cues_across_cuts() -> None:
-    cues = {
-        "v1": [Cue(1.0, 3.0, "一"), Cue(9.0, 12.0, "二"), Cue(20.0, 22.0, "三")],
-        "v2": [Cue(0.0, 2.0, "四")],
-    }
+def _cue(start: float, text: str, step: float) -> Cue:
+    times = tuple((start + k * step, start + (k + 1) * step) for k in range(len(text)))
+    return Cue(start, start + len(text) * step, text, times)
+
+
+def test_map_cues_keeps_only_the_characters_heard() -> None:
+    cues = {"v1": [_cue(1.0, "你好", 0.5), _cue(9.0, "一二三四五", 0.2)]}
     clips = [
-        {"video": "v1", "src_start": 0.0, "duration": 10.0},  # 二 keeps 1 of 3 s
-        {"video": "v2", "src_start": 1.5, "duration": 4.0},  # 四 keeps 0.5 of 2 s
-        {"video": "v1", "src_start": 10.0, "duration": 11.0},  # 二 2 of 3, 三 1/2
+        {"video": "v1", "src_start": 0.0, "duration": 9.7},  # 一二三 heard
+        {"video": "v1", "src_start": 9.7, "duration": 2.0},  # 四五: 0.3 s
     ]
-    out = subtitle.map_cues(cues, clips)
-    assert out == [
-        Cue(1.0, 3.0, "一"),
-        Cue(14.0, 16.0, "二"),
-        Cue(24.0, 25.0, "三"),
+    out, records = subtitle.map_cues(cues, clips)
+    assert out == [Cue(1.0, 2.0, "你好"), Cue(9.0, pytest.approx(9.6), "一二三…")]
+    assert [(r["clip"], r["status"]) for r in records] == [
+        (1, "kept"),
+        (1, "trimmed"),
+        (2, "dropped"),
     ]
+    assert records[1]["kept"] == "一二三…" and records[1]["text"] == "一二三四五"
+    assert records[2]["reason"] == "切点内只剩 0.30s"
+
+
+def test_map_cues_never_keeps_part_of_a_latin_word() -> None:
+    cues = {"v": [_cue(0.0, "Hi there", 0.3)]}
+    out, _ = subtitle.map_cues(
+        cues, [{"video": "v", "src_start": 0.0, "duration": 1.6}]
+    )
+    assert [c.text for c in out] == ["Hi…"]
+    assert out[0].end == pytest.approx(0.6)
+    out, records = subtitle.map_cues(
+        cues, [{"video": "v", "src_start": 0.0, "duration": 0.4}]  # half of "Hi"
+    )
+    assert out == [] and records[0]["status"] == "dropped"
+
+
+def test_map_cues_offsets_later_clips_and_needs_times() -> None:
+    cues = {"v1": [_cue(5.0, "后面", 0.5)], "v2": [_cue(0.0, "前面", 0.5)]}
+    clips = [
+        {"video": "v2", "src_start": 0.0, "duration": 2.0},
+        {"video": "v1", "src_start": 4.0, "duration": 3.0},
+    ]
+    out, _ = subtitle.map_cues(cues, clips)
+    assert out == [Cue(0.0, 1.0, "前面"), Cue(3.0, 4.0, "后面")]
+    clip = [{"video": "v", "src_start": 1.0, "duration": 2.0}]
+    # A translation has no times per character: cut, it is kept whole when
+    # at least half of it plays, else dropped.
+    out, records = subtitle.map_cues({"v": [Cue(0.0, 2.0, "译文")]}, clip)
+    assert out == [Cue(0.0, 1.0, "…译文")] and records[0]["status"] == "trimmed"
+    out, records = subtitle.map_cues({"v": [Cue(0.0, 1.8, "译文")]}, clip)
+    assert out == [] and records[0]["status"] == "dropped"
+    out, _ = subtitle.map_cues({"v": [Cue(2.0, 3.6, "译文")]}, clip)
+    assert out == [Cue(1.0, 2.0, "译文…")]
+    assert subtitle.map_cues({"v": [Cue(1.0, 2.0, "译文")]}, clip)[0] == [
+        Cue(0.0, 1.0, "译文")
+    ]
+    with pytest.raises(subtitle.SubtitleError, match="per-character"):
+        subtitle.map_cues({"v": [Cue(0.0, 2.0, "错位", ((0.0, 1.0),))]}, clip)
 
 
 def test_map_cues_empty_clips() -> None:
-    assert subtitle.map_cues({"v": [Cue(0.0, 1.0, "a")]}, []) == []
+    assert subtitle.map_cues({"v": [Cue(0.0, 1.0, "a")]}, []) == ([], [])
+
+
+def test_cues_carry_their_characters_times() -> None:
+    cues = subtitle.make_cues([_sentence(1, " 你好，世界。", step=0.5)])
+    assert all(len(c.times) == len(c.text) for c in cues)
+
+
+def test_speech_spans_by_sentence_and_clause() -> None:
+    spoken, clauses = subtitle.speech_spans(
+        [_sentence(1, "你好，世界。", step=1.0), _sentence(2, "再见", start=8.0)]
+    )
+    assert spoken == [(0.0, 6.0), (8.0, pytest.approx(8.4))]
+    assert clauses == [(0.0, 3.0), (3.0, 6.0), (8.0, pytest.approx(8.4))]
 
 
 def test_srt_format() -> None:

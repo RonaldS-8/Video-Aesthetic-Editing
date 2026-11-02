@@ -5,9 +5,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import re
 import shutil
 import statistics
+import sys
 import time
+from collections import Counter
 from collections.abc import Callable, Iterator
 from dataclasses import asdict
 from pathlib import Path
@@ -16,9 +20,11 @@ from typing import Any
 import numpy as np
 
 from video_demo import (
+    category,
     evaluate,
     instruct,
     layout,
+    narrate,
     outline,
     quality,
     report,
@@ -29,31 +35,56 @@ from video_demo import (
     suggest,
     synth,
     tag,
+    translate,
+    tts,
 )
 from video_demo import scenes as scene_material
 from video_demo.media import (
+    DISSOLVE_SEC,
+    DUCK_GAIN,
+    EDIT_SIZE,
+    OUT_FPS,
+    OUT_SIZE,
+    FrameDraw,
+    SubtitlePainter,
+    TitlePainter,
     capture_time,
+    compose,
     count_frames,
     cut_clip,
+    dissolve,
     probe,
+    read_audio_clip,
     read_clip,
     segment_frames_every,
     segment_frames_picked,
-    write_video,
+    voice_track,
+    write_av,
 )
 from video_demo.segment import (
     MAX_SEGMENT_SEC,
+    SPLIT_SHIFT_SEC,
     Segment,
     detect_cuts,
     merge_short,
     spans_from_cuts,
     split_long,
+    strictly_inside,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 WORK_DIR = ROOT / "data" / "work"
 OUT_DIR = ROOT / "out"
+# Burned subtitles are drawn with this font unless VIDEO_DEMO_FONT is set.
+# Language of the subtitles burned into previews: speech in another
+# language is shown translated (``subtitle --translate``).
+SUBTITLE_LANG = "zh"
+SUBTITLE_FONT = (
+    Path("C:/Windows/Fonts/msyh.ttc")
+    if sys.platform == "win32"
+    else Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
+)
 # The frozen VLM-only report from `main`, linked from every report.
 BASELINE_REPORT = layout.baseline_report_path(OUT_DIR)
 SYNTH_PATH = ROOT / "data" / "synth" / "synth_cuts.mp4"
@@ -199,18 +230,42 @@ def cmd_segment(args: argparse.Namespace) -> None:
 
 
 def _segment(videos: list[layout.Video]) -> None:
+    """Shots, then windows split between sentences: speech is recognised
+    first for every video with audio (cached in data/work/asr/)."""
+    infos = {}
     for video in videos:
         layout.verify(RAW_DIR, video)
+        infos[video.id] = probe(_raw(video))
+    _recognise([v for v in videos if infos[v.id].has_audio], force=False)
+    for video in videos:
         path = _raw(video)
-        info = probe(path)
+        info = infos[video.id]
         end_time = END_TIME.get(video.id)
         analysed = info.duration if end_time is None else end_time
+        sentences = (
+            subtitle.read_asr(layout.asr_path(WORK_DIR, video.id), video.id)
+            if info.has_audio
+            else []
+        )
+        spoken, clauses = subtitle.speech_spans(sentences)
         t0 = time.perf_counter()
         cuts = detect_cuts(path, end_time)
         raw_shots = spans_from_cuts(cuts, analysed)
         shots = merge_short(raw_shots)
-        segments = split_long(shots)
+        segments = split_long(shots, sentences=spoken, clauses=clauses)
         elapsed = time.perf_counter() - t0
+        boundaries = [
+            {
+                "time": a.end,
+                "kind": "shot" if a.shot != b.shot else "split",
+                "speech": (
+                    "mid_clause"
+                    if strictly_inside(a.end, clauses)
+                    else "clause_break" if strictly_inside(a.end, spoken) else "quiet"
+                ),
+            }
+            for a, b in zip(segments, segments[1:], strict=False)
+        ]
         payload = {
             "video_id": video.id,
             "sha256": video.sha256,
@@ -221,10 +276,13 @@ def _segment(videos: list[layout.Video]) -> None:
             "has_audio": info.has_audio,
             "detect_seconds": round(elapsed, 2),
             "max_segment_sec": MAX_SEGMENT_SEC,
+            "split_rule": "speech",
+            "split_shift_sec": SPLIT_SHIFT_SEC,
             "cuts": [{"time": c.time, "kind": c.kind} for c in cuts],
             "raw_shot_count": len(raw_shots),
             "shots": shots,
             "segments": [s.to_dict() for s in segments],
+            "boundaries": boundaries,
         }
         _write_json(layout.segments_path(WORK_DIR, video.id), payload)
         n_dissolve = sum(c.kind == "dissolve" for c in cuts)
@@ -233,6 +291,15 @@ def _segment(videos: list[layout.Video]) -> None:
             f"{len(shots)} shots, {len(segments)} segments "
             f"({elapsed:.1f}s for {analysed:.0f}s video)"
         )
+        for kind in ("split", "shot"):
+            here = [b for b in boundaries if b["kind"] == kind]
+            if here:
+                cut = sum(b["speech"] == "mid_clause" for b in here)
+                clause = sum(b["speech"] == "clause_break" for b in here)
+                print(
+                    f"  {kind}: {len(here)} boundaries, {clause} between clauses, "
+                    f"{cut} inside a clause"
+                )
 
 
 def _load_segments(vid: str) -> tuple[dict, list[Segment]]:
@@ -351,16 +418,26 @@ def _counts(videos: list[layout.Video], out: PathFn, limit: int) -> tuple[int, i
     return done, todo
 
 
-def _tag_stage(videos: list[layout.Video], limit: int) -> runner.StageFn:
+def _tag_stage(
+    videos: list[layout.Video], limit: int, profiles: dict[str, category.Profile]
+) -> runner.StageFn:
+    """Tag each video's remaining segments with its category's prompt
+    (``profiles``, from _prepare_tagging)."""
+
     def run(advance: Callable[[str], None]) -> None:
         for video in videos:
+            if video.id not in profiles:
+                continue
+            profile = profiles[video.id]
             sig = _load_signals(video.id)
             out_path = layout.tags_path(WORK_DIR, video.id)
             keyframes = layout.keyframes_dir(WORK_DIR, video.id)
             for seg in _todo(video.id, layout.tags_path, limit):
                 frames = [keyframes / k for k in sig[seg.index]["keyframes"]]
                 try:
-                    tags, raw, elapsed, errors = tag.tag_segment(frames, seg.duration)
+                    tags, raw, elapsed, errors = tag.tag_segment(
+                        frames, seg.duration, profile=profile
+                    )
                 except Exception as exc:
                     raise runner.StageError(
                         "打标签", video.file, seg.index, exc
@@ -369,6 +446,8 @@ def _tag_stage(videos: list[layout.Video], limit: int) -> runner.StageFn:
                     out_path,
                     {
                         "index": seg.index,
+                        "category": profile.key,
+                        "prompt": profile.digest,
                         "seconds": round(elapsed, 2),
                         "tags": tags,
                         "raw": raw,
@@ -468,8 +547,111 @@ def _print_line(note: str) -> None:
 
 
 def cmd_tag(args: argparse.Namespace) -> None:
-    _tag_stage(_selected(args), args.limit)(_print_line)
+    videos = _selected(args)
+    profiles = _prepare_tagging(videos, args.category, args.retag)
+    _tag_stage(videos, args.limit, profiles)(_print_line)
     _write_index()
+
+
+def _prepare_tagging(
+    videos: list[layout.Video], choice: str, retag: bool
+) -> dict[str, category.Profile]:
+    """The category profile of each video that has segments to tag (all of
+    them with ``retag``). Tags made with another category or prompt are an
+    error unless ``retag``: then they are moved aside, kept for comparison,
+    and the video is tagged again from the start."""
+    profiles: dict[str, category.Profile] = {}
+    for video in videos:
+        path = layout.tags_path(WORK_DIR, video.id)
+        if not retag and not _todo(video.id, layout.tags_path, 0):
+            continue
+        profile = _profile(video, choice)
+        profiles[video.id] = profile
+        if not path.exists():
+            continue
+        with path.open(encoding="utf-8") as f:
+            first = json.loads(f.readline())
+        made = (first.get("category"), first.get("prompt"))
+        if made == (profile.key, profile.digest):
+            continue
+        label = f"{made[0]}-{made[1]}" if made[0] else "generic"
+        if not retag:
+            raise SystemExit(
+                f"{video.file}：已有标签是按 {label} 提示词打的，与「{profile.name}」"
+                f"当前的提示词不一致；加 --retag 重新打（旧标签改名保留）"
+            )
+        old = layout.retired_tags_path(WORK_DIR, video.id, label)
+        if old.exists():
+            raise SystemExit(f"{old} 已存在，先处理它再重打")
+        path.replace(old)
+        print(f"{video.file}：旧标签移到 {old.name}，按「{profile.name}」重新打")
+    return profiles
+
+
+def _title_card(title: str, videos: list[layout.Video]) -> tuple[str, str]:
+    """The title card of an edit: the outline's title up to its first colon
+    (the rest is the model's tagline, often longer than a card holds), and
+    the material's category under it."""
+    head = re.split("[：:]", title, maxsplit=1)[0].strip() or title
+    profile = _main_profile(videos)
+    return head, profile.name if profile else ""
+
+
+def _main_profile(videos: list[layout.Video]) -> category.Profile | None:
+    """The category covering most of the analysed footage among videos that
+    have one; None when none has been categorised."""
+    seconds: dict[str, float] = {}
+    for v in videos:
+        path = layout.category_path(WORK_DIR, v.id)
+        if path.exists():
+            key = json.loads(path.read_text("utf-8"))["category"]
+            length = _load_segments(v.id)[0]["analysed_until"]
+            seconds[key] = seconds.get(key, 0.0) + length
+    if not seconds:
+        return None
+    return category.load_profile(max(seconds, key=lambda k: (seconds[k], k)))
+
+
+def _profile(video: layout.Video, choice: str = "") -> category.Profile:
+    """The video's category: ``choice`` (a key) when given, else the cached
+    one, else the 4B picks it now from keyframes spread over the video."""
+    profiles = category.load_profiles()
+    path = layout.category_path(WORK_DIR, video.id)
+    if choice:
+        if not path.exists() or json.loads(path.read_text("utf-8"))["category"] != (
+            choice
+        ):
+            _write_json(
+                path, {"video_id": video.id, "category": choice, "source": "user"}
+            )
+        return profiles[choice]
+    if path.exists():
+        return profiles[json.loads(path.read_text("utf-8"))["category"]]
+    sig = _load_signals(video.id)
+    keyframes = layout.keyframes_dir(WORK_DIR, video.id)
+    n = min(category.CLASSIFY_FRAMES, len(sig))
+    picks = sorted({round(k * (len(sig) - 1) / max(n - 1, 1)) for k in range(n)})
+    frames = [keyframes / sig[i]["keyframes"][0] for i in picks]
+    minutes = _load_segments(video.id)[0]["analysed_until"] / 60
+    tag.check_server()
+    try:
+        choice_, raw, seconds, errors = category.classify(frames, minutes, profiles)
+    except category.CategoryError as exc:
+        raise SystemExit(f"{video.file}：判断素材类型失败：{exc}") from exc
+    _write_json(
+        path,
+        {
+            "video_id": video.id,
+            **choice_,
+            "source": "model",
+            "raw": raw,
+            "seconds": round(seconds, 1),
+            "failed_attempts": errors,
+        },
+    )
+    profile = profiles[choice_["category"]]
+    print(f"{video.file}：素材类型 {profile.name}（{choice_['reason']}）")
+    return profile
 
 
 def cmd_aesthetic(args: argparse.Namespace) -> None:
@@ -736,18 +918,26 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         raise SystemExit("开工检查未通过：\n- " + "\n- ".join(problems))
     tag_done, tag_todo = _counts(videos, layout.tags_path, args.limit)
     q_done, q_todo = _counts(videos, layout.aesthetic_path, args.limit)
-    if not tag_todo and not q_todo:
+    if not tag_todo and not q_todo and not args.retag:
         print(f"全部片段已完成打标签和美学打分，无需重跑。{NEXT_STEPS}")
         return
-    problems = missing_inputs(videos, need_tag=tag_todo > 0, need_quality=q_todo > 0)
+    problems = missing_inputs(
+        videos, need_tag=tag_todo > 0 or args.retag, need_quality=q_todo > 0
+    )
     if problems:
         raise SystemExit("开工检查未通过：\n- " + "\n- ".join(problems))
+    # Retagging moves old tags aside, so count again afterwards.
+    profiles = _prepare_tagging(videos, args.category, args.retag)
+    tag_done, tag_todo = _counts(videos, layout.tags_path, args.limit)
 
     stages: list[runner.Stage] = []
     if tag_todo:
         stages.append(
             runner.Stage(
-                "打标签", tag_done + tag_todo, tag_done, _tag_stage(videos, args.limit)
+                "打标签",
+                tag_done + tag_todo,
+                tag_done,
+                _tag_stage(videos, args.limit, profiles),
             )
         )
     if q_todo:
@@ -1489,7 +1679,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
             shown = instruct.shortlist(catalog, relevance)
         try:
             plan, outline_raw, seconds, errors = instruct.plan_request(
-                instruction, shown, total, target
+                instruction, shown, total, target, profile=_main_profile(videos)
             )
         except outline.OutlineError as exc:
             raise SystemExit(f"大纲生成失败（3 次都没通过校验）：{exc}") from exc
@@ -1508,6 +1698,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
         [r[0] for r in ranked],
         [r[1] for r in ranked],
         named,
+        _speech_spans(videos),
     )
     if not clips:
         raise SystemExit(f"没有选到任何片段：{'；'.join(notes)}")
@@ -1545,13 +1736,20 @@ def cmd_edit(args: argparse.Namespace) -> None:
         # Within their own video: the cut is not in shooting order.
         "scenes": _scene_rows(scenes, cands, {}),
     }
-    _write_json(layout.edit_timeline_path(folder), timeline)
     print(
         f"{plan['title']}：{len(clips)} clips {timeline['total_sec']}s / "
         f"目标 {target:.0f}s {notes}"
     )
+    voices: list[tuple[float, np.ndarray]] = []
+    if args.narrate:
+        timeline["narration"], voices = _narrate(timeline, videos, args.voice)
+    _write_json(layout.edit_timeline_path(folder), timeline)
     _write_preview(
-        timeline, {v.id: v.file for v in videos}, layout.edit_preview_path(folder)
+        timeline,
+        {v.id: v.file for v in videos},
+        layout.edit_preview_path(folder),
+        voices,
+        _title_card(plan["title"], videos),
     )
     print(f"Wrote {report.write_edit(ROOT, folder, videos, timeline)}")
     _write_index()
@@ -1568,19 +1766,220 @@ def cmd_render(args: argparse.Namespace) -> None:
         _write_preview(timeline, files, layout.preview_path(folder, args.mode))
 
 
-def _write_preview(timeline: dict, files: dict[str, str], target: Path) -> None:
-    """The timeline's clips joined into one preview video; ``files`` maps
-    video ids to raw file names."""
+def _speech_spans(videos: list[layout.Video]) -> dict[str, list[tuple[float, float]]]:
+    """Sentence spans of each video whose speech has been recognised."""
+    out = {}
+    for v in videos:
+        path = layout.asr_path(WORK_DIR, v.id)
+        if path.exists():
+            out[v.id] = subtitle.speech_spans(subtitle.read_asr(path, v.id))[0]
+    return out
 
-    def frames() -> Iterator:
-        for clip in timeline["clips"]:
-            yield from read_clip(
-                RAW_DIR / files[clip["video"]], clip["src_start"], clip["duration"]
-            )
+
+def _played(clips: list[dict]) -> list[dict]:
+    """``clips`` as the preview plays them: whole frames, so the preview's
+    clock (its subtitles, its narration) follows frame counts, not the
+    timeline's exact seconds."""
+    return [
+        {**clip, "duration": round(clip["duration"] * OUT_FPS) / OUT_FPS}
+        for clip in clips
+    ]
+
+
+# The title card of a finished cut stays this long (from just after the
+# fade in).
+TITLE_SEC = (0.4, 3.6)
+
+
+def _write_preview(
+    timeline: dict,
+    files: dict[str, str],
+    target: Path,
+    voices: list[tuple[float, np.ndarray]] | None = None,
+    title: tuple[str, str] | None = None,
+) -> None:
+    """The timeline's clips joined into one preview video with their sound;
+    ``files`` maps video ids to raw file names; ``voices`` are narration
+    lines (start, stereo samples) mixed over the sound. Subtitles of what is
+    said, and the narration's, go to the subtitles folder next to it, with a
+    second preview there that has them drawn into the picture.
+
+    With ``title`` (a title and a line under it) the cut is finished for
+    showing: EDIT_SIZE, a title card, a dissolve where the outline moves to
+    its next part, and fades from and to black at both ends."""
+    played = _played(timeline["clips"])
+    size = EDIT_SIZE if title else OUT_SIZE
+    cues = _preview_subtitles({**timeline, "clips": played}, target) or []
+    said = [
+        (line["start"], line["start"] + line["seconds"], line["text"])
+        for line in timeline.get("narration", {}).get("lines", [])
+    ]
+    if said:
+        _write_text(
+            layout.narration_srt_path(target),
+            subtitle.to_srt([subtitle.Cue(*c) for c in said]),
+        )
+        _write_text(
+            layout.narration_text_path(target),
+            _narration_text(timeline["narration"], played, files),
+        )
+    card = (
+        TitlePainter(*title, _subtitle_font(), *TITLE_SEC, frame=size)
+        if title
+        else None
+    )
+    outputs: list[tuple[Path, FrameDraw | None]] = [(target, card)]
+    if cues or said:
+        shown = sorted([(c.start, c.end, c.text) for c in cues] + said)
+        painter = SubtitlePainter(shown, _subtitle_font(), frame=size)
+        outputs.append((layout.burned_preview_path(target), compose(card, painter)))
+
+    def clips() -> Iterator[tuple[list[np.ndarray], np.ndarray]]:
+        tail = None
+        for k, clip in enumerate(played):
+            path = RAW_DIR / files[clip["video"]]
+            start, duration = clip["src_start"], clip["duration"]
+            frames = read_clip(path, start, duration, size)
+            sound = read_audio_clip(path, start, duration)
+            if tail is not None:
+                frames, sound = dissolve(tail, (frames, sound))
+            tail = None
+            nxt = played[k + 1] if k + 1 < len(played) else None
+            if title and nxt is not None and nxt["role"] != clip["role"]:
+                # The handle runs on past the clip's end, as far as the
+                # source goes.
+                handle = min(DISSOLVE_SEC, probe(path).duration - start - duration)
+                if handle >= 2 / OUT_FPS:
+                    end = start + duration
+                    tail = (
+                        read_clip(path, end, handle, size),
+                        read_audio_clip(path, end, handle),
+                    )
+            yield frames, sound
 
     t0 = time.perf_counter()
-    write_video(frames(), target)
+    total = sum(c["duration"] for c in played) if title else None
+    write_av(clips(), outputs, voices, size, total)
     print(f"{target}: {time.perf_counter() - t0:.1f}s")
+
+
+def _narration_text(record: dict, played: list[dict], files: dict[str, str]) -> str:
+    """The narration as a table to read: each line's time on the cut, its
+    clip and where that is in the source video, and the words."""
+    starts = [0.0]
+    for clip in played:
+        starts.append(starts[-1] + clip["duration"])
+    rows = [
+        f"解说词：{len(record['lines'])} 句，音色 {record['voice']}，"
+        f"成片 {starts[-1]:.1f} 秒",
+        "",
+        "序号\t成片时间\t镜头\t原片\t原片时间\t解说",
+    ]
+    for k, line in enumerate(record["lines"], start=1):
+        clip = played[line["clip"] - 1]
+        src = clip["src_start"] + line["start"] - starts[line["clip"] - 1]
+        end = line["start"] + line["seconds"]
+        rows.append(
+            f"{k}\t{_clock(line['start'])}–{_clock(end)}\t{line['clip']}\t"
+            f"{files[clip['video']]}\t{_clock(src)}\t{line['text']}"
+        )
+    return "\n".join(rows) + "\n"
+
+
+def _clock(t: float) -> str:
+    m, s = divmod(t, 60)
+    return f"{int(m):02d}:{s:04.1f}"
+
+
+def _narrate(
+    timeline: dict, videos: list[layout.Video], voice: str
+) -> tuple[dict, list[tuple[float, np.ndarray]]]:
+    """Narration for an edit: the 4B writes lines for the chosen clips in
+    the gaps between speech, Kokoro voices them. Returns the record kept in
+    the timeline and the lines' audio (start, stereo samples)."""
+    profile = _main_profile(videos)
+    if profile is None:
+        raise SystemExit("解说要按素材类型写：先运行 tag 或 analyze（可加 --category）")
+    used = {c["video"] for c in timeline["clips"]}
+    unheard = [
+        v.file
+        for v in videos
+        if v.id in used
+        and _load_segments(v.id)[0]["has_audio"]
+        and not layout.asr_path(WORK_DIR, v.id).exists()
+    ]
+    if unheard:
+        raise SystemExit(
+            f"这些视频有声音但还没做语音识别，解说会压到对白：{unheard}；"
+            "先运行 subtitle"
+        )
+    played = _played(timeline["clips"])
+    spoken = narrate.speech_on_timeline(played, _speech_spans(videos))
+    slots = narrate.free_slots(played, spoken)
+    tags = {
+        (v.id, r["index"]): r["tags"]
+        for v in videos
+        if v.id in used
+        for r in _tag_rows(v.id)
+    }
+    frames = {
+        (v.id, row["index"]): [
+            layout.keyframes_dir(WORK_DIR, v.id) / k for k in row["keyframes"]
+        ]
+        for v in videos
+        if v.id in used
+        for row in _load_signals(v.id)
+    }
+    try:
+        lines, raw, seconds, errors = narrate.write_lines(
+            played, tags, slots, profile, frames=frames
+        )
+    except outline.OutlineError as exc:
+        raise SystemExit(f"解说词生成失败（3 次都没通过校验）：{exc}") from exc
+    try:
+        lines, checks, check_seconds = narrate.check_lines(lines, played, tags, frames)
+    except outline.OutlineError as exc:
+        raise SystemExit(f"解说词核对失败（3 次都没通过校验）：{exc}") from exc
+    for c in checks:
+        if c["checked"] != c["written"]:
+            print(f"  核对 镜头 {c['clip']}：{c['written']} → {c['checked']}")
+    try:
+        speaker = tts.KokoroAdapter(MODELS_DIR, voice)
+        t0 = time.perf_counter()
+        voiced = narrate.voice_lines(lines, speaker.synthesize, speaker.rate)
+    except (tts.TTSError, outline.OutlineError) as exc:
+        raise SystemExit(f"解说配音失败：{exc}") from exc
+    tts_seconds = time.perf_counter() - t0
+    record = {
+        "category": profile.key,
+        "voice": voice,
+        "tts_model": tts.KOKORO_REPO,
+        "write_seconds": round(seconds, 1),
+        "check_seconds": round(check_seconds, 1),
+        "checks": checks,
+        "tts_seconds": round(tts_seconds, 1),
+        "raw": raw,
+        "failed_attempts": errors,
+        "duck_gain": DUCK_GAIN,
+        "lines": [line for line, _ in voiced],
+    }
+    for line, _ in voiced:
+        added = "（补空档）" if line.get("filled") else ""
+        print(
+            f"  解说 {line['start']:5.1f}s 镜头 {line['clip']}：{line['text']}{added}"
+        )
+    return record, [(line["start"], voice_track(v, speaker.rate)) for line, v in voiced]
+
+
+def _subtitle_font() -> Path:
+    """The font burned subtitles are drawn with: VIDEO_DEMO_FONT, else the
+    platform's usual CJK font. Missing is an error, not a silent swap."""
+    font = Path(os.environ.get("VIDEO_DEMO_FONT", SUBTITLE_FONT))
+    if not font.exists():
+        raise SystemExit(
+            f"烧录字幕的字体 {font} 不存在；装上中文字体，或用 VIDEO_DEMO_FONT 指定"
+        )
+    return font
 
 
 def _index_vectors(video: layout.Video) -> tuple[Vectors, Vectors]:
@@ -1790,37 +2189,50 @@ def cmd_report(args: argparse.Namespace) -> None:
     _write_index()
 
 
+def _recognise(
+    videos: list[layout.Video], force: bool, language: str = ""
+) -> list[layout.Video]:
+    """Speech recognition for ``videos`` without a cached result (all with
+    ``force``); returns those recognised now. ``language`` as in
+    SenseVoiceAdapter ("" detects it per sentence)."""
+    todo = [v for v in videos if force or not layout.asr_path(WORK_DIR, v.id).exists()]
+    if not todo:
+        return []
+    # Recognition runs alone and frees its models before the 4B is used.
+    try:
+        asr = subtitle.SenseVoiceAdapter(ROOT / "models" / "asr", language)
+    except subtitle.SubtitleError as exc:
+        raise SystemExit(f"语音识别模型不可用：{exc}") from exc
+    for v in todo:
+        t0 = time.perf_counter()
+        sentences = asr.transcribe(RAW_DIR / v.file)
+        path = layout.asr_path(WORK_DIR, v.id)
+        subtitle.write_asr(path, v.id, asr.model, sentences)
+        print(
+            f"{v.id} {v.file}: {len(sentences)} sentences, "
+            f"{time.perf_counter() - t0:.1f}s -> {path}"
+        )
+    asr.close()
+    return todo
+
+
 def cmd_subtitle(args: argparse.Namespace) -> None:
-    """Speech recognition, then 4B refinement, then SRT per video; with
-    ``--mode`` also SRT for that mode's timelines."""
+    """Speech recognition, then 4B refinement, then translation of what is
+    not in Chinese (unless ``--translate none``), then each video's
+    subtitles folder; with ``--mode`` also subtitles for that mode's
+    previews."""
     out = _out(args)
     dirs = _result_dirs(args, out)
     videos = [v for v in _selected(args) if _load_segments(v.id)[0]["has_audio"]]
-    todo = [
-        v for v in videos if args.force or not layout.asr_path(WORK_DIR, v.id).exists()
-    ]
-    if todo:
-        # Recognition runs alone and frees its models before the 4B is used.
-        try:
-            asr = subtitle.SenseVoiceAdapter(ROOT / "models" / "asr")
-        except subtitle.SubtitleError as exc:
-            raise SystemExit(f"语音识别模型不可用：{exc}") from exc
-        for v in todo:
-            t0 = time.perf_counter()
-            sentences = asr.transcribe(RAW_DIR / v.file)
-            path = layout.asr_path(WORK_DIR, v.id)
-            subtitle.write_asr(path, v.id, asr.model, sentences)
-            print(
-                f"{v.id} {v.file}: {len(sentences)} sentences, "
-                f"{time.perf_counter() - t0:.1f}s -> {path}"
-            )
-        asr.close()
-    cues_by_video: dict[str, list[subtitle.Cue]] = {}
+    todo = _recognise(videos, args.force, args.language)
     for v in videos:
         path = layout.subtitle_path(WORK_DIR, v.id)
         if args.force or v in todo or not path.exists():
             raw = subtitle.read_asr(layout.asr_path(WORK_DIR, v.id), v.id)
-            context = subtitle.video_context(_tag_rows(v.id))
+            # Untagged videos (e.g. talks added only for subtitles) are
+            # refined with their title as the only context.
+            tagged = layout.tags_path(WORK_DIR, v.id).exists()
+            context = subtitle.video_context(_tag_rows(v.id) if tagged else [])
             try:
                 refined, seconds, failed = subtitle.refine(
                     raw, Path(v.file).stem, context
@@ -1839,21 +2251,221 @@ def cmd_subtitle(args: argparse.Namespace) -> None:
                 f"{v.id} {v.file}: refined {changed}/{len(raw)} sentences "
                 f"in {seconds:.1f}s ({len(failed)} retries)"
             )
-        cues_by_video[v.id] = subtitle.read_cues(path, v.id)
-        srt = layout.srt_path(dirs[v.id])
-        srt.parent.mkdir(parents=True, exist_ok=True)
-        srt.write_text(subtitle.to_srt(cues_by_video[v.id]), encoding="utf-8")
-        print(f"  {len(cues_by_video[v.id])} cues -> {srt}")
+        _write_video_subtitles(v, dirs[v.id])
+        if args.translate != "none":
+            _translate_video(args, v, dirs[v.id])
     if args.mode:
         for folder in [dirs[v.id] for v in videos] + [out]:
             path = layout.timeline_path(folder, args.mode)
-            if not path.exists():
-                continue
-            clips = json.loads(path.read_text("utf-8"))["clips"]
-            cues = subtitle.map_cues(cues_by_video, clips)
-            srt = layout.srt_path(folder, args.mode)
-            srt.write_text(subtitle.to_srt(cues), encoding="utf-8")
-            print(f"{len(cues)} cues on {path.name} -> {srt}")
+            if path.exists():
+                timeline = json.loads(path.read_text("utf-8"))
+                _preview_subtitles(timeline, layout.preview_path(folder, args.mode))
+
+
+def _write_video_subtitles(video: layout.Video, folder: Path) -> None:
+    """A video's subtitles folder: recognised and refined SRT, and what the
+    4B changed in each sentence."""
+    raw = subtitle.read_asr(layout.asr_path(WORK_DIR, video.id), video.id)
+    data = subtitle.read_subtitles(layout.subtitle_path(WORK_DIR, video.id), video.id)
+    refined = subtitle.sentences_from_json(data["sentences"])
+    _write_text(
+        layout.recognized_srt_path(folder), subtitle.to_srt(subtitle.make_cues(raw))
+    )
+    cues = subtitle.make_cues(refined)
+    _write_text(layout.refined_srt_path(folder), subtitle.to_srt(cues))
+    by_id = {s.id: s for s in refined}
+    changed = [
+        {
+            "id": s.id,
+            "start": round(s.start, 3),
+            "end": round(s.end, 3),
+            "recognized": s.text,
+            "refined": by_id[s.id].text,
+        }
+        for s in raw
+        if by_id[s.id].text != s.text
+    ]
+    _write_json(
+        layout.subtitle_changes_path(folder),
+        {
+            "asr_model": data["asr_model"],
+            "refine_seconds": data["refine_seconds"],
+            "sentences": len(raw),
+            "changed": changed,
+            "failed_attempts": data["failed_attempts"],
+        },
+    )
+    print(
+        f"  {len(cues)} cues, {len(changed)} sentences changed -> "
+        f"{layout.subtitles_dir(folder)}"
+    )
+
+
+def _translate_video(
+    args: argparse.Namespace, video: layout.Video, folder: Path
+) -> None:
+    """Translate what ``video`` says that is not in ``args.translate``
+    (cached), and write the translated and bilingual subtitles to its
+    subtitles folder when anything needed translating."""
+    lang = args.translate
+    title = Path(video.file).stem
+    data = subtitle.read_subtitles(layout.subtitle_path(WORK_DIR, video.id), video.id)
+    sentences = subtitle.sentences_from_json(data["sentences"])
+    path = layout.translation_path(WORK_DIR, video.id, lang)
+    try:
+        if args.force or not translate.is_current(path, video.id, lang, sentences):
+            glossary = _glossary(args, video, sentences)
+            translator: translate.Translator
+            if args.translator == "hymt":
+                translator = translate.HyMtAdapter(args.translate_url)
+                batch = 1
+            else:
+                translator = translate.LlmTranslatorAdapter(title)
+                batch = translate.LLM_BATCH
+            parts, seconds, failed = translate.translate_sentences(
+                sentences, translator, glossary, lang, batch
+            )
+            translate.write_translation(
+                path,
+                video.id,
+                lang,
+                translator.name,
+                glossary,
+                parts,
+                seconds,
+                failed,
+                sentences,
+            )
+            print(
+                f"{video.id} {video.file}: translated "
+                f"{translate.translated_count(sentences, parts)}/{len(sentences)} "
+                f"sentences in {seconds:.1f}s ({len(failed)} retries)"
+            )
+        parts = translate.read_translation(path, video.id, lang, sentences)
+        if not translate.translated_count(sentences, parts):
+            return
+        for track, bilingual in ((lang, False), (f"{lang}.bilingual", True)):
+            cues = translate.translated_cues(sentences, parts, bilingual)
+            _write_text(
+                layout.translated_srt_path(folder, track), subtitle.to_srt(cues)
+            )
+            print(f"  {len(cues)} cues -> {layout.translated_srt_path(folder, track)}")
+    except translate.TranslateError as exc:
+        raise SystemExit(f"{video.id} {video.file}：字幕翻译失败：{exc}") from exc
+    fast = translate.too_fast(translate.translated_cues(sentences, parts, False))
+    if fast:
+        print(
+            f"  {len(fast)} cues read faster than "
+            f"{translate.MAX_READING_CPS:.0f} chars/s"
+        )
+
+
+def _glossary(
+    args: argparse.Namespace, video: layout.Video, sentences: list[subtitle.Sentence]
+) -> dict[str, str]:
+    """The user's ``--terms``, over the 4B's own list with ``--glossary``."""
+    lang = args.translate
+    user_terms = translate.read_user_terms(args.terms) if args.terms else {}
+    if not args.glossary:
+        return user_terms
+    path = layout.glossary_path(WORK_DIR, video.id, lang)
+    if args.force or not path.exists():
+        terms, seconds = translate.build_glossary(
+            sentences, Path(video.file).stem, lang
+        )
+        translate.write_glossary(path, video.id, terms, seconds)
+        print(f"{video.id} {video.file}: {len(terms)} terms in {seconds:.1f}s")
+    return translate.merge_terms(translate.read_glossary(path, video.id), user_terms)
+
+
+def _preview_subtitles(timeline: dict, preview: Path) -> list[subtitle.Cue] | None:
+    """Subtitles mapped onto the timeline that ``preview`` plays, written as
+    SRT plus a record of every cut; when a video in it was translated, also
+    the translated and bilingual tracks. Returns the cues to burn in (the
+    translated track when there is one); None when no video in it has
+    subtitles. Videos with audio but no refined subtitles yet are named, not
+    hidden."""
+    tracks: dict[str, dict[str, list[subtitle.Cue]]] = {"": {}}
+    missing = []
+    for vid in dict.fromkeys(c["video"] for c in timeline["clips"]):
+        path = layout.subtitle_path(WORK_DIR, vid)
+        if path.exists():
+            tracks[""][vid] = subtitle.read_cues(path, vid)
+        elif _load_segments(vid)[0]["has_audio"]:
+            missing.append(vid)
+    if not tracks[""]:
+        return None
+    for vid in list(tracks[""]):
+        for track, translated in _translated_tracks(vid).items():
+            tracks.setdefault(track, {})
+            tracks[track][vid] = translated
+    for track in tracks:
+        for vid, cues in tracks[""].items():
+            tracks[track].setdefault(vid, cues)
+    mapped = {
+        track: _write_preview_track(timeline, preview, track, by_video, missing)
+        for track, by_video in tracks.items()
+    }
+    return mapped[SUBTITLE_LANG] if SUBTITLE_LANG in mapped else mapped[""]
+
+
+def _translated_tracks(vid: str) -> dict[str, list[subtitle.Cue]]:
+    """A video's translated and bilingual cues by track name; empty when it
+    has no translation or nothing in it needed translating."""
+    path = layout.translation_path(WORK_DIR, vid, SUBTITLE_LANG)
+    if not path.exists():
+        return {}
+    data = subtitle.read_subtitles(layout.subtitle_path(WORK_DIR, vid), vid)
+    sentences = subtitle.sentences_from_json(data["sentences"])
+    try:
+        parts = translate.read_translation(path, vid, SUBTITLE_LANG, sentences)
+    except translate.TranslateError as exc:
+        raise SystemExit(f"{vid}：{exc}") from exc
+    if not translate.translated_count(sentences, parts):
+        return {}
+    return {
+        SUBTITLE_LANG: translate.translated_cues(sentences, parts, False),
+        f"{SUBTITLE_LANG}.bilingual": translate.translated_cues(sentences, parts, True),
+    }
+
+
+def _write_preview_track(
+    timeline: dict,
+    preview: Path,
+    track: str,
+    cues_by_video: dict[str, list[subtitle.Cue]],
+    missing: list[str],
+) -> list[subtitle.Cue]:
+    """One subtitle track on ``preview``: SRT and the record of every cut."""
+    cues, records = subtitle.map_cues(cues_by_video, timeline["clips"])
+    _write_text(layout.preview_srt_path(preview, track), subtitle.to_srt(cues))
+    counts = Counter(r["status"] for r in records)
+    _write_json(
+        layout.preview_cue_map_path(preview, track),
+        {
+            "preview": preview.name,
+            "track": track or "原文",
+            "rule": (
+                f"被切点截断的字幕只留切点内听得到的字（不拆英文单词），"
+                f"剩不到 {subtitle.MIN_KEPT_SEC}s 或没有完整的字就丢弃；"
+                f"截断的译文在片段内不足一半就丢弃，否则整句显示并加“…”"
+            ),
+            "counts": dict(counts),
+            "videos_without_subtitles": missing,
+            "cues": records,
+        },
+    )
+    note = f"，{len(missing)} 条有声视频还没有字幕" if missing else ""
+    print(
+        f"{len(cues)} {track or 'source'} cues on {preview.name}（完整 "
+        f"{counts['kept']}，截断 {counts['trimmed']}，丢弃 {counts['dropped']}{note}）"
+    )
+    return cues
+
+
+def _write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
 
 
 def cmd_synth(args: argparse.Namespace) -> None:
@@ -1888,6 +2500,20 @@ def cmd_eval(args: argparse.Namespace) -> None:
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+def _category_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--category",
+        choices=["", *category.CATEGORIES],
+        default="",
+        help="material category (default: the model picks from keyframes)",
+    )
+    parser.add_argument(
+        "--retag",
+        action="store_true",
+        help="tag again with the category prompt; old tags are kept aside",
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="video_demo")
     sub = parser.add_subparsers(dest="stage", required=True)
@@ -1913,6 +2539,7 @@ def main() -> None:
     p_tag.add_argument("--collection", default="", help=COLLECTION_HELP)
     p_tag.add_argument("--only", default="", help=ONLY_HELP)
     p_tag.add_argument("--limit", type=int, default=0, help="max segments per video")
+    _category_args(p_tag)
     p_tag.set_defaults(func=cmd_tag)
     for name, func, help_text in (
         ("aesthetic", cmd_aesthetic, "DOVER quality scores only"),
@@ -1922,6 +2549,8 @@ def main() -> None:
         p.add_argument("--collection", default="", help=COLLECTION_HELP)
         p.add_argument("--only", default="", help=ONLY_HELP)
         p.add_argument("--limit", type=int, default=0, help="max segments per video")
+        if name == "analyze":
+            _category_args(p)
         p.set_defaults(func=func)
     p_quality = sub.add_parser(
         "quality", help="DOVER-Mobile or UVQ 1.5 scores, compared against DOVER"
@@ -1985,7 +2614,38 @@ def main() -> None:
         help="also map subtitles onto this mode's timelines",
     )
     p_sub.add_argument(
-        "--force", action="store_true", help="recognise and refine again"
+        "--force", action="store_true", help="recognise, refine, translate again"
+    )
+    p_sub.add_argument(
+        "--language",
+        default="",
+        help="speech language for SenseVoice (zh, en, ja, ko, yue); "
+        "default: detect per utterance (mixed speech)",
+    )
+    p_sub.add_argument(
+        "--translate",
+        choices=[*sorted(translate.LANGUAGES), "none"],
+        default=SUBTITLE_LANG,
+        help="translate speech not in this language (default zh; none: skip)",
+    )
+    p_sub.add_argument(
+        "--translator",
+        choices=["llm", "hymt"],
+        default="hymt",
+        help="hymt: Hy-MT2 on --translate-url; llm: the 4B outline server",
+    )
+    p_sub.add_argument(
+        "--translate-url",
+        default="http://127.0.0.1:8093",
+        help="llama-server running Hy-MT2",
+    )
+    p_sub.add_argument(
+        "--terms", type=Path, default=None, help="JSON object: term -> translation"
+    )
+    p_sub.add_argument(
+        "--glossary",
+        action="store_true",
+        help="let the 4B extract names and terms first (slow; no gain measured)",
     )
     p_sub.set_defaults(func=cmd_subtitle)
     p_edit = sub.add_parser(
@@ -1995,6 +2655,14 @@ def main() -> None:
         "instruction", help="剪辑要求，如：剪 60 秒的教堂，先外观后内部"
     )
     p_edit.add_argument("--collection", default="vlog", help=COLLECTION_HELP)
+    p_edit.add_argument(
+        "--narrate",
+        action="store_true",
+        help="add a narration voice over the original sound",
+    )
+    p_edit.add_argument(
+        "--voice", default=tts.DEFAULT_VOICE, help="Kokoro voice for narration"
+    )
     p_edit.add_argument("--only", default="", help=ONLY_HELP)
     p_edit.add_argument(
         "--out",

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from bisect import bisect_right
+from collections.abc import Callable, Iterable, Iterator
+from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime
 from fractions import Fraction
@@ -10,9 +12,49 @@ from pathlib import Path
 
 import av
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 OUT_FPS = 30
 OUT_SIZE = (854, 480)
+# Cuts made from an instruction are rendered larger, for showing.
+EDIT_SIZE = (1280, 720)
+# Preview sound: stereo AAC; every clip fades in and out this fast so the
+# joins do not click.
+AUDIO_RATE = 48_000
+AUDIO_BITRATE = 128_000
+AUDIO_FADE_SEC = 0.025
+AAC_FRAME = 1024
+# Narration over the original sound: each line is brought to this RMS
+# level; the original is turned down to DUCK_GAIN (about -12 dB) while a
+# line plays, easing in and out over DUCK_RAMP_SEC.
+NARRATION_RMS = 0.1
+NARRATION_PEAK = 0.95
+DUCK_GAIN = 0.25
+DUCK_RAMP_SEC = 0.15
+# Burned subtitles, sized for OUT_SIZE frames and scaled with the frame
+# height: white, dark outline, near the bottom.
+SUBTITLE_SIZE = 26
+SUBTITLE_STROKE = 2
+SUBTITLE_MARGIN = 24
+# A translucent dark box behind the text keeps it readable on any picture
+# (and over captions already burned into the source).
+SUBTITLE_PAD = 6
+SUBTITLE_BOX_ALPHA = 150
+
+# Title card of a cut (sized for OUT_SIZE frames too): a large title and
+# a smaller line under it, centred, fading in and out.
+TITLE_SIZE = 44
+TITLE_SUB_SIZE = 22
+TITLE_FADE_SEC = 0.5
+# A cut opens from black and closes to black; its sound fades with it.
+FADE_IN_SEC = 0.5
+FADE_OUT_SEC = 1.2
+# Dissolve between two clips: the first runs on this long past its end
+# (a handle from the source) under the start of the next.
+DISSOLVE_SEC = 0.6
+
+# Changes frame number n (counted in the output) before it is encoded.
+FrameDraw = Callable[[int, np.ndarray], np.ndarray]
 
 
 @dataclass(frozen=True)
@@ -206,8 +248,14 @@ def segment_frames_every(
         buf, idx = [], idx + 1
 
 
-def read_clip(path: Path, start: float, duration: float) -> list[np.ndarray]:
-    """Resample [start, start+duration) of ``path`` to OUT_FPS RGB frames."""
+def read_clip(
+    path: Path,
+    start: float,
+    duration: float,
+    size: tuple[int, int] = OUT_SIZE,
+) -> list[np.ndarray]:
+    """Resample [start, start+duration) of ``path`` to OUT_FPS RGB frames
+    of ``size``."""
     n_out = round(duration * OUT_FPS)
     targets = [start + i / OUT_FPS for i in range(n_out)]
     frames: list[np.ndarray] = []
@@ -229,7 +277,7 @@ def read_clip(path: Path, start: float, duration: float) -> list[np.ndarray]:
             if len(frames) >= n_out:
                 break
             last = frame.reformat(
-                width=OUT_SIZE[0], height=OUT_SIZE[1], format="rgb24"
+                width=size[0], height=size[1], format="rgb24"
             ).to_ndarray()
         else:
             ended = True
@@ -262,6 +310,345 @@ def write_video(frames: Iterable[np.ndarray], out_path: Path) -> None:
                 container.mux(packet)
         for packet in stream.encode():
             container.mux(packet)
+
+
+def read_audio_clip(path: Path, start: float, duration: float) -> np.ndarray:
+    """[start, start+duration) of ``path``'s first audio stream as stereo
+    float32 at AUDIO_RATE, shape (2, n); silence where the file has no sound
+    (no audio stream, or it ends early). Both ends fade over AUDIO_FADE_SEC.
+    Samples are placed by the first decoded frame's time and counted from
+    there, so the clip is off by at most the resampler's delay."""
+    n = round(duration * AUDIO_RATE)
+    out = np.zeros((2, n), np.float32)
+    base = round(start * AUDIO_RATE)
+    with av.open(str(path)) as container:
+        if container.streams.audio:
+            stream = container.streams.audio[0]
+            resampler = av.AudioResampler(
+                format="fltp", layout="stereo", rate=AUDIO_RATE
+            )
+            container.seek(int(max(0.0, start - 1.0) / stream.time_base), stream=stream)
+            at: int | None = None
+            for frame in container.decode(stream):
+                if frame.time is None:
+                    continue
+                if float(frame.time) >= start + duration:
+                    break
+                if at is None:
+                    at = round(float(frame.time) * AUDIO_RATE) - base
+                for chunk in resampler.resample(frame):
+                    at = _place(out, chunk.to_ndarray(), at)
+            if at is not None:
+                for chunk in resampler.resample(None):
+                    at = _place(out, chunk.to_ndarray(), at)
+    fade = min(round(AUDIO_FADE_SEC * AUDIO_RATE), n // 2)
+    if fade:
+        ramp = np.linspace(0.0, 1.0, fade, dtype=np.float32)
+        out[:, :fade] *= ramp
+        out[:, n - fade :] *= ramp[::-1]
+    return out
+
+
+def _place(out: np.ndarray, samples: np.ndarray, at: int) -> int:
+    """Copy ``samples`` into ``out`` from index ``at`` (may lie outside it);
+    returns the index after them."""
+    lo, hi = max(at, 0), min(at + samples.shape[1], out.shape[1])
+    if lo < hi:
+        out[:, lo:hi] = samples[:, lo - at : hi - at]
+    return at + samples.shape[1]
+
+
+def voice_track(mono: np.ndarray, rate: int) -> np.ndarray:
+    """A narration line (mono at ``rate``) as stereo at AUDIO_RATE, brought
+    to NARRATION_RMS without peaks above NARRATION_PEAK, edges faded."""
+    if mono.size == 0 or not np.any(mono):
+        raise ValueError("Narration line is silent")
+    n = round(mono.size * AUDIO_RATE / rate)
+    x = np.interp(np.arange(n) * rate / AUDIO_RATE, np.arange(mono.size), mono).astype(
+        np.float32
+    )
+    x *= NARRATION_RMS / float(np.sqrt(np.mean(x**2)))
+    peak = float(np.abs(x).max())
+    if peak > NARRATION_PEAK:
+        x *= NARRATION_PEAK / peak
+    fade = min(round(AUDIO_FADE_SEC * AUDIO_RATE), n // 2)
+    if fade:
+        ramp = np.linspace(0.0, 1.0, fade, dtype=np.float32)
+        x[:fade] *= ramp
+        x[n - fade :] *= ramp[::-1]
+    return np.stack([x, x])
+
+
+def duck_and_mix(
+    samples: np.ndarray, at: int, narration: list[tuple[float, np.ndarray]]
+) -> np.ndarray:
+    """``samples`` (stereo, starting at sample ``at`` of the output) with
+    the original turned down under each narration line and the lines added.
+    ``narration`` is (start seconds, stereo samples from voice_track)."""
+    n = samples.shape[1]
+    idx = np.arange(at, at + n)
+    gain = np.ones(n, np.float32)
+    voices = np.zeros_like(samples)
+    ramp = max(round(DUCK_RAMP_SEC * AUDIO_RATE), 1)
+    for start, voice in narration:
+        s0 = round(start * AUDIO_RATE)
+        s1 = s0 + voice.shape[1]
+        if s1 + ramp <= at or s0 - ramp >= at + n:
+            continue
+        down = np.clip((s0 - idx) / ramp, 0.0, 1.0)  # 1 before, 0 from s0
+        up = np.clip((idx - s1) / ramp, 0.0, 1.0)  # 0 until s1, 1 after
+        env = DUCK_GAIN + (1 - DUCK_GAIN) * np.maximum(down, up)
+        gain = np.minimum(gain, env.astype(np.float32))
+        lo, hi = max(s0, at), min(s1, at + n)
+        if lo < hi:
+            voices[:, lo - at : hi - at] += voice[:, lo - s0 : hi - s0]
+    return samples * gain + voices
+
+
+def dissolve(
+    tail: tuple[list[np.ndarray], np.ndarray],
+    head: tuple[list[np.ndarray], np.ndarray],
+) -> tuple[list[np.ndarray], np.ndarray]:
+    """``head`` (frames and sound of a clip) with ``tail`` (what the clip
+    before it shows and sounds like just past its end) laid over its start
+    and fading out: the two dissolve into each other without changing the
+    clip's length."""
+    frames, sound = list(head[0]), head[1].copy()
+    n = min(len(tail[0]), len(frames))
+    for k in range(n):
+        a = (k + 1) / (n + 1)
+        mixed = tail[0][k].astype(np.float32) * (1 - a) + frames[k] * a
+        frames[k] = mixed.astype(np.uint8)
+    m = min(tail[1].shape[1], sound.shape[1])
+    ramp = np.linspace(0.0, 1.0, m, dtype=np.float32)
+    sound[:, :m] = tail[1][:, :m] * (1 - ramp) + sound[:, :m] * ramp
+    return frames, sound
+
+
+def edge_gain(at: int, n: int, total: int, fade_in: int, fade_out: int) -> np.ndarray:
+    """Gain for samples (or frames) at..at+n of ``total``: rising from 0
+    over the first ``fade_in``, falling to 0 over the last ``fade_out``."""
+    idx = np.arange(at, at + n, dtype=np.float32)
+    rise = np.clip((idx + 1) / max(fade_in, 1), 0.0, 1.0)
+    fall = np.clip((total - idx) / max(fade_out, 1), 0.0, 1.0)
+    return np.minimum(rise, fall)
+
+
+def write_av(
+    clips: Iterable[tuple[list[np.ndarray], np.ndarray]],
+    outputs: list[tuple[Path, FrameDraw | None]],
+    narration: list[tuple[float, np.ndarray]] | None = None,
+    size: tuple[int, int] = OUT_SIZE,
+    total_sec: float | None = None,
+) -> None:
+    """Clips (OUT_FPS RGB frames of ``size``, and their sound from
+    read_audio_clip) back to back into each output mp4, H.264 + AAC, in
+    one pass over the clips; an output's draw changes each frame before it
+    is encoded. ``narration`` lines are mixed over the sound
+    (duck_and_mix). With ``total_sec`` (the cut's length) picture and sound
+    fade in from black and out to it (FADE_IN_SEC, FADE_OUT_SEC)."""
+    with ExitStack() as stack:
+        sinks = []
+        for path, draw in outputs:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            container = stack.enter_context(av.open(str(path), mode="w"))
+            video = container.add_stream("libx264", rate=Fraction(OUT_FPS))
+            video.width, video.height = size
+            video.pix_fmt = "yuv420p"
+            video.options = {"crf": "23", "preset": "veryfast"}
+            audio = container.add_stream("aac", rate=AUDIO_RATE)
+            audio.layout = "stereo"
+            audio.bit_rate = AUDIO_BITRATE
+            sinks.append((container, video, audio, draw))
+        n_frames = n_samples = 0
+        pending = np.zeros((2, 0), np.float32)
+
+        def encode_audio(samples: np.ndarray) -> None:
+            nonlocal n_samples
+            for container, _, audio, _ in sinks:
+                frame = av.AudioFrame.from_ndarray(
+                    np.ascontiguousarray(samples), format="fltp", layout="stereo"
+                )
+                frame.sample_rate = AUDIO_RATE
+                frame.pts, frame.time_base = n_samples, Fraction(1, AUDIO_RATE)
+                container.mux(audio.encode(frame))
+            n_samples += samples.shape[1]
+
+        last_frame = round(total_sec * OUT_FPS) if total_sec else 0
+        last_sample = round(total_sec * AUDIO_RATE) if total_sec else 0
+        for frames, samples in clips:
+            for arr in frames:
+                if total_sec:
+                    gain = edge_gain(
+                        n_frames,
+                        1,
+                        last_frame,
+                        round(FADE_IN_SEC * OUT_FPS),
+                        round(FADE_OUT_SEC * OUT_FPS),
+                    )[0]
+                    if gain < 1:
+                        arr = (arr * gain).astype(np.uint8)
+                for container, video, _, draw in sinks:
+                    shown = arr if draw is None else draw(n_frames, arr)
+                    frame = av.VideoFrame.from_ndarray(shown, format="rgb24")
+                    container.mux(video.encode(frame))
+                n_frames += 1
+            at = n_samples + pending.shape[1]
+            if narration:
+                samples = duck_and_mix(samples, at, narration)
+            if total_sec:
+                samples = samples * edge_gain(
+                    at,
+                    samples.shape[1],
+                    last_sample,
+                    round(FADE_IN_SEC * AUDIO_RATE),
+                    round(FADE_OUT_SEC * AUDIO_RATE),
+                )
+            pending = np.concatenate([pending, samples], axis=1)
+            whole = pending.shape[1] - pending.shape[1] % AAC_FRAME
+            for k in range(0, whole, AAC_FRAME):
+                encode_audio(pending[:, k : k + AAC_FRAME])
+            pending = pending[:, whole:]
+        if pending.shape[1]:
+            encode_audio(pending)
+        for container, video, audio, _ in sinks:
+            container.mux(video.encode())
+            container.mux(audio.encode())
+
+
+class SubtitlePainter:
+    """Draws timed lines of text near the bottom of ``frame``-sized frames,
+    white with a dark outline on a translucent dark box, sized for OUT_SIZE
+    and scaled with the frame height. ``cues`` are (start, end, text) in
+    seconds of the output, in time order; where two overlap the later one
+    shows."""
+
+    def __init__(
+        self,
+        cues: list[tuple[float, float, str]],
+        font: Path,
+        size: int = SUBTITLE_SIZE,
+        frame: tuple[int, int] = OUT_SIZE,
+    ) -> None:
+        self._cues = cues
+        self._starts = [c[0] for c in cues]
+        self._frame = frame
+        self._scale = frame[1] / OUT_SIZE[1]
+        self._font = ImageFont.truetype(str(font), round(size * self._scale))
+        self._drawn: dict[int, tuple[np.ndarray, np.ndarray, int, int]] = {}
+
+    def __call__(self, n: int, frame: np.ndarray) -> np.ndarray:
+        t = n / OUT_FPS
+        k = bisect_right(self._starts, t) - 1
+        if k < 0 or t >= self._cues[k][1]:
+            return frame
+        rgb, alpha, x, y = self._text(k)
+        out = frame.copy()
+        h, w = alpha.shape[:2]
+        region = out[y : y + h, x : x + w].astype(np.float32)
+        blended = region * (1 - alpha) + rgb * alpha
+        out[y : y + h, x : x + w] = blended.astype(np.uint8)
+        return out
+
+    def _text(self, k: int) -> tuple[np.ndarray, np.ndarray, int, int]:
+        if k not in self._drawn:
+            text = self._cues[k][2]
+            stroke = round(SUBTITLE_STROKE * self._scale)
+            box = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox(
+                (0, 0), text, font=self._font, stroke_width=stroke
+            )
+            pad = round(SUBTITLE_PAD * self._scale)
+            w, h = box[2] - box[0] + 2 * pad, box[3] - box[1] + 2 * pad
+            if w > self._frame[0]:
+                raise ValueError(f"Subtitle wider than the frame: {text!r}")
+            image = Image.new("RGBA", (w, h), (0, 0, 0, SUBTITLE_BOX_ALPHA))
+            ImageDraw.Draw(image).text(
+                (pad - box[0], pad - box[1]),
+                text,
+                font=self._font,
+                fill=(255, 255, 255, 255),
+                stroke_width=stroke,
+                stroke_fill=(0, 0, 0, 255),
+            )
+            arr = np.asarray(image, dtype=np.float32)
+            x = (self._frame[0] - w) // 2
+            y = self._frame[1] - round(SUBTITLE_MARGIN * self._scale) - h
+            self._drawn[k] = (arr[..., :3], arr[..., 3:] / 255.0, x, y)
+        return self._drawn[k]
+
+
+class TitlePainter:
+    """A title card over the opening of a cut: ``title`` large and ``line``
+    smaller under it, centred on ``frame``-sized frames, shown from
+    ``start`` to ``end`` seconds and fading in and out over TITLE_FADE_SEC.
+    A title too wide for the frame is drawn smaller."""
+
+    def __init__(
+        self,
+        title: str,
+        line: str,
+        font: Path,
+        start: float,
+        end: float,
+        frame: tuple[int, int] = OUT_SIZE,
+    ) -> None:
+        self._start, self._end = start, end
+        scale = frame[1] / OUT_SIZE[1]
+        size = round(TITLE_SIZE * scale)
+        big = ImageFont.truetype(str(font), size)
+        while big.getlength(title) > 0.9 * frame[0] and size > 12:
+            size -= 2
+            big = ImageFont.truetype(str(font), size)
+        small = ImageFont.truetype(str(font), round(TITLE_SUB_SIZE * scale))
+        image = Image.new("RGBA", frame, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        stroke = max(1, round(SUBTITLE_STROKE * scale))
+        gap = round(12 * scale)
+        h_big = big.getbbox(title)[3]
+        h_small = small.getbbox(line)[3] if line else 0
+        y = (frame[1] - h_big - (gap + h_small if line else 0)) // 2
+        for text, font_, top in ((title, big, y), (line, small, y + h_big + gap)):
+            if text:
+                draw.text(
+                    ((frame[0] - font_.getlength(text)) / 2, top),
+                    text,
+                    font=font_,
+                    fill=(255, 255, 255, 255),
+                    stroke_width=stroke,
+                    stroke_fill=(0, 0, 0, 200),
+                )
+        arr = np.asarray(image, dtype=np.float32)
+        rows = np.flatnonzero(arr[..., 3].any(axis=1))
+        self._top, self._bottom = int(rows[0]), int(rows[-1]) + 1
+        self._rgb = arr[self._top : self._bottom, :, :3]
+        self._alpha = arr[self._top : self._bottom, :, 3:] / 255.0
+
+    def __call__(self, n: int, frame: np.ndarray) -> np.ndarray:
+        t = n / OUT_FPS
+        if not self._start <= t < self._end:
+            return frame
+        fade = min(t - self._start, self._end - t) / TITLE_FADE_SEC
+        alpha = self._alpha * min(1.0, fade)
+        out = frame.copy()
+        region = out[self._top : self._bottom].astype(np.float32)
+        out[self._top : self._bottom] = (
+            region * (1 - alpha) + self._rgb * alpha
+        ).astype(np.uint8)
+        return out
+
+
+def compose(*draws: FrameDraw | None) -> FrameDraw | None:
+    """One FrameDraw applying ``draws`` in order (None ones skipped)."""
+    used = [d for d in draws if d is not None]
+    if not used:
+        return None
+
+    def draw(n: int, frame: np.ndarray) -> np.ndarray:
+        for d in used:
+            frame = d(n, frame)
+        return frame
+
+    return draw
 
 
 # Scene material keeps the source's look: near-lossless H.264 and AAC audio.

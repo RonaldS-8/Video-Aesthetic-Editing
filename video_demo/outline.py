@@ -33,6 +33,7 @@ import json
 import math
 import statistics
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -181,10 +182,16 @@ def segment_lines(
     """One line per segment, numbered 1.. within the chunk."""
     return "\n".join(
         f"[{n}] {_fmt(candidates[i].start)} | {candidates[i].tags['time_of_day']} | "
-        f"{assessments[i].score:.1f} | {candidates[i].tags['description']} | "
+        f"{assessments[i].score:.1f} | {_described(candidates[i].tags)} | "
         f"{'、'.join(candidates[i].tags['tags'])}"
         for n, i in enumerate(members, start=1)
     )
+
+
+def _described(tags: dict[str, Any]) -> str:
+    """The description, with the landmark when category tags name one."""
+    landmark = tags.get("landmark")
+    return f"{tags['description']}（{landmark}）" if landmark else tags["description"]
 
 
 def validate_summary(summary: Any, n_segments: int) -> dict[str, Any]:
@@ -504,7 +511,7 @@ def plan_outline(
 
 
 def _ask(
-    prompt: str,
+    prompt: str | list[dict[str, Any]],
     schema: dict[str, Any],
     name: str,
     validate: Any,
@@ -512,6 +519,7 @@ def _ask(
 ) -> tuple[dict[str, Any], str, float, list[str]]:
     """Ask with each temperature until the answer validates.
 
+    ``prompt`` is text, or text and image parts (OpenAI message content).
     Raises OutlineError listing every attempt when all fail.
     """
     errors: list[str] = []
@@ -531,7 +539,7 @@ def _ask(
 
 
 def _request(
-    prompt: str,
+    prompt: str | list[dict[str, Any]],
     temperature: float,
     schema: dict[str, Any],
     name: str,
@@ -586,16 +594,40 @@ def rescale(values: dict[int, float]) -> dict[int, float]:
     return {i: (v - low) / (high - low) for i, v in values.items()}
 
 
-def share(total: float, capacity: list[float]) -> list[float]:
-    """Split ``total`` evenly, no share above its capacity; what a small
-    scene cannot hold goes to the others."""
+def share(
+    total: float, capacity: list[float], weights: list[float] | None = None
+) -> list[float]:
+    """Split ``total`` in proportion to ``weights`` (evenly by default), no
+    share above its capacity; what a small one cannot hold goes to the
+    others in the same proportions."""
+    w = weights or [1.0] * len(capacity)
     out = [0.0] * len(capacity)
     left = total
-    order = sorted(range(len(capacity)), key=lambda j: capacity[j])
-    for n, j in enumerate(order):
-        out[j] = min(capacity[j], left / (len(order) - n))
-        left -= out[j]
+    open_ = set(range(len(capacity)))
+    while open_:
+        unit = left / sum(w[j] for j in open_)
+        full = [j for j in open_ if capacity[j] < w[j] * unit]
+        if not full:
+            for j in open_:
+                out[j] = w[j] * unit
+            break
+        for j in full:
+            out[j] = capacity[j]
+            left -= capacity[j]
+            open_.remove(j)
     return out
+
+
+def level(lengths: list[float], total: float, floor: float) -> float:
+    """The cap L (at least ``floor``) for which the lengths, each cut to at
+    most L, add up to ``total``; ``floor`` when even that runs over."""
+    ordered = sorted(lengths)
+    for n, cap in enumerate(ordered):
+        # Lengths below ``cap`` stay whole, the rest are cut to the level.
+        candidate = (total - sum(ordered[:n])) / (len(ordered) - n)
+        if candidate <= cap:
+            return max(floor, candidate)
+    return ordered[-1]
 
 
 def clip_length(c: Candidate, max_clip_sec: float | None) -> float:
@@ -603,13 +635,36 @@ def clip_length(c: Candidate, max_clip_sec: float | None) -> float:
     return c.duration if max_clip_sec is None else min(c.duration, max_clip_sec)
 
 
-def clip_span(c: Candidate, max_clip_sec: float | None) -> tuple[float, float]:
-    """The part of a segment that goes into the cut: all of it, or its
-    middle ``max_clip_sec`` (the start and end of a handheld segment are
-    where the camera is still moving into or out of the shot)."""
+def clip_span(
+    c: Candidate,
+    max_clip_sec: float | None,
+    speech: Sequence[tuple[float, float]] = (),
+) -> tuple[float, float]:
+    """The part of a segment that goes into the cut: all of it, or a window
+    of ``max_clip_sec``. The window cuts as little of ``speech`` (sentence
+    spans) as it can, each cut sentence costing its shorter side; among
+    equal windows the one nearest the middle wins (the start and end of a
+    handheld segment are where the camera is still moving into or out of
+    the shot)."""
     length = clip_length(c, max_clip_sec)
     middle = (c.start + c.end) / 2
-    return middle - length / 2, middle + length / 2
+    lo, hi = c.start, c.end - length
+    if hi - lo < 1e-9:
+        return c.start, c.end
+    edges = [t for span in speech for t in span if c.start < t < c.end]
+    starts = {middle - length / 2} | {
+        min(max(x, lo), hi) for t in edges for x in (t, t - length)
+    }
+
+    def cut(x: float) -> float:
+        return sum(
+            min(e - a, b - e) for e in (x, x + length) for a, b in speech if a < e < b
+        )
+
+    best = min(
+        starts, key=lambda x: (round(cut(x), 2), abs(x + length / 2 - middle), x)
+    )
+    return best, best + length
 
 
 def pick_segments(

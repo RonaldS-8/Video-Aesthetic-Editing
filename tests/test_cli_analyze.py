@@ -96,6 +96,8 @@ def _args() -> object:
     class Args:
         only = ""
         limit = 0
+        category = ""
+        retag = False
 
     return Args()
 

@@ -128,11 +128,14 @@ def _clip_cards(
     clips: list[dict],
     seg_frames: dict[tuple[str, int], str],
     files: dict[str, str],
+    subtitles: dict[int, list[dict]] | None = None,
 ) -> str:
-    """``files`` maps video ids to raw file names for the captions."""
+    """``files`` maps video ids to raw file names for the captions;
+    ``subtitles`` the preview's cue records by clip number (from 1)."""
     cards = []
-    for c in clips:
+    for number, c in enumerate(clips, start=1):
         img = seg_frames.get((c["video"], c["index"]), "")
+        said = "".join(_cue_line(r) for r in (subtitles or {}).get(number, []))
         cards.append(
             f'<div class="clip"><img src="{escape(img)}" alt="">'
             f"<b>{c['order'] + 1}. {escape(c['role'])}</b> "
@@ -140,9 +143,128 @@ def _clip_cards(
             f"<span class='muted'>{escape(files[c['video']][:24])} "
             f"{_fmt(c['src_start'])}–{_fmt(c['src_end'])}</span><br>"
             f"{escape(c['description'])}<br>"
-            f"<span class='muted'>{escape(c['reason'])}</span></div>"
+            f"<span class='muted'>{escape(c['reason'])}</span>{said}</div>"
         )
     return f'<div class="clips">{"".join(cards)}</div>'
+
+
+def _cue_line(record: dict) -> str:
+    """One subtitle of a clip: kept, trimmed (with the whole line) or
+    dropped (struck through, with why)."""
+    if record["status"] == "kept":
+        return f"<br>💬 {escape(record['text'])}"
+    if record["status"] == "trimmed":
+        return (
+            f"<br>💬 {escape(record['kept'])} "
+            f"<span class='muted'>（原句：{escape(record['text'])}）</span>"
+        )
+    return (
+        f"<br><span class='muted'>💬 <s>{escape(record['text'])}</s>"
+        f"（{escape(record['reason'])}）</span>"
+    )
+
+
+def _narration(timeline: dict, folder: Path) -> str:
+    """The narration lines of an edit: when each starts, on which clip, what
+    is said and how long it takes."""
+    record = timeline.get("narration")
+    if not record:
+        return ""
+    checks = {c["clip"]: c for c in record.get("checks", [])}
+
+    def checked(x: dict) -> str:
+        c = checks.get(x["clip"])
+        if not c or c["written"] == c["checked"]:
+            return ""
+        why = "；".join(c["problems"]) or "改写"
+        return (
+            f'<br><span class="muted">看画面核对前：{escape(c["written"])}'
+            f"（{escape(why)}）</span>"
+        )
+
+    rows = "".join(
+        f"<tr><td>{_fmt(x['start'])}</td><td>{x['clip']}</td>"
+        f"<td>{escape(x['text'])}{checked(x)}</td><td>{x['seconds']:.1f}s / "
+        f"{x['window']:.1f}s</td></tr>"
+        for x in record["lines"]
+    )
+    preview = layout.edit_preview_path(folder)
+    srt = (
+        f"{_link(layout.narration_text_path(preview), folder, '解说词与时间线')} · "
+        f"{_link(layout.narration_srt_path(preview), folder, '解说字幕')}"
+    )
+    return (
+        f"<h3>解说（{len(record['lines'])} 句，音色 {escape(record['voice'])}）</h3>"
+        f'<p class="muted">按素材类型的解说风格写，只挂在没人说话的镜头上，'
+        "写完由 4B 看画面逐句核对；"
+        f"解说时原声压到 {record['duck_gain']:.0%} · {srt}</p>"
+        "<table><tr><th>开始</th><th>镜头</th><th>解说</th><th>时长 / 可用</th></tr>"
+        f"{rows}</table>"
+    )
+
+
+def _subtitled(preview: Path) -> Path | None:
+    """The burned-in version of ``preview`` when it has something on screen
+    (subtitles of speech or narration); None for a preview without speech,
+    which is shown plain."""
+    burned = layout.burned_preview_path(preview)
+    if not burned.exists():
+        return None
+    for srt in (layout.preview_srt_path(preview), layout.narration_srt_path(preview)):
+        if srt.exists() and srt.read_text("utf-8").strip():
+            return burned
+    return None
+
+
+def _preview_links(preview: Path, base: Path) -> str:
+    """A preview for listings: the subtitled one when there is one, with the
+    plain one as an extra link."""
+    subtitled = _subtitled(preview)
+    if subtitled is None:
+        return _link(preview, base, "预览")
+    return (
+        f"{_link(subtitled, base, '预览（带字幕）')}"
+        f"（{_link(preview, base, '无字幕版')}）"
+    )
+
+
+def _preview(preview: Path, base: Path) -> tuple[str, dict[int, list[dict]]]:
+    """The preview player, links to its subtitles when they exist, and its
+    cue records by clip number. The player shows the subtitled version when
+    there is one (_subtitled); the plain preview is then a link."""
+    subtitled = _subtitled(preview)
+    shown = subtitled or preview
+    links = [
+        _link(path, base, label)
+        for path, label in (
+            *([(preview, "不带字幕的预览")] if subtitled else []),
+            (layout.preview_srt_path(preview), "字幕 SRT"),
+            (layout.preview_srt_path(preview, "zh"), "中文译文字幕"),
+            (layout.preview_srt_path(preview, "zh.bilingual"), "双语字幕"),
+            (layout.narration_text_path(preview), "解说词与时间线"),
+            (layout.narration_srt_path(preview), "解说字幕"),
+            (layout.preview_cue_map_path(preview), "字幕截断记录"),
+        )
+        if path.exists()
+    ]
+    by_clip: dict[int, list[dict]] = {}
+    mapping = layout.preview_cue_map_path(preview)
+    if mapping.exists():
+        data = _read_json(mapping)
+        for r in data["cues"]:
+            by_clip.setdefault(r["clip"], []).append(r)
+        counts = data["counts"]
+        links.append(
+            f"字幕完整 {counts.get('kept', 0)}、截断 {counts.get('trimmed', 0)}、"
+            f"丢弃 {counts.get('dropped', 0)} 条"
+        )
+    html = (
+        f'<video src="{escape(_rel(shown, base))}" controls preload="metadata">'
+        "</video>"
+    )
+    if links:
+        html += f'<p class="muted">{" · ".join(links)}</p>'
+    return html, by_clip
 
 
 def keyframe_paths(
@@ -236,9 +358,16 @@ def _video_section(
         else ""
     )
     audio = "有音轨" if seg["has_audio"] else "无音轨"
-    srt = layout.srt_path(result_dir, mode)
-    if srt.exists():
-        audio += f' · <a href="{escape(_rel(srt, out_dir))}">字幕</a>'
+    for path, label in (
+        (layout.refined_srt_path(result_dir), "字幕"),
+        (layout.recognized_srt_path(result_dir), "识别原文"),
+        (layout.subtitle_changes_path(result_dir), "校对改动"),
+        (layout.translated_srt_path(result_dir, "zh"), "中文译文"),
+        (layout.translated_srt_path(result_dir, "zh.bilingual"), "双语"),
+    ):
+        if path.exists():
+            audio += f" · {_link(path, out_dir, label)}"
+    player, subs = _preview(layout.preview_path(result_dir, mode), out_dir)
     title = escape(f"{video.file}（{vid}）{partial}")
     html = f"""
 <details{' open' if n == 0 else ''}><summary>{title}</summary>
@@ -251,9 +380,8 @@ def _video_section(
 蓝框为入选建议时间线的片段。</p>
 <h3>建议时间线（{tl['total_sec']}s / 目标 {tl['target_sec']:.0f}s）</h3>{note}
 {outline_table(tl)}
-<video src="{escape(_rel(layout.preview_path(result_dir, mode), out_dir))}" controls
-preload="metadata"></video>
-{_clip_cards(tl['clips'], frames, {vid: video.file})}
+{player}
+{_clip_cards(tl['clips'], frames, {vid: video.file}, subs)}
 <h3>逐片段标签</h3>
 <div class="scroll"><table><tr><th>片段</th><th>时间</th><th>关键帧</th>
 <th>模型标签</th><th>美学分 / VLM 精彩度</th><th>画质信号</th><th>建议</th></tr>
@@ -534,6 +662,7 @@ def write(
         f'<span class="muted">{extra}</span></div>'
         for k, v, extra in cards
     )
+    player, subs = _preview(layout.preview_path(out_dir, mode), out_dir)
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>视频切分与剪辑建议（DOVER 美学打分版）</title><style>{CSS}</style></head>
@@ -554,9 +683,8 @@ Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 {''.join(_eval_section(ev) for ev in evals)}{EVAL_NOTE}
 {summary_heading(mode, summary)}
 {scene_slots(summary, all_frames, descriptions) if mode == "highlights" else ""}
-<video src="{escape(_rel(layout.preview_path(out_dir, mode), out_dir))}" controls
-preload="metadata"></video>
-{_clip_cards(summary['clips'], all_frames, {v.id: v.file for v in videos})}
+{player}
+{_clip_cards(summary['clips'], all_frames, {v.id: v.file for v in videos}, subs)}
 <h2>3. 逐视频结果</h2>
 {''.join(sections)}
 <p class="muted">素材来自 Wikimedia Commons（CC BY / CC BY-SA 3.0），
@@ -659,8 +787,8 @@ def write_edit(
         )
     pace_note = {
         "整段": "每段素材完整保留",
-        "适中": "每段最多 6 秒，取中间",
-        "快": "每段最多 3 秒，取中间",
+        "适中": "每段最多 6 秒，取中间，避开句子",
+        "快": "每段最多 3 秒，取中间，避开句子",
     }[plan["pace"]]
     total = timeline["catalog_total"]
     catalog_note = (
@@ -707,6 +835,7 @@ def write_edit(
         if failed
         else ""
     )
+    player, subs = _preview(layout.edit_preview_path(folder), folder)
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)}</title><style>{CSS}</style></head>
@@ -731,9 +860,9 @@ def write_edit(
 成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
 {''.join(parts)}
 <h2>预览</h2>
-<video src="{escape(_rel(layout.edit_preview_path(folder), folder))}" controls
-preload="metadata"></video>
-{_clip_cards(timeline['clips'], frames, files)}
+{player}
+{_narration(timeline, folder)}
+{_clip_cards(timeline['clips'], frames, files, subs)}
 <h2>大纲原文</h2>
 <p class="muted">模型输出的 JSON，未经改动；各部分的秒数由程序按 weight 另算。</p>
 <pre class="raw">{escape(timeline['outline_raw'])}</pre>
@@ -770,7 +899,7 @@ def _edit_rows(collection: Path, out: Path) -> list[str]:
             f"<td>{escape(t['outline'].get('title') or '')}</td>"
             f"<td>{t['total_sec']:.1f}s / {t['target_sec']:.0f}s</td>"
             f"<td>{_link(layout.edit_report_path(folder), out, '报告')} · "
-            f"{_link(layout.edit_preview_path(folder), out, '预览')}</td></tr>"
+            f"{_preview_links(layout.edit_preview_path(folder), out)}</td></tr>"
         )
     return rows[::-1]
 
@@ -781,6 +910,11 @@ def _video_rows(collection: Path, out: Path) -> list[str]:
         listing = layout.scenes_dir(folder) / "scenes.json"
         tags = layout.tags_copy_path(folder)
         timelines = [layout.timeline_path(folder, m) for m in MODE_TITLES]
+        previews = [
+            f"{MODE_TITLES[m]} {_preview_links(layout.preview_path(folder, m), out)}"
+            for m in MODE_TITLES
+            if layout.preview_path(folder, m).exists()
+        ]
         if not any(p.exists() for p in (listing, tags, *timelines)):
             continue
         scenes = (
@@ -792,7 +926,8 @@ def _video_rows(collection: Path, out: Path) -> list[str]:
         rows.append(
             f"<tr><td>{escape(folder.name)}</td><td>{scenes}</td>"
             f"<td>{_link(tags, out, 'tags.jsonl')}</td>"
-            f"<td>{' · '.join(_link(t, out, t.name) for t in timelines)}</td></tr>"
+            f"<td>{' · '.join(_link(t, out, t.name) for t in timelines)}</td>"
+            f"<td>{' · '.join(previews) or '—'}</td></tr>"
         )
     return rows
 
@@ -808,7 +943,7 @@ def write_index(out: Path) -> Path:
         reports = [
             f"<li>{MODE_TITLES[m]}："
             f"{_link(layout.report_path(collection, m), out, '报告')} · "
-            f"{_link(layout.preview_path(collection, m), out, '预览')}</li>"
+            f"{_preview_links(layout.preview_path(collection, m), out)}</li>"
             for m in MODE_TITLES
             if layout.report_path(collection, m).exists()
         ]
@@ -827,7 +962,7 @@ def write_index(out: Path) -> Path:
             f"<h2>{escape(collection.name)}</h2><ul>{''.join(reports)}</ul>"
             f"<h3>按指令剪辑（{len(edits)} 次）</h3>{edit_table}"
             '<h3>逐条视频</h3><div class="scroll"><table><tr><th>视频</th>'
-            "<th>场景素材</th><th>标签</th><th>时间线</th></tr>"
+            "<th>场景素材</th><th>标签</th><th>时间线</th><th>预览</th></tr>"
             f"{''.join(videos)}</table></div>"
         )
     evals = [

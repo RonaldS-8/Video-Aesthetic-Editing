@@ -31,9 +31,12 @@ from __future__ import annotations
 
 import json
 import statistics
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from video_demo import outline
+
+if TYPE_CHECKING:
+    from video_demo.category import Profile
 from video_demo.outline import (
     MAX_SLOTS,
     MAX_WEIGHT,
@@ -212,8 +215,10 @@ REQUEST_PROMPT = """用户的剪辑要求：
 每行：[场景编号] 起止时间 | 标题 | 概况
 
 {catalog}
-
+{structure}
 请按用户的要求，从这些场景里设计一个约 {target_sec:.0f} 秒的成片，按顺序写：
+0. title：成片的片名，会作为片头标题出现在画面上，像短片标题那样简短
+   （不超过 12 个字），不写时长；
 1. materials：通读上面的场景，挑出符合要求的场景，每条写场景编号（scene）和
    这个场景里能用的具体内容（content：地点、主体、画面，不超过 {max_material} 个字），
    不超过 {max_materials} 条；
@@ -233,6 +238,14 @@ REQUEST_PROMPT = """用户的剪辑要求：
      sources 写这个画面取自 materials 里的哪几个场景（1–{max_sources} 个编号）。
 程序会按每个 query 从全部场景里检索一个最符合的场景，一个场景只用一次。
 只输出 JSON。"""
+
+
+# The category's usual structure, offered as a reference (the user's
+# instruction still decides).
+STRUCTURE_PROMPT = """
+这批素材属于「{name}」，这类成片常用的结构是：{structure}
+设计时可以参考，但以用户的要求为准。
+"""
 
 
 def request_schema(max_parts: int) -> dict[str, Any]:
@@ -344,11 +357,13 @@ def plan_request(
     total_sec: float,
     target_sec: float,
     server_url: str = outline.SERVER_URL,
+    profile: Profile | None = None,
 ) -> tuple[dict[str, Any], str, float, list[str]]:
     """(outline, raw, seconds, failed tries) for the instruction.
 
     ``catalog`` is the scenes that keep footage, each with its number,
-    start, end, title and summary; ``total_sec`` the footage's length.
+    start, end, title and summary; ``total_sec`` the footage's length;
+    ``profile`` the footage's category, whose usual structure is offered.
     """
     min_part, max_parts = outline.part_limits(target_sec)
     prompt = REQUEST_PROMPT.format(
@@ -356,6 +371,11 @@ def plan_request(
         total_min=total_sec / 60,
         n=len(catalog),
         catalog=catalog_lines(catalog),
+        structure=(
+            STRUCTURE_PROMPT.format(name=profile.name, structure=profile.structure)
+            if profile
+            else ""
+        ),
         target_sec=target_sec,
         max_parts=max_parts,
         min_part=min_part,
@@ -385,12 +405,15 @@ def fill_request(
     scene_relevance: list[list[dict[int, float]]],
     segment_relevance: list[list[dict[int, float]]],
     named: set[int],
+    speech: dict[str, list[tuple[float, float]]] | None = None,
 ) -> tuple[list[Clip], list[str], list[list[dict[str, Any]]]]:
     """Fill every slot of the outline from all scenes, one scene per slot.
 
     ``scene_relevance[part][slot]`` maps every scene number to retrieval
     relevance (0-1), ``segment_relevance[part][slot]`` every candidate;
-    ``named`` are the candidates the chunk summaries called highlights.
+    ``named`` are the candidates the chunk summaries called highlights;
+    ``speech`` maps a video to its sentence spans, which trimmed clips
+    avoid cutting (outline.clip_span).
     Every scene with usable segments is in every slot's pool. All (slot,
     scene) pairs of the outline are taken best first (relevance rescaled
     within the pool + quality), so a scene goes to one slot. A part's
@@ -426,15 +449,43 @@ def fill_request(
     def length(i: int) -> float:
         return outline.clip_length(candidates[i], max_clip)
 
+    last = len(plan["parts"]) - 1
+
+    def fits(k: int, i: int) -> bool:
+        """Category tags call the segment a good opening (first part) or
+        ending (last part) shot."""
+        tags = candidates[i].tags
+        return (k == 0 and tags.get("opening") is True) or (
+            k == last and tags.get("ending") is True
+        )
+
     notes: list[str] = []
     chosen: list[tuple[int, int, int]] = []  # (part, slot, candidate)
     slots_out: list[list[dict[str, Any]]] = []
+    # A part whose scenes cannot hold its seconds passes the rest on to the
+    # other parts, in proportion to the outline's own durations.
+    planned = [float(part["duration_sec"]) for part in plan["parts"]]
+    room = [
+        sum(
+            sum(map(length, kept[assigned[(k, j)]]))
+            for j in range(len(part["scenes"]))
+            if (k, j) in assigned
+        )
+        for k, part in enumerate(plan["parts"])
+    ]
+    budget = outline.share(sum(planned), room, planned)
+    passed_on = sum(budget) > sum(planned) - 0.5
+    if not passed_on:
+        notes.append(f"可用素材只够 {sum(budget):.1f}s，目标 {sum(planned):.0f}s")
     for k, part in enumerate(plan["parts"]):
+        if passed_on and budget[k] < planned[k] - 0.5:
+            notes.append(
+                f"「{part['name']}」素材只够 {budget[k]:.1f}s（计划 "
+                f"{planned[k]:.0f}s），其余分给其他部分"
+            )
         filled = [j for j in range(len(part["scenes"])) if (k, j) in assigned]
         capacity = [sum(map(length, kept[assigned[(k, j)]])) for j in filled]
-        seconds = dict(
-            zip(filled, outline.share(part["duration_sec"], capacity), strict=True)
-        )
+        seconds = dict(zip(filled, outline.share(budget[k], capacity), strict=True))
         part_total = 0.0
         slots: list[dict[str, Any]] = []
         for j, query in enumerate(part["scenes"]):
@@ -461,28 +512,53 @@ def fill_request(
                 seconds[j],
                 candidates,
                 assessments,
-                named,
+                named | {i for i in kept[n] if fits(k, i)},
                 max_clip,
                 RELEVANCE_SHARE,
             )
             chosen += [(k, j, i) for i in picked]
             part_total += sum(map(length, picked))
         slots_out.append(slots)
-        if part_total < 0.8 * part["duration_sec"]:
+        if part_total < 0.8 * budget[k]:
             notes.append(
                 f"「{part['name']}」素材不足：选到 {part_total:.1f}s，"
-                f"目标 {part['duration_sec']}s"
+                f"目标 {budget[k]:.1f}s"
             )
-    # Candidates are in timeline order, also across videos.
-    chosen.sort()
+
+    def place(x: tuple[int, int, int]) -> tuple:
+        """Part order; within the first part a good opening shot leads, within
+        the last a good ending shot closes; else slot, then shooting order."""
+        k, j, i = x
+        tags = candidates[i].tags
+        first = k == 0 and tags.get("opening") is True
+        final = k == last and tags.get("ending") is True and not first
+        return (k, not first, final, j, i)
+
+    chosen.sort(key=place)
+    # Slots take whole clips, so their sum can run past the target: then
+    # every clip is cut to one common length that brings it back.
+    lengths = [length(i) for _, _, i in chosen]
+    if sum(lengths) > sum(planned) + 0.5:
+        cap = outline.level(lengths, sum(planned), MIN_CLIP_SEC)
+        notes.append(
+            f"选中的镜头共 {sum(lengths):.1f}s，超过目标，每段最多取 {cap:.1f}s"
+        )
+        max_clip = cap if max_clip is None else min(max_clip, cap)
     clips = []
     for order, (k, j, i) in enumerate(chosen):
         c = candidates[i]
         slot = slots_out[k][j]
-        start, end = outline.clip_span(c, max_clip)
+        start, end = outline.clip_span(c, max_clip, (speech or {}).get(c.video, []))
         mark = "，分段总结点名的亮点" if i in named else ""
+        if k == 0 and c.tags.get("opening") is True:
+            mark += "，适合开场"
+        if k == last and c.tags.get("ending") is True:
+            mark += "，适合收尾"
         if end - start < c.duration:
-            mark += f"，取中间 {end - start:.1f}s"
+            mark += (
+                f"，取 {start - c.start:.1f}–{end - c.start:.1f}s "
+                f"处的 {end - start:.1f}s"
+            )
         clips.append(
             Clip(
                 order=order,

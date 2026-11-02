@@ -27,7 +27,7 @@ import time
 import unicodedata
 from collections import Counter
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +60,9 @@ MAX_LINE_WIDTH = 16.0  # CJK characters; other characters count half
 MIN_CUE_SEC = 1.0
 MAX_CUE_SEC = 6.0
 MIN_KEPT_SEC = 0.5  # a cue cut by a clip boundary must keep this much
-MIN_KEPT_SHARE = 0.5  # ... and this share of its length
+# A translated cue (no times per character) cut by a clip boundary is kept
+# whole when at least this share of its time plays.
+MIN_TRANSLATION_SHARE = 0.5
 
 
 class SubtitleError(RuntimeError):
@@ -88,6 +90,11 @@ class Cue:
     start: float
     end: float
     text: str
+    # (start, end) per character of ``text``; the cue itself may run past
+    # its last character (MIN_CUE_SEC).
+    times: tuple[tuple[float, float], ...] = field(
+        default=(), compare=False, repr=False
+    )
 
 
 # --- recognition ---------------------------------------------------------------
@@ -163,7 +170,11 @@ class SenseVoiceAdapter:
 
     model = SENSEVOICE_DIR
 
-    def __init__(self, models_dir: Path, threads: int = ASR_THREADS) -> None:
+    def __init__(
+        self, models_dir: Path, language: str = "", threads: int = ASR_THREADS
+    ) -> None:
+        """``language`` is a SenseVoice code (zh, en, ja, ko, yue); "" lets
+        the model detect it per utterance (needed for mixed speech)."""
         import sherpa_onnx
 
         model_dir = models_dir / SENSEVOICE_DIR
@@ -175,6 +186,7 @@ class SenseVoiceAdapter:
             model=str(model_dir / "model.int8.onnx"),
             tokens=str(model_dir / "tokens.txt"),
             num_threads=threads,
+            language=language,
             use_itn=True,
         )
         config = sherpa_onnx.VadModelConfig()
@@ -540,9 +552,12 @@ def sentence_cues(sentence: Sentence) -> list[Cue]:
             ]
             if scored:
                 end = max(scored)[2]
-        piece = text[begin:end].strip().rstrip("，、；：")
+        raw = text[begin:end]
+        first = begin + len(raw) - len(raw.lstrip())
+        piece = raw.strip().rstrip("，、；：")
         if piece:
-            cues.append(Cue(times[begin][0], times[end - 1][1], piece))
+            span = tuple(times[first : first + len(piece)])
+            cues.append(Cue(times[begin][0], times[end - 1][1], piece, span))
         begin = end
     return cues
 
@@ -550,36 +565,121 @@ def sentence_cues(sentence: Sentence) -> list[Cue]:
 def make_cues(sentences: list[Sentence]) -> list[Cue]:
     """Cues for all sentences: each at least ``MIN_CUE_SEC`` long where the
     next cue leaves room, at most ``MAX_CUE_SEC``, never overlapping."""
-    raw = [c for s in sentences for c in sentence_cues(s)]
-    raw.sort(key=lambda c: c.start)
+    return settle([c for s in sentences for c in sentence_cues(s)])
+
+
+def settle(raw: list[Cue]) -> list[Cue]:
+    """``raw`` in time order, each at least ``MIN_CUE_SEC`` long where the
+    next cue leaves room, at most ``MAX_CUE_SEC``, never overlapping."""
+    raw = sorted(raw, key=lambda c: c.start)
     out: list[Cue] = []
     for k, c in enumerate(raw):
         limit = raw[k + 1].start if k + 1 < len(raw) else float("inf")
         end = min(max(c.end, c.start + MIN_CUE_SEC), limit, c.start + MAX_CUE_SEC)
-        out.append(Cue(c.start, max(end, c.start), c.text))
+        out.append(Cue(c.start, max(end, c.start), c.text, c.times))
     return out
 
 
 def map_cues(
     cues_by_video: dict[str, list[Cue]], clips: list[dict[str, Any]]
-) -> list[Cue]:
+) -> tuple[list[Cue], list[dict[str, Any]]]:
     """Cues on an edit timeline: ``clips`` (``video``, ``src_start``,
-    ``duration``) play back to back. A cue is trimmed to the clip it falls
-    in and dropped when less than ``MIN_KEPT_SEC`` or ``MIN_KEPT_SHARE`` of
-    it remains."""
+    ``duration``) play back to back.
+
+    A cue cut by a clip edge keeps only the characters heard in the clip
+    (their middle inside it), never part of a Latin word, marked with "…"
+    on the cut side; it is dropped when no letter or digit, or less than
+    ``MIN_KEPT_SEC`` of speech, remains. A translated cue has no times per
+    character: cut, it is shown whole over the part that plays (with "…")
+    when at least ``MIN_TRANSLATION_SHARE`` of its time does, else dropped.
+    Returns the cues and one record per
+    (clip, cue) touched: kept / trimmed / dropped and why.
+    """
     out: list[Cue] = []
+    records: list[dict[str, Any]] = []
     offset = 0.0
-    for clip in clips:
+    for number, clip in enumerate(clips, start=1):
         a = clip["src_start"]
         b = a + clip["duration"]
         for c in cues_by_video.get(clip["video"], []):
-            start, end = max(c.start, a), min(c.end, b)
-            kept = end - start
-            if kept < MIN_KEPT_SEC or kept < MIN_KEPT_SHARE * (c.end - c.start):
+            if c.end <= a or c.start >= b:
                 continue
-            out.append(Cue(start - a + offset, end - a + offset, c.text))
+            record: dict[str, Any] = {
+                "clip": number,
+                "video": clip["video"],
+                "source": [round(c.start, 3), round(c.end, 3)],
+                "text": c.text,
+            }
+            records.append(record)
+            if a <= c.start and c.end <= b:
+                out.append(Cue(c.start - a + offset, c.end - a + offset, c.text))
+                record.update(status="kept", at=round(out[-1].start, 3))
+                continue
+            if not c.times:
+                start, end = max(a, c.start), min(b, c.end)
+                share = (end - start) / (c.end - c.start)
+                if share < MIN_TRANSLATION_SHARE or end - start < MIN_KEPT_SEC:
+                    record.update(
+                        status="dropped",
+                        reason=f"译文只有 {share:.0%}（{end - start:.2f}s）在片段内",
+                    )
+                    continue
+                text = ("…" if start > c.start else "") + c.text
+                text += "…" if end < c.end else ""
+                out.append(Cue(start - a + offset, end - a + offset, text))
+                record.update(status="trimmed", at=round(out[-1].start, 3), kept=text)
+                continue
+            heard = _heard(c, a, b)
+            if not heard:
+                record.update(status="dropped", reason="切点内没有完整的字")
+                continue
+            first, last = heard[0], heard[-1]
+            start = max(a, c.start if first == 0 else c.times[first][0])
+            end = min(b, c.end if last == len(c.text) - 1 else c.times[last][1])
+            if end - start < MIN_KEPT_SEC:
+                record.update(status="dropped", reason=f"切点内只剩 {end - start:.2f}s")
+                continue
+            text = c.text[first : last + 1].strip(" ，、；：,;:")
+            text = ("…" if first > 0 else "") + text
+            text += "…" if last < len(c.text) - 1 else ""
+            out.append(Cue(start - a + offset, end - a + offset, text))
+            whole = first == 0 and last == len(c.text) - 1
+            record.update(
+                status="kept" if whole else "trimmed", at=round(out[-1].start, 3)
+            )
+            if not whole:
+                record["kept"] = text
         offset += clip["duration"]
-    return out
+    return out, records
+
+
+def _heard(cue: Cue, a: float, b: float) -> list[int]:
+    """Indexes of ``cue``'s characters heard within [a, b): middle inside,
+    whole Latin words only, no spaces at either end; none unless a letter
+    or digit is among them."""
+    if len(cue.times) != len(cue.text):
+        raise SubtitleError(f"cue {cue.text!r} has no per-character times")
+    keep = [a <= (t0 + t1) / 2 < b for t0, t1 in cue.times]
+    word = [ch.isascii() and (ch.isalnum() or ch in "'-") for ch in cue.text]
+    k = 0
+    while k < len(cue.text):
+        if not word[k]:
+            k += 1
+            continue
+        j = k
+        while j < len(cue.text) and word[j]:
+            j += 1
+        if not all(keep[k:j]):
+            keep[k:j] = [False] * (j - k)
+        k = j
+    heard = [k for k, kept in enumerate(keep) if kept]
+    while heard and cue.text[heard[-1]].isspace():
+        heard.pop()
+    while heard and cue.text[heard[0]].isspace():
+        heard.pop(0)
+    if not any(cue.text[k].isalnum() for k in heard):
+        return []
+    return heard
 
 
 def _srt_time(t: float) -> str:
@@ -636,6 +736,22 @@ def read_cues(path: Path, vid: str) -> list[Cue]:
 
 
 # --- speech for retrieval ------------------------------------------------------
+
+
+def speech_spans(
+    sentences: list[Sentence],
+) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """(start, end) of each sentence, and of each clause: a sentence cut
+    after soft punctuation (，、；： and ASCII ,;:)."""
+    clauses = []
+    for s in sentences:
+        begin = 0
+        for k, ch in enumerate(s.text):
+            if ch in SOFT_BREAK and k + 1 < len(s.text):
+                clauses.append((s.times[begin][0], s.times[k][1]))
+                begin = k + 1
+        clauses.append((s.times[begin][0], s.times[-1][1]))
+    return [(s.start, s.end) for s in sentences], clauses
 
 
 def speech_text(sentences: list[Sentence], start: float, end: float) -> str:

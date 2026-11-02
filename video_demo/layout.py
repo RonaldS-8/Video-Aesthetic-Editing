@@ -275,6 +275,17 @@ def tags_path(work: Path, vid: str) -> Path:
     return work / "tags" / f"tag_{vid}.jsonl"
 
 
+def retired_tags_path(work: Path, vid: str, label: str) -> Path:
+    """Tags set aside when the video is tagged again with another prompt;
+    ``label`` names the prompt they were made with."""
+    return work / "tags" / f"tag_{vid}.{label}.jsonl"
+
+
+def category_path(work: Path, vid: str) -> Path:
+    """The video's material category, chosen by the model or the user."""
+    return work / "categories" / f"category_{vid}.json"
+
+
 def aesthetic_path(work: Path, vid: str) -> Path:
     return work / "aesthetic" / f"aesthetic_{vid}.jsonl"
 
@@ -313,6 +324,16 @@ def asr_path(work: Path, vid: str) -> Path:
 def subtitle_path(work: Path, vid: str) -> Path:
     """Model-refined sentences, aligned times and subtitle cues."""
     return work / "subtitles" / f"subtitle_{vid}.json"
+
+
+def translation_path(work: Path, vid: str, lang: str) -> Path:
+    """Translated subtitle sentences, one part per source cue."""
+    return work / "translations" / f"translation_{lang}_{vid}.json"
+
+
+def glossary_path(work: Path, vid: str, lang: str) -> Path:
+    """Names and terms with their translations (model-extracted)."""
+    return work / "glossaries" / f"glossary_{lang}_{vid}.json"
 
 
 def compare_path(work: Path, model: str, vid: str) -> Path:
@@ -361,9 +382,59 @@ def preview_path(folder: Path, mode: str) -> Path:
     return folder / f"preview_{mode}.mp4"
 
 
-def srt_path(folder: Path, mode: str = "") -> Path:
-    """A video's own subtitles (no mode), or a timeline's (``mode``)."""
-    return folder / (f"subtitle_{mode}.srt" if mode else "subtitle.srt")
+def subtitles_dir(folder: Path) -> Path:
+    """A result folder's subtitles: the video's own, recognised and refined,
+    and those of each preview in the folder."""
+    return folder / "subtitles"
+
+
+def recognized_srt_path(folder: Path) -> Path:
+    return subtitles_dir(folder) / "recognized.srt"
+
+
+def refined_srt_path(folder: Path) -> Path:
+    return subtitles_dir(folder) / "refined.srt"
+
+
+def translated_srt_path(folder: Path, track: str) -> Path:
+    """The refined subtitles translated: ``track`` is a language (``zh``)
+    or ``zh.bilingual`` (the source line under the translation)."""
+    return subtitles_dir(folder) / f"refined.{track}.srt"
+
+
+def subtitle_changes_path(folder: Path) -> Path:
+    """What the 4B changed in each recognised sentence."""
+    return subtitles_dir(folder) / "changes.json"
+
+
+def preview_srt_path(preview: Path, track: str = "") -> Path:
+    """Subtitles for ``preview``, named after it in the subtitles folder
+    next to it (players such as VLC look there); ``track`` names a
+    translation as in translated_srt_path."""
+    name = f"{preview.stem}.{track}" if track else preview.stem
+    return subtitles_dir(preview.parent) / f"{name}.srt"
+
+
+def preview_cue_map_path(preview: Path, track: str = "") -> Path:
+    """Which cue went where on ``preview``, and what was cut."""
+    name = f"{preview.stem}.{track}" if track else preview.stem
+    return subtitles_dir(preview.parent) / f"{name}.mapping.json"
+
+
+def narration_srt_path(preview: Path) -> Path:
+    """The narration lines of ``preview`` as subtitles."""
+    return subtitles_dir(preview.parent) / f"{preview.stem}.narration.srt"
+
+
+def narration_text_path(preview: Path) -> Path:
+    """The narration of ``preview`` to read: each line with its time on the
+    cut and in the source video."""
+    return preview.parent / f"{preview.stem}.narration.txt"
+
+
+def burned_preview_path(preview: Path) -> Path:
+    """``preview`` with its subtitles drawn into the picture, next to it."""
+    return preview.parent / f"{preview.stem}_subtitled.mp4"
 
 
 def report_path(out: Path, mode: str) -> Path:

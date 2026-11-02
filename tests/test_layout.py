@@ -194,12 +194,24 @@ def test_index_baseline_and_synth_sit_outside_the_collections(
         layout.baseline_report_path(tmp_path),
         layout.synth_eval_path(tmp_path, "main"),
         layout.tags_copy_path(tmp_path / "vlog" / "01"),
+        layout.refined_srt_path(tmp_path / "vlog" / "01"),
+        layout.preview_srt_path(tmp_path / "vlog" / "preview_highlights.mp4"),
+        layout.burned_preview_path(tmp_path / "vlog" / "preview_highlights.mp4"),
+        layout.translated_srt_path(tmp_path / "vlog" / "01", "zh.bilingual"),
+        layout.preview_srt_path(tmp_path / "vlog" / "preview_highlights.mp4", "zh"),
+        layout.narration_text_path(tmp_path / "vlog" / "edits" / "e" / "preview.mp4"),
     ]
     assert [p.relative_to(tmp_path).as_posix() for p in names] == [
         "index.html",
         "baseline/report.html",
         "synth/eval_main.json",
         "vlog/01/tags.jsonl",
+        "vlog/01/subtitles/refined.srt",
+        "vlog/subtitles/preview_highlights.srt",
+        "vlog/preview_highlights_subtitled.mp4",
+        "vlog/01/subtitles/refined.zh.bilingual.srt",
+        "vlog/subtitles/preview_highlights.zh.srt",
+        "vlog/edits/e/preview.narration.txt",
     ]
 
 

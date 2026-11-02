@@ -51,6 +51,8 @@ def segment_text(tags: dict[str, Any], speech: str = "") -> str:
         "、".join(tags["subjects"]),
         "、".join(tags["tags"]),
     ]
+    if tags.get("landmark"):
+        parts.append(f"地标：{tags['landmark']}")
     if speech:
         parts.append(f"台词：{speech}")
     return "；".join(parts)

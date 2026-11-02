@@ -231,6 +231,16 @@ def test_part_scenes_and_share() -> None:
     assert outline.share(30.0, [100.0, 100.0]) == [15.0, 15.0]
     assert outline.share(30.0, [8.0, 100.0]) == [8.0, 22.0]
     assert outline.share(30.0, [5.0, 5.0]) == [5.0, 5.0]
+    # Weighted: 45:17:13 of 75 s, the first part holds only 6 s; the other
+    # two take the rest in their own proportion.
+    out = outline.share(75.0, [6.0, 100.0, 100.0], [45.0, 17.0, 13.0])
+    assert out == pytest.approx([6.0, 69.0 * 17 / 30, 69.0 * 13 / 30])
+    assert outline.share(30.0, [100.0, 100.0], [2.0, 1.0]) == [20.0, 10.0]
+    # 15 clips of 6 s for a 75 s cut: each is cut to 5 s.
+    assert outline.level([6.0] * 15, 75.0, 1.5) == pytest.approx(5.0)
+    # Short clips stay whole; the long ones share what is left.
+    assert outline.level([2.0, 10.0, 10.0], 12.0, 1.5) == pytest.approx(5.0)
+    assert outline.level([6.0] * 10, 5.0, 1.5) == 1.5
     assert outline.rescale({1: 0.9, 2: 1.0, 3: 0.95}) == pytest.approx(
         {1: 0.0, 2: 1.0, 3: 0.5}
     )
@@ -395,6 +405,16 @@ def test_clip_span_keeps_the_middle() -> None:
     assert outline.clip_span(c, None) == (10.0, 18.0)
     assert outline.clip_span(c, 3.0) == (12.5, 15.5)
     assert outline.clip_span(c, 10.0) == (10.0, 18.0)
+
+
+def test_clip_span_avoids_cutting_sentences() -> None:
+    c = _cand(0, 10.0, ["a"], dur=8.0)
+    # The middle window 12.5-15.5 would cut the sentence 11-14 in half.
+    assert outline.clip_span(c, 3.0, [(11.0, 14.0)]) == (11.0, 14.0)
+    # A sentence longer than the window: cut it where least is lost.
+    assert outline.clip_span(c, 3.0, [(10.5, 17.5)]) == (10.0, 13.0)
+    # Speech outside the segment changes nothing.
+    assert outline.clip_span(c, 3.0, [(0.0, 9.0)]) == (12.5, 15.5)
 
 
 def test_pick_segments_counts_trimmed_lengths() -> None:

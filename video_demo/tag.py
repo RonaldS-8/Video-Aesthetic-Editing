@@ -8,9 +8,12 @@ import json
 import re
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import requests
+
+if TYPE_CHECKING:
+    from video_demo.category import Profile
 
 SERVER_URL = "http://127.0.0.1:8092"
 TIMEOUT_SEC = 600
@@ -78,11 +81,61 @@ USER_PROMPT = (
 )
 
 
+# Asked on top of USER_PROMPT when the video's category is known: its focus
+# and highlight rubric, and the fields a cut's opening and narration use.
+CATEGORY_PROMPT = (
+    "\n这类素材是「{name}」。看片时注意：\n{focus}\n"
+    "另外输出：landmark 是画面里能确认的地标或地名，认不出就填空字符串；"
+    "light 是光线；composition 是构图特点；opening 表示这个片段适不适合"
+    "做成片的开场镜头；ending 表示适不适合做收尾镜头。\n"
+    "最后按下面的标准给 highlight 打分：\n{rubric}\n"
+    "一段素材里多数片段是 3 分，4 分是少数好镜头，5 分很少，"
+    "平淡或有瑕疵的给 2 分；对照标准逐档判断，不要都给中间分。"
+)
+CATEGORY_FIELDS: dict[str, Any] = {
+    "landmark": {"type": "string", "maxLength": 20},
+    "light": {"type": "string", "minLength": 1, "maxLength": 12},
+    "composition": {"type": "string", "minLength": 1, "maxLength": 16},
+    "opening": {"type": "boolean"},
+    "ending": {"type": "boolean"},
+}
+
+
+def tag_schema(profile: Profile | None = None) -> dict[str, Any]:
+    """TAG_SCHEMA, plus CATEGORY_FIELDS when tagging with a category."""
+    if profile is None:
+        return TAG_SCHEMA
+    # The model writes fields in schema order: what it noticed (landmark,
+    # light, composition, opening, ending) comes before the score.
+    base = TAG_SCHEMA["properties"]
+    first = {k: v for k, v in base.items() if k not in ("highlight", "issues")}
+    properties = {
+        **first,
+        **CATEGORY_FIELDS,
+        "highlight": base["highlight"],
+        "issues": base["issues"],
+    }
+    return {
+        **TAG_SCHEMA,
+        "properties": json.loads(json.dumps(properties)),
+        "required": [*TAG_SCHEMA["required"], *CATEGORY_FIELDS],
+    }
+
+
+def user_prompt(count: int, duration: float, profile: Profile | None = None) -> str:
+    text = USER_PROMPT.format(count=count, duration=duration)
+    if profile is not None:
+        text += CATEGORY_PROMPT.format(
+            name=profile.name, focus=profile.focus, rubric=profile.rubric
+        )
+    return text
+
+
 class TagError(RuntimeError):
     """Raised when the model output does not satisfy the tag schema."""
 
 
-def validate(tags: Any) -> dict[str, Any]:
+def validate(tags: Any, profile: Profile | None = None) -> dict[str, Any]:
     if not isinstance(tags, dict):
         raise TagError(f"Expected a JSON object, got {type(tags).__name__}")
     missing = [k for k in TAG_SCHEMA["required"] if k not in tags]
@@ -107,6 +160,20 @@ def validate(tags: Any) -> dict[str, Any]:
     bad_issues = [x for x in tags["issues"] if x not in ISSUES]
     if bad_issues:
         raise TagError(f"Invalid issues: {bad_issues}")
+    if profile is not None:
+        missing = [k for k in CATEGORY_FIELDS if k not in tags]
+        if missing:
+            raise TagError(f"Missing keys: {missing}")
+        for key in ("landmark", "light", "composition"):
+            if not isinstance(tags[key], str):
+                raise TagError(f"{key} must be a string")
+            tags[key] = tags[key].strip()
+        for key in ("light", "composition"):
+            if not tags[key]:
+                raise TagError(f"{key} must be a non-empty string")
+        for key in ("opening", "ending"):
+            if not isinstance(tags[key], bool):
+                raise TagError(f"{key} must be true or false")
     highlight = tags["highlight"]
     if isinstance(highlight, bool) or not isinstance(highlight, int):
         raise TagError("highlight must be an integer")
@@ -128,30 +195,34 @@ def check_server(server_url: str = SERVER_URL) -> None:
         )
 
 
-def _image_part(path: Path) -> dict[str, Any]:
+def image_part(path: Path) -> dict[str, Any]:
     data = base64.b64encode(path.read_bytes()).decode("ascii")
     return {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{data}"}}
 
 
 def tag_segment(
-    keyframes: list[Path], duration: float, server_url: str = SERVER_URL
+    keyframes: list[Path],
+    duration: float,
+    server_url: str = SERVER_URL,
+    profile: Profile | None = None,
 ) -> tuple[dict[str, Any], str, float, list[str]]:
-    """Return (validated tags, raw text, total seconds, errors of failed tries).
+    """Return (validated tags, raw text, total seconds, errors of failed tries);
+    with ``profile`` the category's focus and rubric are asked too.
 
     Raises the last TagError when every attempt fails validation.
     """
-    images = [_image_part(p) for p in keyframes]
+    images = [image_part(p) for p in keyframes]
     errors: list[str] = []
     total = 0.0
     for penalty in REPEAT_PENALTIES:
-        raw, elapsed = _request(images, duration, penalty, server_url)
+        raw, elapsed = _request(images, duration, penalty, server_url, profile)
         total += elapsed
         try:
             try:
                 parsed = json.loads(raw)
             except json.JSONDecodeError as exc:
                 raise TagError(f"Model output is not JSON: {raw[:200]!r}") from exc
-            return validate(parsed), raw, total, errors
+            return validate(parsed, profile), raw, total, errors
         except TagError as exc:
             errors.append(f"repeat_penalty={penalty}: {exc}")
             last = exc
@@ -159,7 +230,11 @@ def tag_segment(
 
 
 def _request(
-    images: list[dict[str, Any]], duration: float, penalty: float, server_url: str
+    images: list[dict[str, Any]],
+    duration: float,
+    penalty: float,
+    server_url: str,
+    profile: Profile | None,
 ) -> tuple[str, float]:
     body = {
         "messages": [
@@ -169,9 +244,7 @@ def _request(
                 "content": [
                     {
                         "type": "text",
-                        "text": USER_PROMPT.format(
-                            count=len(images), duration=duration
-                        ),
+                        "text": user_prompt(len(images), duration, profile),
                     },
                     *images,
                 ],
@@ -179,13 +252,13 @@ def _request(
         ],
         "temperature": 0.2,
         "repeat_penalty": penalty,
-        "max_tokens": 400,
+        "max_tokens": 500,
         # Qwen3.5 thinks before answering by default and would spend
         # max_tokens on it, leaving the answer empty.
         "chat_template_kwargs": {"enable_thinking": False},
         "response_format": {
             "type": "json_schema",
-            "json_schema": {"name": "segment_tags", "schema": TAG_SCHEMA},
+            "json_schema": {"name": "segment_tags", "schema": tag_schema(profile)},
         },
     }
     t0 = time.perf_counter()

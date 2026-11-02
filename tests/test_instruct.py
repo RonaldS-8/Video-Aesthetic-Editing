@@ -288,7 +288,7 @@ def test_fill_request_fast_pace_takes_the_middle_of_each_segment() -> None:
         (22.5, 25.5),
         (32.5, 35.5),
     ]
-    assert notes == [] and "取中间 3.0s" in clips[0].reason
+    assert notes == [] and "处的 3.0s" in clips[0].reason
 
 
 def test_fill_request_lets_relevance_lead_inside_the_scene() -> None:
@@ -338,7 +338,7 @@ def test_fill_request_notes_taken_scenes_and_skips_rejects() -> None:
     assert [c.index for c in clips] == [0]
     assert [s["scene"] for s in slots[0]] == [1, None]
     assert "「p0」场景「b」符合的场景都已分给其他槽位" in notes
-    assert "「p0」素材不足：选到 8.0s，目标 30s" in notes
+    assert "可用素材只够 8.0s，目标 30s" in notes
 
 
 def test_fill_request_fills_a_target_equal_to_all_usable_footage() -> None:
@@ -357,6 +357,25 @@ def test_fill_request_fills_a_target_equal_to_all_usable_footage() -> None:
         set(),
     )
     assert sum(c.duration for c in clips) == 32.0 and notes == []
+
+
+def test_fill_request_passes_a_short_part_on_to_the_others() -> None:
+    # Part p0 plans 24 s but its scene holds one 8 s segment; p1 takes the
+    # other 16 s from its larger scene, so the cut still reaches 32 s.
+    cands = [_cand(i, 10.0 * i) for i in range(5)]
+    plan = _plan([(3, [_slot("a")]), (1, [_slot("b")])], seconds=[24, 8])
+    clips, notes, _ = instruct.fill_request(
+        plan,
+        _scenes([[0], [1, 2, 3, 4]]),
+        cands,
+        _assess(cands),
+        [[{1: 1.0, 2: 0.0}], [{1: 0.0, 2: 1.0}]],
+        [[_flat(5)], [_flat(5)]],
+        set(),
+    )
+    assert sum(c.duration for c in clips) == 32.0
+    assert [c.index for c in clips][0] == 0
+    assert notes == ["「p0」素材只够 8.0s（计划 24s），其余分给其他部分"]
 
 
 # --- report --------------------------------------------------------------------

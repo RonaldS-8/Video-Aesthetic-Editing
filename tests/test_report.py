@@ -115,3 +115,27 @@ def test_index_links_every_collection_result(tmp_path: Path) -> None:
     assert '<a href="vlog/01_trip/scenes">目录</a>（3 个）' in html
     assert '<a href="vlog/01_trip/tags.jsonl">tags.jsonl</a>' in html
     assert '<a href="baseline/report.html">报告</a>' in html
+
+
+def test_previews_with_speech_are_shown_subtitled(tmp_path: Path) -> None:
+    preview = tmp_path / "vlog" / "preview_highlights.mp4"
+    preview.parent.mkdir(parents=True)
+    preview.write_bytes(b"")
+    assert report._preview_links(preview, tmp_path) == (
+        '<a href="vlog/preview_highlights.mp4">预览</a>'
+    )
+    burned = layout.burned_preview_path(preview)
+    burned.write_bytes(b"")
+    srt = layout.preview_srt_path(preview)
+    srt.parent.mkdir()
+    srt.write_text("", "utf-8")  # no speech in this preview: plain stays
+    assert "带字幕" not in report._preview_links(preview, tmp_path)
+    srt.write_text("1\n00:00:00,000 --> 00:00:01,000\n你好\n\n", "utf-8")
+    links = report._preview_links(preview, tmp_path)
+    assert links.startswith(
+        '<a href="vlog/preview_highlights_subtitled.mp4">预览（带字幕）</a>'
+    )
+    assert '<a href="vlog/preview_highlights.mp4">无字幕版</a>' in links
+    html, _ = report._preview(preview, tmp_path)
+    assert 'src="vlog/preview_highlights_subtitled.mp4"' in html
+    assert "不带字幕的预览" in html
