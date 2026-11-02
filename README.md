@@ -55,7 +55,8 @@ data/raw/<集合>/*
   ├─ ⑥ render     预览视频                      → out/<集合>/<原名>/preview_<模式>.mp4
   ├─ ⑦ report     HTML 报告                     → out/<集合>/report_<模式>.html
   ├─ ⑧ scenes     场景素材（剔除废片）           → out/<集合>/<原名>/scenes/
-  └─ ⑨ edit       按指令：大纲 + 全素材检索       → out/<集合>/edits/<时间>_<指令>/
+  ├─ ⑨ edit       按指令：大纲 + 全素材检索       → out/<集合>/edits/<时间>_<指令>/
+  └─ ⑩ subtitle   语音识别 + 4B 校对 → 字幕      → out/<集合>/<原名>/subtitles/
 ```
 
 片段得分 = 1 + 4 ×（0.8 × DOVER 融合分 + 0.2 × VLM 精彩度）− 画质扣分；
@@ -157,6 +158,9 @@ opencv-python-headless 冲突：
 Qwen3.5-4B 由 [llama.cpp](https://github.com/ggml-org/llama.cpp) 的
 `llama-server` 提供 OpenAI 兼容接口，看图和写文字共用一个服务（端口
 8092）。
+
+AI 字幕另需 SenseVoice-Small int8 和 silero VAD（约 230 MB，放在
+`models/asr/`，见下文“AI 字幕”）。
 
 ## 快速开始
 
@@ -262,6 +266,52 @@ llama-server -m models/gguf/Qwen3.5-4B-Q4_K_M.gguf --mmproj models/gguf/mmproj-Q
   25 秒，每个场景仍是同一个地方（唐人街灯笼、森林步道、日夜的鱼尾狮）；
   爱丁堡只有 3 处镜头切换，61 个场景变为 60 个。场景素材（`scenes`）
   仍按单条视频切出原画质片段。
+
+## AI 字幕
+
+Qwen3.5-4B 听不到声音，所以先用语音识别（ASR）转写，再交给 4B 校对：
+
+```bash
+.venv/Scripts/python -m video_demo subtitle --only vlog/06 --mode highlights
+```
+
+1. **识别**：PyAV 解出 16 kHz 单声道音频，silero VAD 切成语句，
+   SenseVoice-Small int8 识别，每个字带起止时间。识别结果缓存在
+   `data/work/asr/`。识别单独成段，跑完释放模型再调用 4B，两者不同时
+   占内存。
+2. **校对**：每 25 句连同编号、视频名和画面里出现过的场景与主体（取自
+   标签）发给 4B，只许改错字、专有名词、标点和大小写。返回必须保留
+   每个编号、顺序不变，每句改动不超过 30%（短句至少允许 2 处）；
+   不合格就换温度重试，三次都不合格直接报错，不会退回原始识别结果。
+3. **对齐**：校对后的文字按编辑距离对回识别出的字，保留和替换的字沿用
+   原时间，新增的字取前后字之间的空隙。
+4. **断行**：每条字幕一行，不超过 16 个汉字宽（字母数字算半个），
+   1–6 秒；优先在标点处断，其次停顿（≥0.3 s）和空格，不拆英文单词。
+5. **输出**：`out/<集合>/<原名>/subtitle.srt`；`--mode` 时把字幕映射到
+   该模式的时间线，写 `subtitle_<模式>.srt`。被剪辑边界截断的字幕裁到
+   片段内，剩下不足 0.5 秒或不足一半的丢弃。报告里有字幕时显示链接。
+
+字幕也进入检索：`index` 把与片段重叠的台词拼进片段文本（文本向量和
+BM25 都用），按台词写的指令也能找到片段。索引记录台词指纹，字幕变了
+需要 `index --force` 重建（索引版本已升到 2，旧索引同样要重建）。
+
+**为什么用 sherpa-onnx**：一个 pip 包同时提供 VAD 和多种离线 ASR，
+自带 onnxruntime，只用 CPU，可在 Linux 边缘设备上运行，不依赖 torch。
+
+**模型选择**：在上海 vlog（20 分钟，中英混说加背景音乐）上对比了
+SenseVoice-Small int8 和 Paraformer-zh int8（都带 silero VAD，4 线程）。
+两者时间戳都单调、落在语句内；SenseVoice 带标点和大小写，中英混说时
+乱码明显更少，因此选用它。
+
+| 模型 | 识别 20 分钟用时 | 峰值内存 |
+|---|---|---|
+| SenseVoice-Small int8 | 61 s | 约 0.7 GB |
+| Paraformer-zh int8 | 44 s | 约 0.7 GB |
+
+模型下载（来源 k2-fsa/sherpa-onnx GitHub Releases `asr-models`）：
+`silero_vad.onnx` 和
+`sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2`
+（163 MB），解压到 `models/asr/`。
 
 ## 输出
 

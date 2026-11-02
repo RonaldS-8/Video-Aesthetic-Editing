@@ -305,6 +305,16 @@ def multi_scene_path(work: Path) -> Path:
     return work / "scenes" / "scene_multi.json"
 
 
+def asr_path(work: Path, vid: str) -> Path:
+    """Raw speech recognition sentences with per-character times."""
+    return work / "asr" / f"asr_{vid}.json"
+
+
+def subtitle_path(work: Path, vid: str) -> Path:
+    """Model-refined sentences, aligned times and subtitle cues."""
+    return work / "subtitles" / f"subtitle_{vid}.json"
+
+
 def compare_path(work: Path, model: str, vid: str) -> Path:
     """Scores from a model compared against DOVER (``quality`` stage)."""
     kind = model.replace("-", "_")
@@ -349,6 +359,11 @@ def timeline_path(folder: Path, mode: str) -> Path:
 
 def preview_path(folder: Path, mode: str) -> Path:
     return folder / f"preview_{mode}.mp4"
+
+
+def srt_path(folder: Path, mode: str = "") -> Path:
+    """A video's own subtitles (no mode), or a timeline's (``mode``)."""
+    return folder / (f"subtitle_{mode}.srt" if mode else "subtitle.srt")
 
 
 def report_path(out: Path, mode: str) -> Path:

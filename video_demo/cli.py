@@ -25,6 +25,7 @@ from video_demo import (
     retrieve,
     runner,
     signals,
+    subtitle,
     suggest,
     synth,
     tag,
@@ -1062,10 +1063,12 @@ class _Retrieval:
         for video in videos:
             try:
                 rows = _tag_rows(video.id)
+                said, digest = _segment_speech(video.id)
                 idx = retrieve.load_index(
                     layout.index_path(WORK_DIR, video.id),
                     self.embedder.model,
                     check_complete=len(rows),
+                    speech=digest,
                 )
             except (SystemExit, retrieve.RetrievalError) as exc:
                 # MediaPipe's own cleanup fails once the interpreter is
@@ -1076,7 +1079,9 @@ class _Retrieval:
                 self.text[(video.id, int(i))] = t
                 self.image[(video.id, int(i))] = m
             for r in rows:
-                self.docs[(video.id, r["index"])] = retrieve.segment_text(r["tags"])
+                self.docs[(video.id, r["index"])] = retrieve.segment_text(
+                    r["tags"], said.get(r["index"], "")
+                )
 
     def _key(self, c: suggest.Candidate) -> tuple[str, int]:
         return (c.video, c.index)
@@ -1162,6 +1167,20 @@ def _tag_rows(vid: str) -> list[dict]:
     return [json.loads(x) for x in path.read_text("utf-8").splitlines()]
 
 
+def _segment_speech(vid: str) -> tuple[dict[int, str], str]:
+    """What is said in each segment (from refined subtitles, none when the
+    video has no subtitles) and the fingerprint the index records."""
+    path = layout.subtitle_path(WORK_DIR, vid)
+    if not path.exists():
+        return {}, ""
+    sentences = subtitle.sentences_from_json(
+        subtitle.read_subtitles(path, vid)["sentences"]
+    )
+    _, segments = _load_segments(vid)
+    said = {s.index: subtitle.speech_text(sentences, s.start, s.end) for s in segments}
+    return said, subtitle.speech_digest([said[k] for k in sorted(said)])
+
+
 def cmd_index(args: argparse.Namespace) -> None:
     """Text and keyframe image vectors per segment, for retrieval fill."""
     from video_demo import embed
@@ -1179,8 +1198,14 @@ def cmd_index(args: argparse.Namespace) -> None:
         rows = _tag_rows(video.id)
         sig = {s["index"]: s for s in _load_signals(video.id)}
         kdir = layout.keyframes_dir(WORK_DIR, video.id)
+        said, digest = _segment_speech(video.id)
         segments = [
-            (r["index"], r["tags"], [kdir / k for k in sig[r["index"]]["keyframes"]])
+            (
+                r["index"],
+                r["tags"],
+                [kdir / k for k in sig[r["index"]]["keyframes"]],
+                said.get(r["index"], ""),
+            )
             for r in rows
         ]
         t0 = time.perf_counter()
@@ -1190,7 +1215,9 @@ def cmd_index(args: argparse.Namespace) -> None:
                 print(f"  {vid} {n}/{total} ({time.perf_counter() - t0:.0f}s)")
 
         try:
-            retrieve.build_index(path, embedder.model, segments, embedder, progress)
+            retrieve.build_index(
+                path, embedder.model, segments, embedder, digest, progress
+            )
         except retrieve.RetrievalError as exc:
             raise SystemExit(f"{video.id} {video.file}：{exc}") from exc
         print(f"{video.id} {video.file}: {len(segments)} segments -> {path}")
@@ -1763,6 +1790,72 @@ def cmd_report(args: argparse.Namespace) -> None:
     _write_index()
 
 
+def cmd_subtitle(args: argparse.Namespace) -> None:
+    """Speech recognition, then 4B refinement, then SRT per video; with
+    ``--mode`` also SRT for that mode's timelines."""
+    out = _out(args)
+    dirs = _result_dirs(args, out)
+    videos = [v for v in _selected(args) if _load_segments(v.id)[0]["has_audio"]]
+    todo = [
+        v for v in videos if args.force or not layout.asr_path(WORK_DIR, v.id).exists()
+    ]
+    if todo:
+        # Recognition runs alone and frees its models before the 4B is used.
+        try:
+            asr = subtitle.SenseVoiceAdapter(ROOT / "models" / "asr")
+        except subtitle.SubtitleError as exc:
+            raise SystemExit(f"语音识别模型不可用：{exc}") from exc
+        for v in todo:
+            t0 = time.perf_counter()
+            sentences = asr.transcribe(RAW_DIR / v.file)
+            path = layout.asr_path(WORK_DIR, v.id)
+            subtitle.write_asr(path, v.id, asr.model, sentences)
+            print(
+                f"{v.id} {v.file}: {len(sentences)} sentences, "
+                f"{time.perf_counter() - t0:.1f}s -> {path}"
+            )
+        asr.close()
+    cues_by_video: dict[str, list[subtitle.Cue]] = {}
+    for v in videos:
+        path = layout.subtitle_path(WORK_DIR, v.id)
+        if args.force or v in todo or not path.exists():
+            raw = subtitle.read_asr(layout.asr_path(WORK_DIR, v.id), v.id)
+            context = subtitle.video_context(_tag_rows(v.id))
+            try:
+                refined, seconds, failed = subtitle.refine(
+                    raw, Path(v.file).stem, context
+                )
+            except subtitle.SubtitleError as exc:
+                raise SystemExit(f"{v.id} {v.file}：字幕校对失败：{exc}") from exc
+            sentences = subtitle.refined_sentences(raw, refined)
+            asr_model = json.loads(layout.asr_path(WORK_DIR, v.id).read_text("utf-8"))[
+                "model"
+            ]
+            subtitle.write_subtitles(
+                path, v.id, asr_model, raw, sentences, seconds, failed
+            )
+            changed = sum(refined[s.id] != s.text for s in raw)
+            print(
+                f"{v.id} {v.file}: refined {changed}/{len(raw)} sentences "
+                f"in {seconds:.1f}s ({len(failed)} retries)"
+            )
+        cues_by_video[v.id] = subtitle.read_cues(path, v.id)
+        srt = layout.srt_path(dirs[v.id])
+        srt.parent.mkdir(parents=True, exist_ok=True)
+        srt.write_text(subtitle.to_srt(cues_by_video[v.id]), encoding="utf-8")
+        print(f"  {len(cues_by_video[v.id])} cues -> {srt}")
+    if args.mode:
+        for folder in [dirs[v.id] for v in videos] + [out]:
+            path = layout.timeline_path(folder, args.mode)
+            if not path.exists():
+                continue
+            clips = json.loads(path.read_text("utf-8"))["clips"]
+            cues = subtitle.map_cues(cues_by_video, clips)
+            srt = layout.srt_path(folder, args.mode)
+            srt.write_text(subtitle.to_srt(cues), encoding="utf-8")
+            print(f"{len(cues)} cues on {path.name} -> {srt}")
+
+
 def cmd_synth(args: argparse.Namespace) -> None:
     clips, path = SYNTH_SETS[args.set]
     truth = synth.build(RAW_DIR, clips, path)
@@ -1879,6 +1972,22 @@ def main() -> None:
                 help="highlights length / input length (default 1/6)",
             )
         p.set_defaults(func=func)
+    p_sub = sub.add_parser(
+        "subtitle", help="speech recognition + 4B refinement -> SRT per video"
+    )
+    p_sub.add_argument("--collection", default="vlog", help=COLLECTION_HELP)
+    p_sub.add_argument("--only", default="", help=ONLY_HELP)
+    p_sub.add_argument("--out", type=Path, default=None, help="result dir")
+    p_sub.add_argument(
+        "--mode",
+        choices=["", *MODES],
+        default="",
+        help="also map subtitles onto this mode's timelines",
+    )
+    p_sub.add_argument(
+        "--force", action="store_true", help="recognise and refine again"
+    )
+    p_sub.set_defaults(func=cmd_subtitle)
     p_edit = sub.add_parser(
         "edit", help="a cut for one instruction: outline, retrieval fill, report"
     )
