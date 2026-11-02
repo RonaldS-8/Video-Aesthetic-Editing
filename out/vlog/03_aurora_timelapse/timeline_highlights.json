@@ -7,7 +7,7 @@
   "clips": [
     {
       "order": 0,
-      "role": "森林极光延时",
+      "role": "绿色极光延时",
       "video": "7940fd1f6e740589",
       "index": 2,
       "src_start": 17.233,
@@ -18,7 +18,7 @@
     },
     {
       "order": 1,
-      "role": "森林极光延时",
+      "role": "绿色极光延时",
       "video": "7940fd1f6e740589",
       "index": 3,
       "src_start": 22.383,
@@ -29,7 +29,7 @@
     },
     {
       "order": 2,
-      "role": "森林极光延时",
+      "role": "绿色极光延时",
       "video": "7940fd1f6e740589",
       "index": 13,
       "src_start": 105.316,
@@ -245,7 +245,7 @@
   ],
   "retrieval": [
     {
-      "part": "森林极光延时",
+      "part": "绿色极光延时",
       "queries": [
         {
           "query": "森林与湖泊上空",
@@ -300,8 +300,8 @@
     "title": "极光夜舞",
     "parts": [
       {
-        "name": "森林极光延时",
-        "summary": "展示夜晚森林与湖泊上空绿色极光流动变幻的延时摄影画面",
+        "name": "绿色极光延时",
+        "summary": "展示森林与湖泊上空绿色极光流动变幻的延时摄影画面。",
         "first_chunk": 1,
         "last_chunk": 1,
         "weight": 10,
@@ -313,8 +313,8 @@
       }
     ]
   },
-  "outline_raw": "{\n  \"title\": \"极光夜舞\",\n  \"parts\": [\n    {\n      \"name\": \"森林极光延时\",\n      \"summary\": \"展示夜晚森林与湖泊上空绿色极光流动变幻的延时摄影画面\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"森林与湖泊上空\",\n        \"绿色极光流动\"\n      ]\n    }\n  ]\n}",
-  "outline_seconds": 116.2,
+  "outline_raw": "{\n  \"title\": \"极光夜舞\",\n  \"parts\": [\n    {\n      \"name\": \"绿色极光延时\",\n      \"summary\": \"展示森林与湖泊上空绿色极光流动变幻的延时摄影画面。\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"森林与湖泊上空\",\n        \"绿色极光流动\"\n      ]\n    }\n  ]\n}",
+  "outline_seconds": 165.7,
   "outline_failed_attempts": [],
   "chunks": [
     {

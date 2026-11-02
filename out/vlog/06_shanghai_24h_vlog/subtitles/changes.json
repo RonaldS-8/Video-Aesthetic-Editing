@@ -1,0 +1,360 @@
+{
+  "asr_model": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+  "refine_seconds": 808.6,
+  "sentences": 140,
+  "changed": [
+    {
+      "id": 5,
+      "start": 21.39,
+      "end": 32.756,
+      "recognized": "The weather is so sunny and windy, but luckily it doesn't rain over the next four days we're going to explore the vibrant Shanghai, the ancient charm of Suzhou.",
+      "refined": "The weather is so sunny and windy, but luckily it doesn't rain over the next four days. We're going to explore the vibrant Shanghai, the ancient charm of Suzhou."
+    },
+    {
+      "id": 6,
+      "start": 33.73,
+      "end": 36.788,
+      "recognized": "And the picturesque Bu punccho.",
+      "refined": "And the picturesque Bund."
+    },
+    {
+      "id": 8,
+      "start": 70.694,
+      "end": 71.732,
+      "recognized": "嗯行行行。",
+      "refined": "嗯，行，行，行。"
+    },
+    {
+      "id": 11,
+      "start": 79.398,
+      "end": 80.116,
+      "recognized": "ok.",
+      "refined": "OK."
+    },
+    {
+      "id": 12,
+      "start": 81.602,
+      "end": 91.604,
+      "recognized": "This morning we're going to the pond it isn't too far so we just take a seat to walk and enjoy the view.",
+      "refined": "This morning we're going to the Bund. It isn't too far, so we just take a seat to walk and enjoy the view."
+    },
+    {
+      "id": 15,
+      "start": 110.228,
+      "end": 127.228,
+      "recognized": "can give the rain looking my window that I believe it ain my wedding card so it think today is a very nice day.",
+      "refined": "Can I give you a look at my window? That I believe it ain't my wedding card, so I think today is a very nice day."
+    },
+    {
+      "id": 16,
+      "start": 130.278,
+      "end": 132.756,
+      "recognized": "I mean news that.",
+      "refined": "I mean, news that."
+    },
+    {
+      "id": 17,
+      "start": 145.552,
+      "end": 146.772,
+      "recognized": "trees.",
+      "refined": "Trees."
+    },
+    {
+      "id": 19,
+      "start": 150.758,
+      "end": 152.916,
+      "recognized": "It looks like pumpkin tree.",
+      "refined": "It looks like a pumpkin tree."
+    },
+    {
+      "id": 21,
+      "start": 160.586,
+      "end": 162.1,
+      "recognized": "it looks like.",
+      "refined": "It looks like."
+    },
+    {
+      "id": 24,
+      "start": 171.046,
+      "end": 175.988,
+      "recognized": "That meeting was built in 1916.",
+      "refined": "That building was built in 1916."
+    },
+    {
+      "id": 27,
+      "start": 186.73,
+      "end": 188.18,
+      "recognized": "Heello.",
+      "refined": "Hello."
+    },
+    {
+      "id": 37,
+      "start": 239.95,
+      "end": 253.204,
+      "recognized": "I like watchIt's so sunny, I got a run.",
+      "refined": "I like watch. It's so sunny, I got a run."
+    },
+    {
+      "id": 44,
+      "start": 265.51,
+      "end": 278.196,
+      "recognized": "Yeah hungry and thirsty now and a little bit tired and I will find a restaurant nearby to have lunch is that our driver no?",
+      "refined": "Yeah, hungry and thirsty now, and a little bit tired, and I will find a restaurant nearby to have lunch. Is that our driver, no?"
+    },
+    {
+      "id": 45,
+      "start": 295.974,
+      "end": 305.724,
+      "recognized": "Since 1930, so it like how many years 19309 95 year, almost 100.",
+      "refined": "Since 1930, so it's like how many years? 1930 to 95? Year, almost 100."
+    },
+    {
+      "id": 46,
+      "start": 305.858,
+      "end": 320.828,
+      "recognized": "So we found this restaurant on internet, is, I mean it's so decent and I like the music, I like the decoration, I like the atmosphere for hair.",
+      "refined": "So we found this restaurant on the internet. Is, I mean, it's so decent. And I like the music, I like the decoration, I like the atmosphere for hair."
+    },
+    {
+      "id": 48,
+      "start": 337.594,
+      "end": 340.156,
+      "recognized": "time for champagne.",
+      "refined": "Time for champagne."
+    },
+    {
+      "id": 49,
+      "start": 341.026,
+      "end": 356.284,
+      "recognized": "They've been th the whole we cash so we pick one golden cr dried noodle, signature cr and pork dumpling.",
+      "refined": "They've been there the whole way. We cash so we pick one golden cr dried noodle, signature cr and pork dumpling."
+    },
+    {
+      "id": 50,
+      "start": 363.614,
+      "end": 379.164,
+      "recognized": "HereWith some green onions on and try the of today, we also have a bowl of soup with seaweed and egg, and pickles.",
+      "refined": "Here with some green onions on. Try the of today. We also have a bowl of soup with seaweed and egg, and pickles."
+    },
+    {
+      "id": 52,
+      "start": 388.57,
+      "end": 392.436,
+      "recognized": "ushI will take some for you.",
+      "refined": "I will take some for you."
+    },
+    {
+      "id": 56,
+      "start": 411.362,
+      "end": 424.02,
+      "recognized": "Its so so yummy youve to try, you to try in Shanghai highly recommend.",
+      "refined": "It's so so yummy, you've to try, you've to try in Shanghai, highly recommend."
+    },
+    {
+      "id": 57,
+      "start": 430.31,
+      "end": 435.284,
+      "recognized": "I do't like it, no put for me.",
+      "refined": "I don't like it, no put for me."
+    },
+    {
+      "id": 58,
+      "start": 440.686,
+      "end": 446.26,
+      "recognized": "Two000 years later.",
+      "refined": "Two thousand years later."
+    },
+    {
+      "id": 59,
+      "start": 459.136,
+      "end": 462.076,
+      "recognized": "out of, how would you rate this meal?",
+      "refined": "Out of, how would you rate this meal?"
+    },
+    {
+      "id": 60,
+      "start": 464.554,
+      "end": 474.836,
+      "recognized": "Now we will head back to our hotel and rest a little bit this afternoon well go to T.",
+      "refined": "Now we will head back to our hotel and rest a little bit this afternoon; we'll go to T."
+    },
+    {
+      "id": 61,
+      "start": 475.87,
+      "end": 482.036,
+      "recognized": "Then attack and then Nanjing walking Street, with family marked.",
+      "refined": "Then attack and then Nanjing Walking Street, with family marked."
+    },
+    {
+      "id": 62,
+      "start": 485.03,
+      "end": 498.964,
+      "recognized": "Let's buy some ice cream, maybe there a flour ice cream is that ice cream, never mind.",
+      "refined": "Let's buy some ice cream; maybe there's flour ice cream; is that ice cream? Never mind."
+    },
+    {
+      "id": 63,
+      "start": 499.738,
+      "end": 515.1,
+      "recognized": "To eat something like jelly orow, what is that I picked this one not sure how it is.",
+      "refined": "To eat something like jelly or row; what is that? I picked this one; not sure how it is."
+    },
+    {
+      "id": 65,
+      "start": 523.282,
+      "end": 538.012,
+      "recognized": "个1块钱要。",
+      "refined": "个 1 块钱要。"
+    },
+    {
+      "id": 75,
+      "start": 682.914,
+      "end": 695.164,
+      "recognized": "to something Shanghai ice.",
+      "refined": "To something Shanghai ice."
+    },
+    {
+      "id": 76,
+      "start": 701.418,
+      "end": 706.758,
+      "recognized": "There's police car in every street here in Shanghai, so it's super safe.",
+      "refined": "There's a police car in every street here in Shanghai, so it's super safe."
+    },
+    {
+      "id": 77,
+      "start": 706.848,
+      "end": 710.396,
+      "recognized": "I want to try some grill meat over there.",
+      "refined": "I want to try some grilled meat over there."
+    },
+    {
+      "id": 79,
+      "start": 727.198,
+      "end": 734.996,
+      "recognized": "You can see that its this light sticky tofu, like sticky tofu.",
+      "refined": "You can see that it's this light sticky tofu, like sticky tofu."
+    },
+    {
+      "id": 81,
+      "start": 737.982,
+      "end": 742.228,
+      "recognized": "So many typess of fruit here, and they all look so tempting.",
+      "refined": "So many types of fruit here, and they all look so tempting."
+    },
+    {
+      "id": 82,
+      "start": 743.554,
+      "end": 745.012,
+      "recognized": "Meatballs,.",
+      "refined": "Meatballs."
+    },
+    {
+      "id": 86,
+      "start": 752.702,
+      "end": 754.868,
+      "recognized": "Dishes, It know what it is.",
+      "refined": "Dishes, I know what it is."
+    },
+    {
+      "id": 88,
+      "start": 757.91,
+      "end": 766.164,
+      "recognized": "Oh sorry, it make be hungry again, some kind of sweet, I guess.",
+      "refined": "Oh sorry, it makes me hungry again, some kind of sweet, I guess."
+    },
+    {
+      "id": 89,
+      "start": 770.95,
+      "end": 774.49,
+      "recognized": "I miss you very much in Shaanghai.",
+      "refined": "I miss you very much in Shanghai."
+    },
+    {
+      "id": 93,
+      "start": 793.482,
+      "end": 795.22,
+      "recognized": "You want to buy something for you mom.",
+      "refined": "You want to buy something for your mom."
+    },
+    {
+      "id": 98,
+      "start": 810.478,
+      "end": 819.958,
+      "recognized": "还来我老板啊你好，这个25块，你你有辣辣椒吗？",
+      "refined": "还来我老板啊你好，这个 25 块，你你有辣辣椒吗？"
+    },
+    {
+      "id": 102,
+      "start": 829.586,
+      "end": 838.748,
+      "recognized": "这是鸡肉，鸡肉鸡肉是牛肉嗯，beef or pork好香。",
+      "refined": "这是鸡肉，鸡肉鸡肉是牛肉嗯，beef or pork 好香。"
+    },
+    {
+      "id": 105,
+      "start": 863.65,
+      "end": 872.54,
+      "recognized": "cash in Chineset usually use cash.",
+      "refined": "Cash in Chinese usually use cash."
+    },
+    {
+      "id": 126,
+      "start": 1021.346,
+      "end": 1029.78,
+      "recognized": "I'm so happy about the first the I have trust in you I don't know my guts telling me that thank you so much.",
+      "refined": "I'm so happy about the first time I have trust in you. I don't know my guts telling me that. Thank you so much."
+    },
+    {
+      "id": 129,
+      "start": 1037.41,
+      "end": 1041.73,
+      "recognized": "If you're fruity, you absolutely can't miss Nanching Street.",
+      "refined": "If you're hungry, you absolutely can't miss Nanjing Street."
+    },
+    {
+      "id": 132,
+      "start": 1052.518,
+      "end": 1065.428,
+      "recognized": "There are little stalls and restaurants offering everything from savory snacks to street streets, walking down Nanjing Street, you really get a taste of the city's true culture.",
+      "refined": "There are little stalls and restaurants offering everything from savory snacks to street food. Walking down Nanjing Street, you really get a taste of the city's true culture."
+    },
+    {
+      "id": 133,
+      "start": 1066.746,
+      "end": 1073.044,
+      "recognized": "老马这个做小钱做48啊，48啊啊，谢谢。",
+      "refined": "老马，这个做小钱做 48 啊，48 啊，谢谢。"
+    },
+    {
+      "id": 136,
+      "start": 1100.39,
+      "end": 1101.876,
+      "recognized": "你喜欢吃什吗？",
+      "refined": "你喜欢吃什么？"
+    },
+    {
+      "id": 137,
+      "start": 1136.598,
+      "end": 1139.252,
+      "recognized": "笑最辈子。",
+      "refined": "笑一辈子。"
+    },
+    {
+      "id": 138,
+      "start": 1147.202,
+      "end": 1155.668,
+      "recognized": "What an incredible day in Shanghai, we've walked a lot, tried amazing street food and enjoy the city vibes.",
+      "refined": "What an incredible day in Shanghai. We've walked a lot, tried amazing street food and enjoyed the city vibes."
+    },
+    {
+      "id": 139,
+      "start": 1156.314,
+      "end": 1169.14,
+      "recognized": "Shanghai is such a mix of more than vis and local charm, but this is just the beginning in the next few days we're heading to Suzhou and Hangzhou, so stay tuned.",
+      "refined": "Shanghai is such a mix of more than just local charm. But this is just the beginning. In the next few days, we're heading to Suzhou and Hangzhou, so stay tuned."
+    }
+  ],
+  "failed_attempts": [
+    "sentences 126-140 t=0.2: sentence 129 changed too much (3 edits): \"If you're fruity, you absolutely can't miss Nanching Street.\" -> \"If you're hungry, you absolutely can't miss Nanjing Road.\""
+  ]
+}

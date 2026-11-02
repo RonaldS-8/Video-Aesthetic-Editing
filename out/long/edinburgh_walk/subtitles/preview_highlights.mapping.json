@@ -1,0 +1,89 @@
+{
+  "preview": "preview_highlights.mp4",
+  "track": "原文",
+  "rule": "被切点截断的字幕只留切点内听得到的字（不拆英文单词），剩不到 0.5s 或没有完整的字就丢弃；截断的译文在片段内不足一半就丢弃，否则整句显示并加“…”",
+  "counts": {
+    "kept": 6,
+    "dropped": 1
+  },
+  "videos_without_subtitles": [],
+  "cues": [
+    {
+      "clip": 2,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        35.334,
+        36.334
+      ],
+      "text": "誰が丸るかも。",
+      "status": "kept",
+      "at": 15.362
+    },
+    {
+      "clip": 20,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        454.534,
+        455.534
+      ],
+      "text": "Yeah.",
+      "status": "kept",
+      "at": 194.957
+    },
+    {
+      "clip": 24,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        529.454,
+        530.454
+      ],
+      "text": "好。",
+      "status": "kept",
+      "at": 230.0
+    },
+    {
+      "clip": 48,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        2940.646,
+        2941.646
+      ],
+      "text": "Yeah.",
+      "status": "kept",
+      "at": 471.616
+    },
+    {
+      "clip": 55,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        3095.078,
+        3096.078
+      ],
+      "text": "是要。",
+      "status": "kept",
+      "at": 546.054
+    },
+    {
+      "clip": 62,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        3406.47,
+        3408.142
+      ],
+      "text": "Due to personnel to a visit",
+      "status": "kept",
+      "at": 617.458
+    },
+    {
+      "clip": 62,
+      "video": "b0f6010d8cdbbc67",
+      "source": [
+        3408.142,
+        3409.94
+      ],
+      "text": "station 24 hours a day.",
+      "status": "dropped",
+      "reason": "切点内只剩 0.37s"
+    }
+  ]
+}

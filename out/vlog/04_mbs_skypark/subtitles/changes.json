@@ -1,0 +1,7 @@
+{
+  "asr_model": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+  "refine_seconds": 110.5,
+  "sentences": 1,
+  "changed": [],
+  "failed_attempts": []
+}

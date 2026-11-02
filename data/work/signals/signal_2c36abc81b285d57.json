@@ -885,11 +885,11 @@
   },
   {
     "index": 46,
-    "brightness": 102.1,
-    "sharpness": 670.0,
-    "motion": 39.83,
-    "pan_speed": 20.93,
-    "shake": 24.61,
+    "brightness": 106.3,
+    "sharpness": 810.8,
+    "motion": 42.48,
+    "pan_speed": 20.88,
+    "shake": 23.49,
     "flags": [
       "shaky"
     ],
@@ -900,29 +900,31 @@
     ],
     "keyframe_times": [
       203.792,
-      206.542,
-      207.042
+      204.792,
+      206.542
     ]
   },
   {
     "index": 47,
-    "brightness": 92.0,
-    "sharpness": 972.3,
-    "motion": 35.29,
-    "pan_speed": 18.52,
-    "shake": 20.89,
+    "brightness": 90.6,
+    "sharpness": 737.5,
+    "motion": 34.53,
+    "pan_speed": 19.67,
+    "shake": 22.22,
     "flags": [
       "shaky"
     ],
     "keyframes": [
       "seg047_0.jpg",
       "seg047_1.jpg",
-      "seg047_2.jpg"
+      "seg047_2.jpg",
+      "seg047_3.jpg"
     ],
     "keyframe_times": [
-      209.542,
+      209.292,
+      210.792,
       212.292,
-      212.542
+      213.292
     ]
   },
   {
@@ -1088,11 +1090,11 @@
   },
   {
     "index": 57,
-    "brightness": 139.1,
-    "sharpness": 1701.6,
-    "motion": 38.04,
-    "pan_speed": 4.22,
-    "shake": 11.52,
+    "brightness": 139.0,
+    "sharpness": 1699.9,
+    "motion": 37.91,
+    "pan_speed": 4.18,
+    "shake": 11.33,
     "flags": [],
     "keyframes": [
       "seg057_0.jpg",
@@ -1110,10 +1112,10 @@
   {
     "index": 58,
     "brightness": 136.5,
-    "sharpness": 1502.1,
-    "motion": 44.56,
-    "pan_speed": 11.31,
-    "shake": 18.09,
+    "sharpness": 1523.8,
+    "motion": 44.88,
+    "pan_speed": 11.64,
+    "shake": 18.4,
     "flags": [
       "shaky"
     ],

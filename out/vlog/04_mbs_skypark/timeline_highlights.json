@@ -4,12 +4,12 @@
   "target_sec": 2.8,
   "total_sec": 8.34,
   "notes": [
-    "「滨海湾灯光秀」场景「水面倒影」没有可用的场景"
+    "「城市天际线灯光秀」场景「水面倒影」没有可用的场景"
   ],
   "clips": [
     {
       "order": 0,
-      "role": "滨海湾灯光秀",
+      "role": "城市天际线灯光秀",
       "video": "18e16a82dbdc9c38",
       "index": 1,
       "src_start": 8.339,
@@ -65,7 +65,7 @@
   ],
   "retrieval": [
     {
-      "part": "滨海湾灯光秀",
+      "part": "城市天际线灯光秀",
       "queries": [
         {
           "query": "灯火辉煌的高楼",
@@ -102,8 +102,8 @@
     "title": "新加坡滨海湾夜景",
     "parts": [
       {
-        "name": "滨海湾灯光秀",
-        "summary": "展示新加坡滨海湾夜晚高楼灯光秀与水面倒影的航拍画面",
+        "name": "城市天际线灯光秀",
+        "summary": "展示新加坡滨海湾夜晚高楼大厦的灯光与水面倒影",
         "first_chunk": 1,
         "last_chunk": 1,
         "weight": 10,
@@ -115,8 +115,8 @@
       }
     ]
   },
-  "outline_raw": "{\n  \"title\": \"新加坡滨海湾夜景\",\n  \"parts\": [\n    {\n      \"name\": \"滨海湾灯光秀\",\n      \"summary\": \"展示新加坡滨海湾夜晚高楼灯光秀与水面倒影的航拍画面\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"灯火辉煌的高楼\",\n        \"水面倒影\"\n      ]\n    }\n  ]\n}",
-  "outline_seconds": 80.3,
+  "outline_raw": "{\n  \"title\": \"新加坡滨海湾夜景\",\n  \"parts\": [\n    {\n      \"name\": \"城市天际线灯光秀\",\n      \"summary\": \"展示新加坡滨海湾夜晚高楼大厦的灯光与水面倒影\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"灯火辉煌的高楼\",\n        \"水面倒影\"\n      ]\n    }\n  ]\n}",
+  "outline_seconds": 188.2,
   "outline_failed_attempts": [],
   "chunks": [
     {

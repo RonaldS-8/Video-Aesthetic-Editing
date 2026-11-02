@@ -433,7 +433,7 @@
     "parts": [
       {
         "name": "秋日湖畔全景与活动",
-        "summary": "展示从白天到黄昏的湖光山色、游船、骑行及当地美食体验",
+        "summary": "展示从白天到黄昏的湖光山色、游船、骑行及当地美食体验。",
         "first_chunk": 1,
         "last_chunk": 1,
         "weight": 10,
@@ -447,8 +447,8 @@
       }
     ]
   },
-  "outline_raw": "{\n  \"title\": \"秋日湖畔风光与美食之旅\",\n  \"parts\": [\n    {\n      \"name\": \"秋日湖畔全景与活动\",\n      \"summary\": \"展示从白天到黄昏的湖光山色、游船、骑行及当地美食体验\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"湖光山色\",\n        \"游船活动\",\n        \"木栈道骑行\",\n        \"湖畔餐厅美食\"\n      ]\n    }\n  ]\n}",
-  "outline_seconds": 108.8,
+  "outline_raw": "{\n  \"title\": \"秋日湖畔风光与美食之旅\",\n  \"parts\": [\n    {\n      \"name\": \"秋日湖畔全景与活动\",\n      \"summary\": \"展示从白天到黄昏的湖光山色、游船、骑行及当地美食体验。\",\n      \"first_chunk\": 1,\n      \"last_chunk\": 1,\n      \"weight\": 10,\n      \"scenes\": [\n        \"湖光山色\",\n        \"游船活动\",\n        \"木栈道骑行\",\n        \"湖畔餐厅美食\"\n      ]\n    }\n  ]\n}",
+  "outline_seconds": 187.6,
   "outline_failed_attempts": [],
   "chunks": [
     {

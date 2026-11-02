@@ -1,0 +1,25 @@
+{
+  "asr_model": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+  "refine_seconds": 374.1,
+  "sentences": 30,
+  "changed": [
+    {
+      "id": 27,
+      "start": 3465.922,
+      "end": 3467.444,
+      "recognized": "It towards King's net.",
+      "refined": "It towards King's Cross."
+    },
+    {
+      "id": 30,
+      "start": 3488.734,
+      "end": 3495.316,
+      "recognized": "Ptform 11,4 1726 top real service to Cross Central.",
+      "refined": "Ptform 11, 4 1726 top real service to Cross Central."
+    }
+  ],
+  "failed_attempts": [
+    "sentences 26-30 t=0.2: sentence 30 changed too much (3 edits): 'Ptform 11,4 1726 top real service to Cross Central.' -> 'Platform 11, 4 1726 top real service to Cross Central.'",
+    "sentences 26-30 t=0.5: sentence 30 changed too much (3 edits): 'Ptform 11,4 1726 top real service to Cross Central.' -> 'Platform 11, 4 1726 top real service to Cross Central.'"
+  ]
+}

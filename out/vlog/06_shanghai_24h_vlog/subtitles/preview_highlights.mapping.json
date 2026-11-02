@@ -1,0 +1,239 @@
+{
+  "preview": "preview_highlights.mp4",
+  "track": "原文",
+  "rule": "被切点截断的字幕只留切点内听得到的字（不拆英文单词），剩不到 0.5s 或没有完整的字就丢弃；截断的译文在片段内不足一半就丢弃，否则整句显示并加“…”",
+  "counts": {
+    "trimmed": 6,
+    "kept": 11,
+    "dropped": 3
+  },
+  "videos_without_subtitles": [],
+  "cues": [
+    {
+      "clip": 1,
+      "video": "2c36abc81b285d57",
+      "source": [
+        0.226,
+        3.252
+      ],
+      "text": "大家好，不是。",
+      "status": "trimmed",
+      "at": 0.226,
+      "kept": "大家好，不…"
+    },
+    {
+      "clip": 6,
+      "video": "2c36abc81b285d57",
+      "source": [
+        17.054,
+        18.194
+      ],
+      "text": "Welcome to my channel.",
+      "status": "kept",
+      "at": 12.963
+    },
+    {
+      "clip": 6,
+      "video": "2c36abc81b285d57",
+      "source": [
+        18.254,
+        19.064
+      ],
+      "text": "I'm Ginny.",
+      "status": "kept",
+      "at": 14.163
+    },
+    {
+      "clip": 7,
+      "video": "2c36abc81b285d57",
+      "source": [
+        18.254,
+        19.064
+      ],
+      "text": "I'm Ginny.",
+      "status": "dropped",
+      "reason": "切点内没有完整的字"
+    },
+    {
+      "clip": 7,
+      "video": "2c36abc81b285d57",
+      "source": [
+        19.064,
+        20.692
+      ],
+      "text": "I'm in Shanghai right now.",
+      "status": "kept",
+      "at": 14.964
+    },
+    {
+      "clip": 7,
+      "video": "2c36abc81b285d57",
+      "source": [
+        21.39,
+        22.998
+      ],
+      "text": "The weather is so sunny and",
+      "status": "kept",
+      "at": 17.29
+    },
+    {
+      "clip": 7,
+      "video": "2c36abc81b285d57",
+      "source": [
+        22.998,
+        25.05
+      ],
+      "text": "windy, but luckily it doesn't",
+      "status": "kept",
+      "at": 18.898
+    },
+    {
+      "clip": 7,
+      "video": "2c36abc81b285d57",
+      "source": [
+        25.05,
+        27.45
+      ],
+      "text": "rain over the next four days.",
+      "status": "dropped",
+      "reason": "切点内没有完整的字"
+    },
+    {
+      "clip": 8,
+      "video": "2c36abc81b285d57",
+      "source": [
+        37.918,
+        41.398
+      ],
+      "text": "Stay tuned for amazing views and",
+      "status": "trimmed",
+      "at": 21.446,
+      "kept": "…amazing views and"
+    },
+    {
+      "clip": 8,
+      "video": "2c36abc81b285d57",
+      "source": [
+        41.398,
+        42.538
+      ],
+      "text": "friendly people,",
+      "status": "kept",
+      "at": 23.524
+    },
+    {
+      "clip": 8,
+      "video": "2c36abc81b285d57",
+      "source": [
+        42.538,
+        44.788
+      ],
+      "text": "good fruit in China.",
+      "status": "trimmed",
+      "at": 24.664,
+      "kept": "good fruit in…"
+    },
+    {
+      "clip": 9,
+      "video": "2c36abc81b285d57",
+      "source": [
+        160.586,
+        162.1
+      ],
+      "text": "It looks like.",
+      "status": "kept",
+      "at": 26.395
+    },
+    {
+      "clip": 9,
+      "video": "2c36abc81b285d57",
+      "source": [
+        162.658,
+        163.658
+      ],
+      "text": "You know.",
+      "status": "kept",
+      "at": 28.467
+    },
+    {
+      "clip": 9,
+      "video": "2c36abc81b285d57",
+      "source": [
+        163.938,
+        166.228
+      ],
+      "text": "Animated will be packed?",
+      "status": "kept",
+      "at": 29.747
+    },
+    {
+      "clip": 10,
+      "video": "2c36abc81b285d57",
+      "source": [
+        186.73,
+        188.18
+      ],
+      "text": "Hello.",
+      "status": "trimmed",
+      "at": 35.838,
+      "kept": "Hello…"
+    },
+    {
+      "clip": 11,
+      "video": "2c36abc81b285d57",
+      "source": [
+        186.73,
+        188.18
+      ],
+      "text": "Hello.",
+      "status": "dropped",
+      "reason": "切点内没有完整的字"
+    },
+    {
+      "clip": 12,
+      "video": "2c36abc81b285d57",
+      "source": [
+        191.294,
+        192.294
+      ],
+      "text": "No.",
+      "status": "kept",
+      "at": 40.402
+    },
+    {
+      "clip": 13,
+      "video": "2c36abc81b285d57",
+      "source": [
+        274.99,
+        278.196
+      ],
+      "text": "Is that our driver, no?",
+      "status": "trimmed",
+      "at": 43.381,
+      "kept": "…no?"
+    },
+    {
+      "clip": 14,
+      "video": "2c36abc81b285d57",
+      "source": [
+        295.974,
+        297.114
+      ],
+      "text": "Since 1930,",
+      "status": "kept",
+      "at": 45.925
+    },
+    {
+      "clip": 14,
+      "video": "2c36abc81b285d57",
+      "source": [
+        297.114,
+        300.774
+      ],
+      "text": "so it's like how many years?",
+      "status": "trimmed",
+      "at": 47.065,
+      "kept": "so it's like how many…"
+    }
+  ]
+}

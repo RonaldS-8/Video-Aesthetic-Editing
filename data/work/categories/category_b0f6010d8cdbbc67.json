@@ -1,0 +1,9 @@
+{
+  "video_id": "b0f6010d8cdbbc67",
+  "category": "city-walk",
+  "reason": "画面展示了城市街道、行人、车辆和地标建筑，符合城市漫步特征。",
+  "source": "model",
+  "raw": "{\n  \"category\": \"城市漫步\",\n  \"reason\": \"画面展示了城市街道、行人、车辆和地标建筑，符合城市漫步特征。\"\n}",
+  "seconds": 10.0,
+  "failed_attempts": []
+}
