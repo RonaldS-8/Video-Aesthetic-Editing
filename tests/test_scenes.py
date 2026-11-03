@@ -23,6 +23,7 @@ def _cand(i: int, dur: float = 5.0, **tags: Any) -> suggest.Candidate:
         start=i * 5.0,
         end=i * 5.0 + dur,
         tags={**base, **tags},
+        highlight=4.0,
         flags=[],
         sharpness=500.0,
         sharpness_rel=1.0,

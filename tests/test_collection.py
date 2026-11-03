@@ -29,6 +29,7 @@ def _cand(video: str, i: int, start: float, dur: float = 8.0) -> suggest.Candida
             "highlight": 4,
             "issues": ["无明显问题"],
         },
+        highlight=4.0,
         flags=[],
         sharpness=500.0,
         sharpness_rel=1.0,

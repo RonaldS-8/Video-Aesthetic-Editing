@@ -96,7 +96,7 @@ def test_category_tags_add_fields_and_the_rubric(
         return _Resp(__import__("json").dumps(CITY, ensure_ascii=False))
 
     monkeypatch.setattr(tag.requests, "post", fake_post)
-    tags, _, _, _ = tag.tag_segment([_frame(tmp_path)], 10.0, profile=profile)
+    tags, *_ = tag.tag_segment([_frame(tmp_path)], 10.0, profile=profile)
     assert tags["landmark"] == "圣吉尔斯大教堂" and tags["opening"] is True
     text = seen["body"]["messages"][1]["content"][0]["text"]
     assert "「城市漫步」" in text and profile.rubric in text

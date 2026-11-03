@@ -435,7 +435,7 @@ def _tag_stage(
             for seg in _todo(video.id, layout.tags_path, limit):
                 frames = [keyframes / k for k in sig[seg.index]["keyframes"]]
                 try:
-                    tags, raw, elapsed, errors = tag.tag_segment(
+                    tags, raw, elapsed, errors, score = tag.tag_segment(
                         frames, seg.duration, profile=profile
                     )
                 except Exception as exc:
@@ -450,6 +450,7 @@ def _tag_stage(
                         "prompt": profile.digest,
                         "seconds": round(elapsed, 2),
                         "tags": tags,
+                        **score,
                         "raw": raw,
                         "failed_attempts": errors,
                     },
@@ -457,7 +458,7 @@ def _tag_stage(
                 retry = f" (retries {len(errors)})" if errors else ""
                 advance(
                     f"{video.file} seg{seg.index:03d} {elapsed:5.1f}s{retry} "
-                    f"h={tags['highlight']} {tags['description']}"
+                    f"h={score['highlight_p']:.2f} {tags['description']}"
                 )
             if out_path.exists():
                 _copy_tags(video)
@@ -548,9 +549,57 @@ def _print_line(note: str) -> None:
 
 def cmd_tag(args: argparse.Namespace) -> None:
     videos = _selected(args)
+    if args.rescore:
+        _rescore(videos)
+        return
     profiles = _prepare_tagging(videos, args.category, args.retag)
     _tag_stage(videos, args.limit, profiles)(_print_line)
     _write_index()
+
+
+def _rescore(videos: list[layout.Video]) -> None:
+    """Add the probability-weighted highlight score to tag rows made
+    before it was recorded (tag.rescore), rewriting each video's tags file
+    after every row so an interrupted run resumes where it stopped."""
+    for video in videos:
+        path = layout.tags_path(WORK_DIR, video.id)
+        if not path.exists():
+            continue
+        rows = _tag_rows(video.id)
+        todo = [k for k, r in enumerate(rows) if "highlight_p" not in r]
+        if not todo:
+            continue
+        _, segments = _load_segments(video.id)
+        durations = {s.index: s.duration for s in segments}
+        sig = _load_signals(video.id)
+        keyframes = layout.keyframes_dir(WORK_DIR, video.id)
+        for n, k in enumerate(todo, start=1):
+            row = rows[k]
+            key = row.get("category")
+            profile = category.load_profile(key) if key else None
+            frames = [keyframes / f for f in sig[row["index"]]["keyframes"]]
+            try:
+                score, seconds = tag.rescore(
+                    row, frames, durations[row["index"]], profile
+                )
+            except Exception as exc:
+                raise runner.StageError(
+                    "补精彩度", video.file, row["index"], exc
+                ) from exc
+            rows[k] = {**row, **score}
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(
+                "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
+                encoding="utf-8",
+            )
+            tmp.replace(path)
+            print(
+                f"{video.file} {n}/{len(todo)} seg{row['index']:03d} "
+                f"{seconds:4.1f}s h={row['tags']['highlight']} → "
+                f"{score['highlight_p']:.2f}",
+                flush=True,
+            )
+        _copy_tags(video)
 
 
 def _prepare_tagging(
@@ -985,14 +1034,21 @@ def _candidates(video: layout.Video) -> list[suggest.Candidate]:
     _, segments = _load_segments(video.id)
     sig = _load_signals(video.id)
     tags_path = layout.tags_path(WORK_DIR, video.id)
-    tags = {
-        r["index"]: r["tags"]
+    rows = {
+        r["index"]: r
         for r in map(json.loads, tags_path.read_text("utf-8").splitlines())
     }
+    tags = {i: r["tags"] for i, r in rows.items()}
     missing = [s.index for s in segments if s.index not in tags]
     if missing:
         raise RuntimeError(
             f"{video.file}: {len(missing)} segments not tagged: {missing[:5]}"
+        )
+    unscored = [i for i, r in rows.items() if "highlight_p" not in r]
+    if unscored:
+        raise RuntimeError(
+            f"{video.file}: {len(unscored)} segments have no probability-weighted "
+            f"highlight score; run `tag --rescore`"
         )
     quality_path = layout.aesthetic_path(WORK_DIR, video.id)
     if not quality_path.exists():
@@ -1015,6 +1071,7 @@ def _candidates(video: layout.Video) -> list[suggest.Candidate]:
             start=s.start,
             end=s.end,
             tags=tags[s.index],
+            highlight=rows[s.index]["highlight_p"],
             flags=sig[s.index]["flags"],
             sharpness=sig[s.index]["sharpness"],
             sharpness_rel=sig[s.index]["sharpness"] / median,
@@ -2540,6 +2597,11 @@ def main() -> None:
     p_tag.add_argument("--only", default="", help=ONLY_HELP)
     p_tag.add_argument("--limit", type=int, default=0, help="max segments per video")
     _category_args(p_tag)
+    p_tag.add_argument(
+        "--rescore",
+        action="store_true",
+        help="add the probability-weighted highlight score to old tags",
+    )
     p_tag.set_defaults(func=cmd_tag)
     for name, func, help_text in (
         ("aesthetic", cmd_aesthetic, "DOVER quality scores only"),

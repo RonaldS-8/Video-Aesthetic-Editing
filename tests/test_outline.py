@@ -23,6 +23,7 @@ def _cand(i: int, start: float, tags: list[str], dur: float = 8.0, **kw: Any):
             "highlight": 4,
             "issues": ["无明显问题"],
         },
+        highlight=4.0,
         flags=[],
         sharpness=500.0,
         sharpness_rel=1.0,

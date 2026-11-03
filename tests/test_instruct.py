@@ -25,6 +25,7 @@ def _cand(i: int, start: float, dur: float = 8.0, **kw: Any) -> suggest.Candidat
             "highlight": 4,
             "issues": ["无明显问题"],
         },
+        highlight=4.0,
         flags=kw.pop("flags", []),
         sharpness=500.0,
         sharpness_rel=1.0,

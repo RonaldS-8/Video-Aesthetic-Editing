@@ -27,6 +27,9 @@ class Candidate:
     start: float
     end: float
     tags: dict[str, Any]
+    # VLM highlight on 1-5: the probability-weighted mean of the digits the
+    # model could write (tag.highlight_score), not just the one it wrote
+    highlight: float
     flags: list[str]
     sharpness: float
     # sharpness / median sharpness of the same video
@@ -74,12 +77,14 @@ def assess(c: Candidate) -> Assessment:
         raise ValueError(f"sharpness_rel must be non-negative: {c}")
     if not 0.0 <= c.quality <= 1.0:
         raise ValueError(f"quality must be in [0, 1]: {c}")
-    highlight = (tags["highlight"] - 1) / 4
+    if not 1.0 <= c.highlight <= 5.0:
+        raise ValueError(f"highlight must be in [1, 5]: {c}")
+    highlight = (c.highlight - 1) / 4
     combined = AESTHETIC_WEIGHT * c.quality + VLM_WEIGHT * highlight
     score = 1 + 4 * combined
     reasons = [
         f"美学模型 {c.quality:.2f}（技术 {c.tech_raw:+.3f} / 美学 {c.aes_raw:+.3f}）",
-        f"VLM 精彩度 {tags['highlight']}/5（权重 {VLM_WEIGHT:.0%}）",
+        f"VLM 精彩度 {c.highlight:.2f}/5（权重 {VLM_WEIGHT:.0%}）",
     ]
     if "blurry" in c.flags:
         score -= 1.5
