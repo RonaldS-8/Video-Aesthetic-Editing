@@ -22,6 +22,9 @@ data/synth/*.mp4
 out/**/previews/
 out/**/preview_*.mp4
 out/**/scenes/*.mp4
+# Built from what is on disk: the result index and the tag copies by name
+out/index.html
+out/**/tags.jsonl
 
 # Third-party code (see README) and model weights; only the index
 # (models/README.md) and manifests are tracked
@@ -36,3 +39,11 @@ docs/
 
 # Downloaded datasets and archives
 data/downloads/
+
+# A/B evaluation: test material and finished cuts stay local
+ab_eval/testset/*
+!ab_eval/testset/README.md
+ab_eval/results/case-9*/
+ab_eval/results/**/*.mp4
+ab_eval/results/**/work/
+

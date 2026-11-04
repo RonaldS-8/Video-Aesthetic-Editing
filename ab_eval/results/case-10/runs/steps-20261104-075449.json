@@ -1,0 +1,57 @@
+{
+ "phases": {
+  "prepare": 9521.75
+ },
+ "steps": [
+  {
+   "step": "check",
+   "category": "check",
+   "seconds": 2.63,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "stage",
+   "category": "decode",
+   "seconds": 0.01,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "prepare",
+   "category": "segment",
+   "seconds": 1755.21,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "shortlist",
+   "category": "arrange",
+   "seconds": 0.02,
+   "ok": true,
+   "phase": "prepare",
+   "segments": 100
+  },
+  {
+   "step": "analyze",
+   "category": "understand",
+   "seconds": 6318.69,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "index",
+   "category": "understand",
+   "seconds": 564.87,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "catalog",
+   "category": "understand",
+   "seconds": 880.32,
+   "ok": true,
+   "phase": "prepare"
+  }
+ ]
+}

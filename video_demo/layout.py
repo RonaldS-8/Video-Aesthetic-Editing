@@ -20,10 +20,26 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 ID_LENGTH = 16
+
+
+def data_dir(root: Path) -> Path:
+    """``root``/data, or VIDEO_DEMO_DATA when set (e.g. scratch space for
+    one case of an evaluation)."""
+    return Path(os.environ.get("VIDEO_DEMO_DATA", root / "data"))
+
+
+def models_dir(root: Path) -> Path:
+    """``root``/models, or VIDEO_DEMO_MODELS when set (e.g. the models baked
+    into a container image)."""
+    return Path(os.environ.get("VIDEO_DEMO_MODELS", root / "models"))
+
+
 MANIFEST_NAME = "manifest.json"
 # Containers the photo library accepts as video (A-NAS photo-video spec).
 VIDEO_SUFFIXES = frozenset(
@@ -274,6 +290,17 @@ def tags_path(work: Path, vid: str) -> Path:
     return work / "tags" / f"tag_{vid}.jsonl"
 
 
+def retired_tags_path(work: Path, vid: str, label: str) -> Path:
+    """Tags set aside when the video is tagged again with another prompt;
+    ``label`` names the prompt they were made with."""
+    return work / "tags" / f"tag_{vid}.{label}.jsonl"
+
+
+def category_path(work: Path, vid: str) -> Path:
+    """The video's material category, chosen by the model or the user."""
+    return work / "categories" / f"category_{vid}.json"
+
+
 def aesthetic_path(work: Path, vid: str) -> Path:
     return work / "aesthetic" / f"aesthetic_{vid}.jsonl"
 
@@ -288,9 +315,45 @@ def summary_path(work: Path, vid: str) -> Path:
     return work / "summaries" / f"summary_{vid}.json"
 
 
+def group_summary_path(work: Path, key: str) -> Path:
+    """The summary of a group of short videos, by a hash of its videos'
+    summaries (cached; see outline.group_videos)."""
+    return work / "summaries" / f"group_{key}.json"
+
+
 def scene_summary_path(work: Path, vid: str) -> Path:
     """Model-written scene titles and summaries (cached per video)."""
     return work / "scenes" / f"scene_{vid}.json"
+
+
+def multi_scene_path(work: Path) -> Path:
+    """Summaries of scenes that run across videos (cached)."""
+    return work / "scenes" / "scene_multi.json"
+
+
+def proxy_path(work: Path, vid: str) -> Path:
+    """A smaller copy of a large video's picture that analysis reads."""
+    return work / "proxy" / f"proxy_{vid}.mp4"
+
+
+def asr_path(work: Path, vid: str) -> Path:
+    """Raw speech recognition sentences with per-character times."""
+    return work / "asr" / f"asr_{vid}.json"
+
+
+def subtitle_path(work: Path, vid: str) -> Path:
+    """Model-refined sentences, aligned times and subtitle cues."""
+    return work / "subtitles" / f"subtitle_{vid}.json"
+
+
+def translation_path(work: Path, vid: str, lang: str) -> Path:
+    """Translated subtitle sentences, one part per source cue."""
+    return work / "translations" / f"translation_{lang}_{vid}.json"
+
+
+def glossary_path(work: Path, vid: str, lang: str) -> Path:
+    """Names and terms with their translations (model-extracted)."""
+    return work / "glossaries" / f"glossary_{lang}_{vid}.json"
 
 
 def compare_path(work: Path, model: str, vid: str) -> Path:
@@ -323,6 +386,12 @@ def result_dirs(out: Path, videos: list[Video]) -> dict[str, Path]:
     return dirs
 
 
+def tags_copy_path(folder: Path) -> Path:
+    """A copy of the video's tags in its result folder, so they can be found
+    by file name; ``data/work/tags`` stays the source the stages read."""
+    return folder / "tags.jsonl"
+
+
 def timeline_path(folder: Path, mode: str) -> Path:
     """``folder`` is a video's result folder, or the collection's for the
     timeline across all of its videos."""
@@ -331,6 +400,61 @@ def timeline_path(folder: Path, mode: str) -> Path:
 
 def preview_path(folder: Path, mode: str) -> Path:
     return folder / f"preview_{mode}.mp4"
+
+
+def subtitles_dir(folder: Path) -> Path:
+    """A result folder's subtitles: the video's own, recognised and refined,
+    and those of each preview in the folder."""
+    return folder / "subtitles"
+
+
+def recognized_srt_path(folder: Path) -> Path:
+    return subtitles_dir(folder) / "recognized.srt"
+
+
+def refined_srt_path(folder: Path) -> Path:
+    return subtitles_dir(folder) / "refined.srt"
+
+
+def translated_srt_path(folder: Path, track: str) -> Path:
+    """The refined subtitles translated: ``track`` is a language (``zh``)
+    or ``zh.bilingual`` (the source line under the translation)."""
+    return subtitles_dir(folder) / f"refined.{track}.srt"
+
+
+def subtitle_changes_path(folder: Path) -> Path:
+    """What the 4B changed in each recognised sentence."""
+    return subtitles_dir(folder) / "changes.json"
+
+
+def preview_srt_path(preview: Path, track: str = "") -> Path:
+    """Subtitles for ``preview``, named after it in the subtitles folder
+    next to it (players such as VLC look there); ``track`` names a
+    translation as in translated_srt_path."""
+    name = f"{preview.stem}.{track}" if track else preview.stem
+    return subtitles_dir(preview.parent) / f"{name}.srt"
+
+
+def preview_cue_map_path(preview: Path, track: str = "") -> Path:
+    """Which cue went where on ``preview``, and what was cut."""
+    name = f"{preview.stem}.{track}" if track else preview.stem
+    return subtitles_dir(preview.parent) / f"{name}.mapping.json"
+
+
+def narration_srt_path(preview: Path) -> Path:
+    """The narration lines of ``preview`` as subtitles."""
+    return subtitles_dir(preview.parent) / f"{preview.stem}.narration.srt"
+
+
+def narration_text_path(preview: Path) -> Path:
+    """The narration of ``preview`` to read: each line with its time on the
+    cut and in the source video."""
+    return preview.parent / f"{preview.stem}.narration.txt"
+
+
+def burned_preview_path(preview: Path) -> Path:
+    """``preview`` with its subtitles drawn into the picture, next to it."""
+    return preview.parent / f"{preview.stem}_subtitled.mp4"
 
 
 def report_path(out: Path, mode: str) -> Path:
@@ -345,3 +469,43 @@ def scenes_dir(folder: Path) -> Path:
 
 def scene_clip_path(folder: Path, scene: int) -> Path:
     return scenes_dir(folder) / f"scene_{scene:02d}.mp4"
+
+
+# Edits by instruction: one folder per instruction under the collection's
+# output directory, named by when it was made and the start of the
+# instruction, so earlier edits are kept and can be told apart.
+EDIT_NAME_CHARS = 20
+# Characters Windows does not allow in a file name, and whitespace.
+_UNSAFE_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f\s]+')
+
+
+def edit_dir(out: Path, stamp: str, instruction: str) -> Path:
+    name = _UNSAFE_NAME.sub("_", instruction.strip())[:EDIT_NAME_CHARS]
+    name = name.strip("._")
+    return out / "edits" / (f"{stamp}_{name}" if name else stamp)
+
+
+def edit_timeline_path(folder: Path) -> Path:
+    return folder / "timeline.json"
+
+
+def edit_preview_path(folder: Path) -> Path:
+    return folder / "preview.mp4"
+
+
+def edit_report_path(folder: Path) -> Path:
+    return folder / "report.html"
+
+
+# Outside the collections: the page linking every result, the frozen
+# VLM-only baseline, and the cut-detection evaluation on synthetic videos.
+def index_page_path(out: Path) -> Path:
+    return out / "index.html"
+
+
+def baseline_report_path(out: Path) -> Path:
+    return out / "baseline" / "report.html"
+
+
+def synth_eval_path(out: Path, name: str) -> Path:
+    return out / "synth" / f"eval_{name}.json"

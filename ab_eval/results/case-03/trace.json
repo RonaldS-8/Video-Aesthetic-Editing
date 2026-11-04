@@ -1,0 +1,268 @@
+{
+ "resourceSpans": [
+  {
+   "resource": {
+    "attributes": [
+     {
+      "key": "service.name",
+      "value": {
+       "stringValue": "anas-video-edit-plan-b"
+      }
+     }
+    ]
+   },
+   "scopeSpans": [
+    {
+     "scope": {
+      "name": "ab_eval"
+     },
+     "spans": [
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "be698302e90ede0d",
+       "name": "check",
+       "kind": 1,
+       "startTimeUnixNano": "1793707376788234700",
+       "endTimeUnixNano": "1793707379103519700",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "check"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "prepare"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "7aaf4f6b7cc94770",
+       "name": "stage",
+       "kind": 1,
+       "startTimeUnixNano": "1793707379103519700",
+       "endTimeUnixNano": "1793707379112519700",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "decode"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "prepare"
+         }
+        },
+        {
+         "key": "seeded",
+         "value": {
+          "intValue": "0"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "9bf71deb2301653c",
+       "name": "prepare",
+       "kind": 1,
+       "startTimeUnixNano": "1793707379112519700",
+       "endTimeUnixNano": "1793707381759233700",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "segment"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "prepare"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "2faef76757ec741d",
+       "name": "analyze",
+       "kind": 1,
+       "startTimeUnixNano": "1793707381759233700",
+       "endTimeUnixNano": "1793707383452817300",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "understand"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "prepare"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "7b1ed6da291f2adc",
+       "name": "index",
+       "kind": 1,
+       "startTimeUnixNano": "1793707383452817300",
+       "endTimeUnixNano": "1793707388583726900",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "understand"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "prepare"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "18aad83e9c621ec2",
+       "name": "edit",
+       "kind": 1,
+       "startTimeUnixNano": "1793707389863038100",
+       "endTimeUnixNano": "1793707563678642900",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "arrange"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "cut"
+         }
+        },
+        {
+         "key": "planner",
+         "value": {
+          "stringValue": "cloud"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "507e6be7c9682f5d",
+       "name": "render",
+       "kind": 1,
+       "startTimeUnixNano": "1793707563678642900",
+       "endTimeUnixNano": "1793707723488297700",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "render"
+         }
+        },
+        {
+         "key": "phase",
+         "value": {
+          "stringValue": "cut"
+         }
+        },
+        {
+         "key": "subtitles",
+         "value": {
+          "boolValue": false
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "169d5dd37bb4c096",
+       "name": "edit_outline",
+       "kind": 1,
+       "startTimeUnixNano": "1793707393263947200",
+       "endTimeUnixNano": "1793707393263947200",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "arrange"
+         }
+        },
+        {
+         "key": "planner",
+         "value": {
+          "stringValue": "cloud"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      },
+      {
+       "traceId": "d84ab04e310156494834dd7f620f26de",
+       "spanId": "089008dfc04ddedc",
+       "name": "edit_review",
+       "kind": 1,
+       "startTimeUnixNano": "1793707395915079900",
+       "endTimeUnixNano": "1793707395915079900",
+       "attributes": [
+        {
+         "key": "anas.category",
+         "value": {
+          "stringValue": "arrange"
+         }
+        },
+        {
+         "key": "planner",
+         "value": {
+          "stringValue": "cloud"
+         }
+        }
+       ],
+       "status": {
+        "code": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

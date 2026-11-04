@@ -55,6 +55,8 @@ border-radius:8px;padding:8px 10px;margin:8px 0}
 .strip{display:flex;gap:4px;overflow-x:auto;margin:6px 0}
 .strip img{width:112px;flex:none;border-radius:4px;border:3px solid transparent}
 .strip img.taken{border-color:var(--sel)}.strip img.dropped{opacity:.35}
+pre.raw{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:10px 12px;overflow-x:auto;font-size:12px;white-space:pre-wrap}
 """
 
 
@@ -126,11 +128,14 @@ def _clip_cards(
     clips: list[dict],
     seg_frames: dict[tuple[str, int], str],
     files: dict[str, str],
+    subtitles: dict[int, list[dict]] | None = None,
 ) -> str:
-    """``files`` maps video ids to raw file names for the captions."""
+    """``files`` maps video ids to raw file names for the captions;
+    ``subtitles`` the preview's cue records by clip number (from 1)."""
     cards = []
-    for c in clips:
+    for number, c in enumerate(clips, start=1):
         img = seg_frames.get((c["video"], c["index"]), "")
+        said = "".join(_cue_line(r) for r in (subtitles or {}).get(number, []))
         cards.append(
             f'<div class="clip"><img src="{escape(img)}" alt="">'
             f"<b>{c['order'] + 1}. {escape(c['role'])}</b> "
@@ -138,15 +143,143 @@ def _clip_cards(
             f"<span class='muted'>{escape(files[c['video']][:24])} "
             f"{_fmt(c['src_start'])}–{_fmt(c['src_end'])}</span><br>"
             f"{escape(c['description'])}<br>"
-            f"<span class='muted'>{escape(c['reason'])}</span></div>"
+            f"<span class='muted'>{escape(c['reason'])}</span>{said}</div>"
         )
     return f'<div class="clips">{"".join(cards)}</div>'
+
+
+def _cue_line(record: dict) -> str:
+    """One subtitle of a clip: kept, trimmed (with the whole line) or
+    dropped (struck through, with why)."""
+    if record["status"] == "kept":
+        return f"<br>💬 {escape(record['text'])}"
+    if record["status"] == "trimmed":
+        return (
+            f"<br>💬 {escape(record['kept'])} "
+            f"<span class='muted'>（原句：{escape(record['text'])}）</span>"
+        )
+    return (
+        f"<br><span class='muted'>💬 <s>{escape(record['text'])}</s>"
+        f"（{escape(record['reason'])}）</span>"
+    )
+
+
+def _narration(timeline: dict, folder: Path) -> str:
+    """The narration lines of an edit: when each starts, on which clip, what
+    is said and how long it takes."""
+    record = timeline.get("narration")
+    if not record:
+        return ""
+    checks = {c["clip"]: c for c in record.get("checks", [])}
+
+    def checked(x: dict) -> str:
+        c = checks.get(x["clip"])
+        if not c or c["written"] == c["checked"]:
+            return ""
+        why = "；".join(c["problems"]) or "改写"
+        return (
+            f'<br><span class="muted">看画面核对前：{escape(c["written"])}'
+            f"（{escape(why)}）</span>"
+        )
+
+    rows = "".join(
+        f"<tr><td>{_fmt(x['start'])}</td><td>{x['clip']}</td>"
+        f"<td>{escape(x['text'])}{checked(x)}</td><td>{x['seconds']:.1f}s / "
+        f"{x['window']:.1f}s</td></tr>"
+        for x in record["lines"]
+    )
+    preview = layout.edit_preview_path(folder)
+    srt = (
+        f"{_link(layout.narration_text_path(preview), folder, '解说词与时间线')} · "
+        f"{_link(layout.narration_srt_path(preview), folder, '解说字幕')}"
+    )
+    return (
+        f"<h3>解说（{len(record['lines'])} 句，音色 {escape(record['voice'])}）</h3>"
+        f'<p class="muted">按素材类型的解说风格写，只挂在没人说话的镜头上，'
+        "写完由 4B 看画面逐句核对；"
+        f"解说时原声压到 {record['duck_gain']:.0%} · {srt}</p>"
+        "<table><tr><th>开始</th><th>镜头</th><th>解说</th><th>时长 / 可用</th></tr>"
+        f"{rows}</table>"
+    )
+
+
+def _subtitled(preview: Path) -> Path | None:
+    """The burned-in version of ``preview`` when it has something on screen
+    (subtitles of speech or narration); None for a preview without speech,
+    which is shown plain."""
+    burned = layout.burned_preview_path(preview)
+    if not burned.exists():
+        return None
+    for srt in (layout.preview_srt_path(preview), layout.narration_srt_path(preview)):
+        if srt.exists() and srt.read_text("utf-8").strip():
+            return burned
+    return None
+
+
+def _preview_links(preview: Path, base: Path) -> str:
+    """A preview for listings: the subtitled one when there is one, with the
+    plain one as an extra link."""
+    subtitled = _subtitled(preview)
+    if subtitled is None:
+        return _link(preview, base, "预览")
+    return (
+        f"{_link(subtitled, base, '预览（带字幕）')}"
+        f"（{_link(preview, base, '无字幕版')}）"
+    )
+
+
+def _preview(preview: Path, base: Path) -> tuple[str, dict[int, list[dict]]]:
+    """The preview player, links to its subtitles when they exist, and its
+    cue records by clip number. The player shows the subtitled version when
+    there is one (_subtitled); the plain preview is then a link."""
+    subtitled = _subtitled(preview)
+    shown = subtitled or preview
+    links = [
+        _link(path, base, label)
+        for path, label in (
+            *([(preview, "不带字幕的预览")] if subtitled else []),
+            (layout.preview_srt_path(preview), "字幕 SRT"),
+            (layout.preview_srt_path(preview, "zh"), "中文译文字幕"),
+            (layout.preview_srt_path(preview, "zh.bilingual"), "双语字幕"),
+            (layout.narration_text_path(preview), "解说词与时间线"),
+            (layout.narration_srt_path(preview), "解说字幕"),
+            (layout.preview_cue_map_path(preview), "字幕截断记录"),
+        )
+        if path.exists()
+    ]
+    by_clip: dict[int, list[dict]] = {}
+    mapping = layout.preview_cue_map_path(preview)
+    if mapping.exists():
+        data = _read_json(mapping)
+        for r in data["cues"]:
+            by_clip.setdefault(r["clip"], []).append(r)
+        counts = data["counts"]
+        links.append(
+            f"字幕完整 {counts.get('kept', 0)}、截断 {counts.get('trimmed', 0)}、"
+            f"丢弃 {counts.get('dropped', 0)} 条"
+        )
+    html = (
+        f'<video src="{escape(_rel(shown, base))}" controls preload="metadata">'
+        "</video>"
+    )
+    if links:
+        html += f'<p class="muted">{" · ".join(links)}</p>'
+    return html, by_clip
+
+
+def keyframe_paths(
+    work: Path, vid: str, sig: list[dict], out_dir: Path
+) -> dict[tuple[str, int], str]:
+    """Each segment's first keyframe, relative to ``out_dir``; ``sig`` is
+    the video's signal records."""
+    rel = _rel(layout.keyframes_dir(work, vid), out_dir) + "/"
+    return {(vid, s["index"]): rel + s["keyframes"][0] for s in sig}
 
 
 def _video_section(
     root: Path, out_dir: Path, result_dir: Path, mode: str, video: layout.Video, n: int
 ) -> tuple[str, dict, dict]:
-    work = root / "data" / "work"
+    work = layout.data_dir(root) / "work"
     vid = video.id
     seg = _read_json(layout.segments_path(work, vid))
     sig = _read_json(layout.signals_path(work, vid))
@@ -166,12 +299,8 @@ def _video_section(
     assess = {a["index"]: a for a in tl["assessments"]}
     selected = {c["index"] for c in tl["clips"]}
     analysed = seg["analysed_until"]
-    keyframes = layout.keyframes_dir(work, vid)
-    rel = Path(os.path.relpath(keyframes, out_dir)).as_posix() + "/"
-    frames = {
-        (vid, s["index"]): rel + sig[s["index"]]["keyframes"][0]
-        for s in seg["segments"]
-    }
+    rel = _rel(layout.keyframes_dir(work, vid), out_dir) + "/"
+    frames = keyframe_paths(work, vid, sig, out_dir)
 
     spans = []
     for s in seg["segments"]:
@@ -229,6 +358,16 @@ def _video_section(
         else ""
     )
     audio = "有音轨" if seg["has_audio"] else "无音轨"
+    for path, label in (
+        (layout.refined_srt_path(result_dir), "字幕"),
+        (layout.recognized_srt_path(result_dir), "识别原文"),
+        (layout.subtitle_changes_path(result_dir), "校对改动"),
+        (layout.translated_srt_path(result_dir, "zh"), "中文译文"),
+        (layout.translated_srt_path(result_dir, "zh.bilingual"), "双语"),
+    ):
+        if path.exists():
+            audio += f" · {_link(path, out_dir, label)}"
+    player, subs = _preview(layout.preview_path(result_dir, mode), out_dir)
     title = escape(f"{video.file}（{vid}）{partial}")
     html = f"""
 <details{' open' if n == 0 else ''}><summary>{title}</summary>
@@ -241,9 +380,8 @@ def _video_section(
 蓝框为入选建议时间线的片段。</p>
 <h3>建议时间线（{tl['total_sec']}s / 目标 {tl['target_sec']:.0f}s）</h3>{note}
 {outline_table(tl)}
-<video src="{escape(_rel(layout.preview_path(result_dir, mode), out_dir))}" controls
-preload="metadata"></video>
-{_clip_cards(tl['clips'], frames, {vid: video.file})}
+{player}
+{_clip_cards(tl['clips'], frames, {vid: video.file}, subs)}
 <h3>逐片段标签</h3>
 <div class="scroll"><table><tr><th>片段</th><th>时间</th><th>关键帧</th>
 <th>模型标签</th><th>美学分 / VLM 精彩度</th><th>画质信号</th><th>建议</th></tr>
@@ -270,9 +408,11 @@ def summary_heading(mode: str, timeline: dict) -> str:
     minutes = f"全集合 {total / 60:.1f} 分钟 / 目标 {target / 60:.1f} 分钟"
     if mode == "highlights":
         return f"""<h2>2. 精彩瞬间（{minutes}）</h2>
-<p class="muted">按时间每 5 分钟一块，Qwen3.5-4B 先逐块写总结（发生了什么、地点、
-活动、值得留的片段），再读全部总结生成大纲：每部分的标题、内容、覆盖的块和
-1–4 个场景槽位。相邻片段按向量相似度连成场景（20–120 秒）；每个槽位在本部分的
+<p class="muted">按时间每 5 分钟一块（短视频各自总结后，整条凑满 5 分钟成一组），
+Qwen3.5-4B 先逐块写总结（发生了什么、地点、活动、值得留的片段），再读全部总结
+生成大纲：每部分的标题、内容、覆盖的块和 1–4 个场景槽位。视频按
+{escape(timeline.get('order', '文件名'))}排列。相邻片段按向量相似度连成场景
+（20–120 秒，内容相近时跨镜头、跨视频）；每个槽位在本部分的
 块里检索（文本向量、图像向量、BM25 融合），选一个场景，相关度为主、画质为辅，
 一个场景只给一个槽位。槽位的时长从这个场景里取：按片段得分（DOVER 美学分占
 80%、VLM 精彩度占 20%，美学分在同一时段内取百分位）加片段相关度、再给总结
@@ -305,6 +445,10 @@ def outline_table(timeline: dict) -> str:
             f"{slot['seconds']:.0f}s）</span>"
         )
 
+    def chunk_span(ch: dict) -> str:
+        many = f"<br>{len(ch['videos'])} 条视频" if len(ch["videos"]) > 1 else ""
+        return f"{_fmt(ch['start'])}–{_fmt(ch['end'])}{many}"
+
     filled: dict[str, float] = {}
     for c in timeline["clips"]:
         filled[c["role"]] = filled.get(c["role"], 0.0) + c["duration"]
@@ -320,7 +464,7 @@ def outline_table(timeline: dict) -> str:
         )
     )
     summary_rows = "".join(
-        f"<tr><td>{ch['number']}</td><td>{_fmt(ch['start'])}–{_fmt(ch['end'])}</td>"
+        f"<tr><td>{ch['number']}</td><td>{chunk_span(ch)}</td>"
         f"<td>{escape(ch['summary']['summary'])}<br><span class='muted'>"
         f"{escape('、'.join(ch['summary']['places']))} · "
         f"{escape('、'.join(ch['summary']['activities']))}</span></td>"
@@ -341,6 +485,26 @@ def outline_table(timeline: dict) -> str:
 
 
 PART_COLORS = ("#2b5fd9", "#d9822b", "#2f9d8f", "#b04aa8", "#8a9a2b", "#c4473a")
+
+
+def _scene_strip(
+    sc: dict,
+    frames: dict[tuple[str, int], str],
+    descriptions: dict[tuple[str, int], str],
+    taken: set[tuple[str, int]],
+    keep: dict[tuple[str, int], bool],
+) -> str:
+    """Every segment keyframe of a scene; taken ones framed, rejected faded."""
+    imgs = []
+    for vid, i in sc["segments"]:
+        key = (vid, i)
+        cls = "taken" if key in taken else ("" if keep[key] else "dropped")
+        title = f"#{i} {descriptions.get(key, '')}"
+        imgs.append(
+            f'<img class="{cls}" src="{escape(frames[key])}" '
+            f'title="{escape(title)}" alt="">'
+        )
+    return f'<div class="strip">{"".join(imgs)}</div>'
 
 
 def scene_slots(
@@ -379,16 +543,7 @@ def scene_slots(
         )
 
     def strip(sc: dict) -> str:
-        imgs = []
-        for i in sc["segments"]:
-            key = (sc["video"], i)
-            cls = "taken" if key in taken else ("" if keep[key] else "dropped")
-            title = f"#{i} {descriptions.get(key, '')}"
-            imgs.append(
-                f'<img class="{cls}" src="{escape(frames[key])}" '
-                f'title="{escape(title)}" alt="">'
-            )
-        return f'<div class="strip">{"".join(imgs)}</div>'
+        return _scene_strip(sc, frames, descriptions, taken, keep)
 
     parts = []
     for k, (part, slots) in enumerate(
@@ -406,7 +561,7 @@ def scene_slots(
                 )
                 continue
             sc = scenes[slot["scene"]]
-            n_taken = sum((sc["video"], i) in taken for i in sc["segments"])
+            n_taken = sum(tuple(k) in taken for k in sc["segments"])
             others = "、".join(
                 f"场景 {n}（{_fmt(scenes[n]['start'])}）"
                 for n in slot["top"]
@@ -458,7 +613,7 @@ def write(
 
     ``baseline`` is the frozen VLM-only report kept for side-by-side review.
     """
-    evals = [_read_json(root / "out" / f"synth_eval_{n}.json") for n in SET_TITLES]
+    evals = [_read_json(layout.synth_eval_path(root / "out", n)) for n in SET_TITLES]
     sections: list[str] = []
     all_frames: dict[tuple[str, int], str] = {}
     descriptions: dict[tuple[str, int], str] = {}
@@ -507,6 +662,7 @@ def write(
         f'<span class="muted">{extra}</span></div>'
         for k, v, extra in cards
     )
+    player, subs = _preview(layout.preview_path(out_dir, mode), out_dir)
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>视频切分与剪辑建议（DOVER 美学打分版）</title><style>{CSS}</style></head>
@@ -517,7 +673,7 @@ def write(
 选片；本版切分 ≤{MAX_SEGMENT_SEC:.0f} 秒（2026-10-26 前切分的视频仍是 ≤8 秒）、
 关键帧每 {KEYFRAME_STEP_SEC:.0f} 秒一张，片段得分以 DOVER 美学分为主。</p>
 <p class="muted">{date.today().isoformat()} · 本机 Core Ultra 5 225U / 15.4 GB，无独显 ·
-切分 PySceneDetect AdaptiveDetector + 叠化检测 · 打标签 Qwen3-VL-2B Q4_K_M（llama.cpp
+切分 PySceneDetect AdaptiveDetector + 叠化检测 · 打标签 Qwen3.5-4B Q4_K_M（llama.cpp
 Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 剪辑建议为规则打分 + 槽位填充</p>
 <div class="cards">{card_html}</div>
@@ -527,14 +683,318 @@ Vulkan）· 美学打分 DOVER（CPU，S-Lab 许可，仅内部验证）·
 {''.join(_eval_section(ev) for ev in evals)}{EVAL_NOTE}
 {summary_heading(mode, summary)}
 {scene_slots(summary, all_frames, descriptions) if mode == "highlights" else ""}
-<video src="{escape(_rel(layout.preview_path(out_dir, mode), out_dir))}" controls
-preload="metadata"></video>
-{_clip_cards(summary['clips'], all_frames, {v.id: v.file for v in videos})}
+{player}
+{_clip_cards(summary['clips'], all_frames, {v.id: v.file for v in videos}, subs)}
 <h2>3. 逐视频结果</h2>
 {''.join(sections)}
 <p class="muted">素材来自 Wikimedia Commons（CC BY / CC BY-SA 3.0），
 署名见 data/raw/SOURCES.md。</p>
 </main></body></html>"""
     path = layout.report_path(out_dir, mode)
+    path.write_text(page, encoding="utf-8")
+    return path
+
+
+def write_edit(
+    root: Path, folder: Path, videos: list[layout.Video], timeline: dict
+) -> Path:
+    """Write ``folder/report.html`` for an edit by instruction: the
+    instruction and how the model read it, each part's slots with the scene
+    retrieved for it, the preview and the clips."""
+    work = layout.data_dir(root) / "work"
+    files = {v.id: v.file for v in videos}
+    frames: dict[tuple[str, int], str] = {}
+    descriptions: dict[tuple[str, int], str] = {}
+    for vid in timeline["videos"]:
+        frames.update(
+            keyframe_paths(
+                work, vid, _read_json(layout.signals_path(work, vid)), folder
+            )
+        )
+        for line in layout.tags_path(work, vid).read_text("utf-8").splitlines():
+            r = json.loads(line)
+            descriptions[(vid, r["index"])] = r["tags"]["description"]
+    plan = timeline["outline"]
+    scenes = {sc["number"]: sc for sc in timeline["scenes"]}
+    keep = {(a["video"], a["index"]): a["keep"] for a in timeline["assessments"]}
+    taken = {(c["video"], c["index"]) for c in timeline["clips"]}
+    catalog = {s["number"]: s for s in timeline["catalog"]}
+
+    def catalog_entry(n: int) -> str:
+        s = catalog[n]
+        return (
+            f"场景 {n}（{_fmt(s['start'])}–{_fmt(s['end'])}）"
+            f"「{escape(s['title'])}」"
+        )
+
+    def where(sc: dict) -> str:
+        first = files[sc["video"]].split("/")[-1]
+        last = files[sc["segments"][-1][0]].split("/")[-1]
+        if first == last:
+            return f"{escape(first)} {_fmt(sc['start'])}–{_fmt(sc['end'])}"
+        return (
+            f"{escape(first)} {_fmt(sc['start'])} → "
+            f"{escape(last)} {_fmt(sc['end'])}"
+        )
+
+    parts = []
+    for k, (part, slots) in enumerate(
+        zip(plan["parts"], timeline["slots"], strict=True)
+    ):
+        color = PART_COLORS[k % len(PART_COLORS)]
+        got = sum(c["duration"] for c in timeline["clips"] if c["role"] == part["name"])
+        short = got < 0.8 * part["duration_sec"]
+        cards = []
+        for slot in slots:
+            head = (
+                f"<b>「{escape(slot['query'])}」</b>"
+                f"<span class='muted'> 设计取自场景 "
+                f"{'、'.join(map(str, slot['sources']))}</span>"
+            )
+            if slot["scene"] is None:
+                cards.append(
+                    f'<div class="slot">{head}<p class="miss">没有可用的场景</p></div>'
+                )
+                continue
+            sc = scenes[slot["scene"]]
+            found = (
+                "<span class='ok'>是设计的场景</span>"
+                if sc["number"] in slot["sources"]
+                else "<span class='miss'>不是设计的场景</span>"
+            )
+            others = "、".join(
+                f"场景 {n}（{where(scenes[n])}）"
+                for n in slot["top"]
+                if n != sc["number"]
+            )
+            cards.append(
+                f'<div class="slot">{head} → 场景 {sc["number"]}'
+                f"<span class='muted'>（{where(sc)}，"
+                f"{len(sc['segments'])} 段）</span><br>"
+                f"<span class='muted'>检索相关度 {slot['relevance']:.0%} · "
+                f"分到 {slot['seconds']:.0f}s · </span>{found}"
+                f"{_scene_strip(sc, frames, descriptions, taken, keep)}"
+                f"<span class='muted'>其他候选：{others or '—'}</span></div>"
+            )
+        parts.append(
+            f'<div class="part" style="border-left-color:{color}">'
+            f"<h3>{k + 1}. {escape(part['name'])} "
+            f"<span class='muted'>分量 {part['weight']} · "
+            f"目标 {part['duration_sec']}s · "
+            f"<span class='{'miss' if short else 'ok'}'>选到 {got:.0f}s</span>"
+            f"</span></h3><p class='muted'>{escape(part['summary'])}</p>"
+            f"{''.join(cards)}</div>"
+        )
+    pace_note = {
+        "整段": "每段素材完整保留",
+        "适中": "每段最多 6 秒，取中间，避开句子",
+        "快": "每段最多 3 秒，取中间，避开句子",
+    }[plan["pace"]]
+    total = timeline["catalog_total"]
+    catalog_note = (
+        f"{total} 个有可用片段"
+        if len(catalog) == total
+        else f"{total} 个有可用片段，按要求检索出 {len(catalog)} 个给模型"
+    )
+    order_note = f"视频按{escape(timeline['order'])}排列"
+    source = timeline["target_source"]
+    if source["kind"] == "instruction":
+        target_note = f"指令里的「{escape(source['quote'])}」"
+    elif source["kind"] == "request":
+        target_note = "请求给定的秒数"
+    else:
+        target_note = f"指令没说时长，按素材的 {source['ratio']:.0%}"
+    analysed = sum(ch["end"] - ch["start"] for ch in timeline["chunks"])
+    cards_html = "".join(
+        f'<div class="card"><span class="muted">{k}</span><b>{v}</b>'
+        f'<span class="muted">{extra}</span></div>'
+        for k, v, extra in (
+            ("目标", f"{timeline['target_sec']:.0f}s", target_note),
+            ("选到", f"{timeline['total_sec']:.1f}s", f"{len(timeline['clips'])} 段"),
+            (
+                "素材",
+                f"{analysed / 60:.1f} 分钟",
+                f"{len(timeline['videos'])} 条视频，{order_note}",
+            ),
+            ("场景", f"{len(timeline['scenes'])}", catalog_note),
+        )
+    )
+    unmet = "、".join(escape(u) for u in plan["unmet"])
+    materials = "".join(
+        f"<li>{catalog_entry(m['scene'])}：{escape(m['content'])}</li>"
+        for m in plan["materials"]
+    )
+    notes = "".join(f"<li>{escape(n)}</li>" for n in timeline["notes"])
+    tries = len(timeline["outline_failed_attempts"]) + len(
+        timeline["duration_failed_attempts"]
+    )
+    title = plan.get("title") or "按要求剪辑"
+    failed = timeline["outline_failed_attempts"]
+    raw_failed = (
+        f"<details><summary>未通过校验的 {len(failed)} 次</summary><ul>"
+        + "".join(f"<li>{escape(e)}</li>" for e in failed)
+        + "</ul></details>"
+        if failed
+        else ""
+    )
+    review = timeline.get("review")
+    review_html = (
+        f"<b>审片</b><p>{escape(review['notes'])}</p>"
+        f"<p class=\"muted\">粗剪 {len(review['filled'])} 段 → 审定 "
+        f"{len(timeline['clips'])} 段（审片用时 {review['seconds']}s）</p>"
+        + (f'<p class="miss">{escape(review["fit"])}</p>' if review["fit"] else "")
+        if review
+        else ""
+    )
+    planner = escape(timeline.get("planner", "Qwen3.5-4B"))
+    player, subs = _preview(layout.edit_preview_path(folder), folder)
+    page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{escape(title)}</title><style>{CSS}</style></head>
+<body><main>
+<h1>{escape(title)}</h1>
+<p class="muted">{escape(timeline['created'])} · 按用户要求剪辑 · 大纲 {planner}
+（用时 {timeline['outline_seconds']}s{f"，重试 {tries} 次" if tries else ""}）·
+检索 EmbeddingGemma 2 文本、图像向量 + BM25</p>
+<div class="slot"><b>剪辑要求</b><p>{escape(timeline['instruction'])}</p>
+<b>选用的素材</b><ul>{materials}</ul>
+<b>成片设计</b><p>{escape(plan['design'])}</p>
+<p class="muted">节奏：{escape(plan['pace'])}（{pace_note}）</p>
+{f'<p class="miss">素材里找不到：{unmet}</p>' if unmet else ""}{review_html}</div>
+<div class="cards">{cards_html}</div>
+{f'<ul class="miss">{notes}</ul>' if notes else ""}
+<h2>大纲与检索到的场景</h2>
+<p class="muted">大纲由模型读要求和场景目录（每个场景的标题和概况）写成：先挑场景，
+再写设计，最后按设计分部分、定场景槽位，并标出每个槽位取自哪几个场景。
+每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），相关度为主、
+画质为辅，一个场景只给一个槽位。场景内选片时相关度占 70%、画质占 30%（都缩放到
+0–1），分段总结点名的亮点另有加分；节奏为适中或快时只取片段中间。
+成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
+{''.join(parts)}
+<h2>预览</h2>
+{player}
+{_narration(timeline, folder)}
+{_clip_cards(timeline['clips'], frames, files, subs)}
+<h2>大纲原文</h2>
+<p class="muted">模型输出的 JSON，未经改动；各部分的秒数由程序按 weight 另算。</p>
+<pre class="raw">{escape(timeline['outline_raw'])}</pre>
+{raw_failed}
+</main></body></html>"""
+    path = layout.edit_report_path(folder)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(page, encoding="utf-8")
+    return path
+
+
+# Folders directly under out/ that are not collections.
+NOT_COLLECTIONS = frozenset({"baseline", "synth"})
+MODE_TITLES = {"highlights": "精彩瞬间", "ranked": "只按得分的对照"}
+
+
+def _link(path: Path, start: Path, text: str) -> str:
+    if not path.exists():
+        return '<span class="muted">—</span>'
+    return f'<a href="{escape(_rel(path, start))}">{escape(text)}</a>'
+
+
+def _edit_rows(collection: Path, out: Path) -> list[str]:
+    """One row per edit by instruction, newest first."""
+    rows = []
+    for path in sorted(
+        collection.glob("edits/*/timeline.json"), key=lambda p: p.parent.name
+    ):
+        t = _read_json(path)
+        folder = path.parent
+        rows.append(
+            f"<tr><td>{escape(t['created'])}</td>"
+            f"<td>{escape(t['instruction'])}</td>"
+            f"<td>{escape(t['outline'].get('title') or '')}</td>"
+            f"<td>{t['total_sec']:.1f}s / {t['target_sec']:.0f}s</td>"
+            f"<td>{_link(layout.edit_report_path(folder), out, '报告')} · "
+            f"{_preview_links(layout.edit_preview_path(folder), out)}</td></tr>"
+        )
+    return rows[::-1]
+
+
+def _video_rows(collection: Path, out: Path) -> list[str]:
+    rows = []
+    for folder in sorted(p for p in collection.iterdir() if p.is_dir()):
+        listing = layout.scenes_dir(folder) / "scenes.json"
+        tags = layout.tags_copy_path(folder)
+        timelines = [layout.timeline_path(folder, m) for m in MODE_TITLES]
+        previews = [
+            f"{MODE_TITLES[m]} {_preview_links(layout.preview_path(folder, m), out)}"
+            for m in MODE_TITLES
+            if layout.preview_path(folder, m).exists()
+        ]
+        if not any(p.exists() for p in (listing, tags, *timelines)):
+            continue
+        scenes = (
+            f"{_link(layout.scenes_dir(folder), out, '目录')}"
+            f"（{len(_read_json(listing)['scenes'])} 个）"
+            if listing.exists()
+            else _link(listing, out, "")
+        )
+        rows.append(
+            f"<tr><td>{escape(folder.name)}</td><td>{scenes}</td>"
+            f"<td>{_link(tags, out, 'tags.jsonl')}</td>"
+            f"<td>{' · '.join(_link(t, out, t.name) for t in timelines)}</td>"
+            f"<td>{' · '.join(previews) or '—'}</td></tr>"
+        )
+    return rows
+
+
+def write_index(out: Path) -> Path:
+    """Write ``out/index.html``: every collection's reports, previews, edits
+    by instruction and per-video results, with links, rebuilt from what is
+    on disk."""
+    sections = []
+    for collection in sorted(
+        p for p in out.iterdir() if p.is_dir() and p.name not in NOT_COLLECTIONS
+    ):
+        reports = [
+            f"<li>{MODE_TITLES[m]}："
+            f"{_link(layout.report_path(collection, m), out, '报告')} · "
+            f"{_preview_links(layout.preview_path(collection, m), out)}</li>"
+            for m in MODE_TITLES
+            if layout.report_path(collection, m).exists()
+        ]
+        edits = _edit_rows(collection, out)
+        videos = _video_rows(collection, out)
+        if not (reports or edits or videos):
+            continue
+        edit_table = (
+            '<div class="scroll"><table><tr><th>时间</th><th>指令</th>'
+            "<th>标题</th><th>选到 / 目标</th><th></th></tr>"
+            f"{''.join(edits)}</table></div>"
+            if edits
+            else '<p class="muted">还没有</p>'
+        )
+        sections.append(
+            f"<h2>{escape(collection.name)}</h2><ul>{''.join(reports)}</ul>"
+            f"<h3>按指令剪辑（{len(edits)} 次）</h3>{edit_table}"
+            '<h3>逐条视频</h3><div class="scroll"><table><tr><th>视频</th>'
+            "<th>场景素材</th><th>标签</th><th>时间线</th><th>预览</th></tr>"
+            f"{''.join(videos)}</table></div>"
+        )
+    evals = [
+        _link(layout.synth_eval_path(out, n), out, f"{n}（{SET_TITLES[n][:3]}）")
+        for n in SET_TITLES
+    ]
+    page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>结果索引</title><style>{CSS}</style></head>
+<body><main>
+<h1>结果索引</h1>
+<p class="muted">每个集合（data/raw 下的第一层文件夹）一节；运行 tag、scenes、
+report、edit 后自动更新。中间结果在 data/work，按视频 ID 命名，ID 与文件名的
+对应见 data/raw/manifest.json。</p>
+{''.join(sections)}
+<h2>其他</h2>
+<ul><li>早期基线：{_link(layout.baseline_report_path(out), out, '报告')}
+（只用 VLM 精彩度选片）</li>
+<li>切分评测（合成视频）：{' · '.join(evals)}</li></ul>
+</main></body></html>"""
+    path = layout.index_page_path(out)
     path.write_text(page, encoding="utf-8")
     return path

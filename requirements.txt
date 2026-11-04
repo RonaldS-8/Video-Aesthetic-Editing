@@ -35,7 +35,17 @@ tqdm>=4.66
 absl-py>=2.0
 flatbuffers>=25.0
 matplotlib>=3.9
+# AI subtitles: silero VAD + SenseVoice-Small speech recognition, CPU
+# only, bundles onnxruntime (no torch); models go in models/asr/
+sherpa-onnx>=1.12
+# Narration voice-over (`edit --narrate`): Kokoro-82M-v1.1-zh, PyTorch
+# on CPU, Mandarin only (misaki[zh] does the G2P); weights from ModelScope
+# go in models/Kokoro-82M-v1.1-zh/
+kokoro>=0.9.4
+misaki[zh]>=0.9.4
 # Dev tools
+# Translation benchmark only (chrF/BLEU against reference subtitles)
+sacrebleu>=2.4
 pytest>=8.0
 ruff>=0.6
 black>=24.0

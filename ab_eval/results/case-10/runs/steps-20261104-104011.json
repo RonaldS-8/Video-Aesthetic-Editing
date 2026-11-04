@@ -1,0 +1,88 @@
+{
+ "phases": {
+  "prepare": 26.61,
+  "cut": 107.01
+ },
+ "steps": [
+  {
+   "step": "check",
+   "category": "check",
+   "seconds": 3.65,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "stage",
+   "category": "decode",
+   "seconds": 0.0,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "prepare",
+   "category": "segment",
+   "seconds": 5.1,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "shortlist",
+   "category": "arrange",
+   "seconds": 0.02,
+   "ok": true,
+   "phase": "prepare",
+   "segments": 100
+  },
+  {
+   "step": "analyze",
+   "category": "understand",
+   "seconds": 3.21,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "index",
+   "category": "understand",
+   "seconds": 7.21,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "catalog",
+   "category": "understand",
+   "seconds": 7.43,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "edit",
+   "category": "arrange",
+   "seconds": 4.83,
+   "ok": true,
+   "phase": "cut",
+   "planner": "cloud"
+  },
+  {
+   "step": "render",
+   "category": "render",
+   "seconds": 102.19,
+   "ok": true,
+   "phase": "cut",
+   "subtitles": false
+  },
+  {
+   "step": "edit_outline",
+   "category": "arrange",
+   "seconds": 0.0,
+   "ok": true,
+   "planner": "cloud"
+  },
+  {
+   "step": "edit_review",
+   "category": "arrange",
+   "seconds": 0.0,
+   "ok": true,
+   "planner": "cloud"
+  }
+ ]
+}

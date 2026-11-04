@@ -1,13 +1,28 @@
 from __future__ import annotations
 
-from video_demo import report
+import json
+from pathlib import Path
+
+from video_demo import layout, report
 
 
 def _timeline() -> dict:
     return {
         "scenes": [
-            {"number": 1, "video": "v", "start": 0.0, "end": 20.0, "segments": [0, 1]},
-            {"number": 2, "video": "v", "start": 20.0, "end": 40.0, "segments": [2, 3]},
+            {
+                "number": 1,
+                "video": "v",
+                "start": 0.0,
+                "end": 20.0,
+                "segments": [["v", 0], ["v", 1]],
+            },
+            {
+                "number": 2,
+                "video": "v",
+                "start": 20.0,
+                "end": 40.0,
+                "segments": [["v", 2], ["v", 3]],
+            },
         ],
         "slots": [
             [
@@ -58,3 +73,69 @@ def test_scene_slots_shows_each_slot_and_its_scene() -> None:
     # 10 s of a 20 s target is reported short.
     assert "<span class='miss'>选到 10s</span>" in html
     assert 'title="场景 2 → 「城堡」 0:20.0–0:40.0"' in html
+
+
+def test_index_links_every_collection_result(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    vlog = out / "vlog"
+    (vlog / "01_trip" / "scenes").mkdir(parents=True)
+    (vlog / "01_trip" / "scenes" / "scenes.json").write_text(
+        json.dumps({"scenes": [{}, {}, {}]}), "utf-8"
+    )
+    layout.tags_copy_path(vlog / "01_trip").write_text("{}", "utf-8")
+    layout.report_path(vlog, "highlights").write_text("", "utf-8")
+    for stamp, instruction in (("20261028-1", "旧<一>"), ("20261029-1", "只要夜景")):
+        folder = layout.edit_dir(vlog, stamp, instruction)
+        folder.mkdir(parents=True)
+        layout.edit_report_path(folder).write_text("", "utf-8")
+        layout.edit_timeline_path(folder).write_text(
+            json.dumps(
+                {
+                    "created": stamp,
+                    "instruction": instruction,
+                    "outline": {"title": "夜色"},
+                    "total_sec": 41.25,
+                    "target_sec": 45.0,
+                }
+            ),
+            "utf-8",
+        )
+    (out / "long").mkdir()
+    layout.baseline_report_path(out).parent.mkdir()
+    layout.baseline_report_path(out).write_text("", "utf-8")
+
+    html = report.write_index(out).read_text("utf-8")
+    assert "<h2>vlog</h2>" in html
+    assert "<h2>long</h2>" not in html and "<h2>baseline</h2>" not in html
+    assert '<a href="vlog/report_highlights.html">报告</a>' in html
+    assert "按指令剪辑（2 次）" in html
+    assert html.index("只要夜景") < html.index("旧&lt;一&gt;")
+    assert "41.2s / 45s" in html or "41.3s / 45s" in html
+    assert '<a href="vlog/edits/20261029-1_只要夜景/report.html">报告</a>' in html
+    assert '<a href="vlog/01_trip/scenes">目录</a>（3 个）' in html
+    assert '<a href="vlog/01_trip/tags.jsonl">tags.jsonl</a>' in html
+    assert '<a href="baseline/report.html">报告</a>' in html
+
+
+def test_previews_with_speech_are_shown_subtitled(tmp_path: Path) -> None:
+    preview = tmp_path / "vlog" / "preview_highlights.mp4"
+    preview.parent.mkdir(parents=True)
+    preview.write_bytes(b"")
+    assert report._preview_links(preview, tmp_path) == (
+        '<a href="vlog/preview_highlights.mp4">预览</a>'
+    )
+    burned = layout.burned_preview_path(preview)
+    burned.write_bytes(b"")
+    srt = layout.preview_srt_path(preview)
+    srt.parent.mkdir()
+    srt.write_text("", "utf-8")  # no speech in this preview: plain stays
+    assert "带字幕" not in report._preview_links(preview, tmp_path)
+    srt.write_text("1\n00:00:00,000 --> 00:00:01,000\n你好\n\n", "utf-8")
+    links = report._preview_links(preview, tmp_path)
+    assert links.startswith(
+        '<a href="vlog/preview_highlights_subtitled.mp4">预览（带字幕）</a>'
+    )
+    assert '<a href="vlog/preview_highlights.mp4">无字幕版</a>' in links
+    html, _ = report._preview(preview, tmp_path)
+    assert 'src="vlog/preview_highlights_subtitled.mp4"' in html
+    assert "不带字幕的预览" in html

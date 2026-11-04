@@ -11,6 +11,9 @@ from typing import Any
 
 # Segments shorter than this are penalised and never selected.
 MIN_CLIP_SEC = 1.5
+# Categories whose footage is dark on purpose (film noir, night scenes in
+# a film): a low mean brightness is not taken off their score.
+DARK_BY_DESIGN = frozenset({"film"})
 DROP_SCORE = 2.0
 DUP_JACCARD = 0.5
 # "Is this shot good" comes mainly from the DOVER quality model (0-1); the VLM
@@ -27,6 +30,9 @@ class Candidate:
     start: float
     end: float
     tags: dict[str, Any]
+    # VLM highlight on 1-5: the probability-weighted mean of the digits the
+    # model could write (tag.highlight_score), not just the one it wrote
+    highlight: float
     flags: list[str]
     sharpness: float
     # sharpness / median sharpness of the same video
@@ -35,6 +41,11 @@ class Candidate:
     quality: float
     tech_raw: float
     aes_raw: float
+    # The material category the segment was tagged with (category.py)
+    category: str | None = None
+    # Mean luma 0-255 (signals.py): a measured cue for day and night, which
+    # the tags' time of day often gets wrong.
+    brightness: float | None = None
 
     @property
     def duration(self) -> float:
@@ -74,12 +85,14 @@ def assess(c: Candidate) -> Assessment:
         raise ValueError(f"sharpness_rel must be non-negative: {c}")
     if not 0.0 <= c.quality <= 1.0:
         raise ValueError(f"quality must be in [0, 1]: {c}")
-    highlight = (tags["highlight"] - 1) / 4
+    if not 1.0 <= c.highlight <= 5.0:
+        raise ValueError(f"highlight must be in [1, 5]: {c}")
+    highlight = (c.highlight - 1) / 4
     combined = AESTHETIC_WEIGHT * c.quality + VLM_WEIGHT * highlight
     score = 1 + 4 * combined
     reasons = [
         f"美学模型 {c.quality:.2f}（技术 {c.tech_raw:+.3f} / 美学 {c.aes_raw:+.3f}）",
-        f"VLM 精彩度 {tags['highlight']}/5（权重 {VLM_WEIGHT:.0%}）",
+        f"VLM 精彩度 {c.highlight:.2f}/5（权重 {VLM_WEIGHT:.0%}）",
     ]
     if "blurry" in c.flags:
         score -= 1.5
@@ -87,7 +100,11 @@ def assess(c: Candidate) -> Assessment:
     if "shaky" in c.flags:
         score -= 1.0
         reasons.append("抖动明显")
-    if "low_light" in c.flags and tags["time_of_day"] != "夜晚":
+    if (
+        "low_light" in c.flags
+        and tags["time_of_day"] != "夜晚"
+        and c.category not in DARK_BY_DESIGN
+    ):
         score -= 1.0
         reasons.append("非夜景但亮度过低")
     if c.duration < MIN_CLIP_SEC:

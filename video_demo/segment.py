@@ -1,8 +1,10 @@
-"""Two-level segmentation: shot boundaries, then fixed-length windows."""
+"""Two-level segmentation: shot boundaries, then windows of about a fixed
+length whose splits fall between sentences where speech allows."""
 
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -15,6 +17,10 @@ from video_demo.media import sample_frames
 # before keep their 8 s windows.
 MAX_SEGMENT_SEC = 10.0
 MIN_SEGMENT_SEC = 1.0
+# A split inside a long shot moves at most this far from the equal-window
+# point to fall between sentences (2026-11-02); videos segmented before keep
+# their equal windows.
+SPLIT_SHIFT_SEC = 2.0
 
 # Dissolve detector: grayscale frames at 10 fps, compared 0.5 s either side.
 DISSOLVE_FPS = 10
@@ -24,6 +30,9 @@ DISSOLVE_MAX_RATIO = 0.45
 DISSOLVE_ALPHA = (0.35, 0.65)
 # A dissolve this close to a hard cut is treated as the same transition.
 CUT_MERGE_SEC = 1.0
+
+
+Span = tuple[float, float]
 
 
 @dataclass(frozen=True)
@@ -144,9 +153,19 @@ def merge_short(
 
 
 def split_long(
-    shots: list[tuple[float, float]], max_len: float = MAX_SEGMENT_SEC
+    shots: list[tuple[float, float]],
+    max_len: float = MAX_SEGMENT_SEC,
+    sentences: Sequence[Span] = (),
+    clauses: Sequence[Span] = (),
 ) -> list[Segment]:
-    """Cut each shot into equal windows no longer than ``max_len``."""
+    """Cut each shot into windows of about ``max_len``.
+
+    A shot longer than ``max_len`` gets as many windows as equal ones would
+    need; each split starts at the equal-window point and moves at most
+    ``SPLIT_SHIFT_SEC`` to the nearest point between ``sentences``, else
+    between ``clauses`` (spans of speech), else stays put. Without speech
+    the windows are equal.
+    """
     if max_len <= 0:
         raise ValueError("max_len must be positive")
     segments: list[Segment] = []
@@ -154,11 +173,34 @@ def split_long(
         if end <= start:
             raise ValueError(f"Empty shot span: {(start, end)}")
         parts = max(1, math.ceil((end - start) / max_len - 1e-9))
-        step = (end - start) / parts
-        for k in range(parts):
-            seg_start = start + k * step
-            seg_end = end if k == parts - 1 else start + (k + 1) * step
+        edges = [start]
+        for left in range(parts, 1, -1):
+            target = edges[-1] + (end - edges[-1]) / left
+            lo = max(edges[-1] + MIN_SEGMENT_SEC, target - SPLIT_SHIFT_SEC)
+            hi = min(end - MIN_SEGMENT_SEC, target + SPLIT_SHIFT_SEC)
+            point = _between(sentences, lo, hi, target)
+            if point is None:
+                point = _between(clauses, lo, hi, target)
+            edges.append(target if point is None else point)
+        edges.append(end)
+        for seg_start, seg_end in zip(edges, edges[1:], strict=False):
             segments.append(
                 Segment(len(segments), round(seg_start, 3), round(seg_end, 3), shot_idx)
             )
     return segments
+
+
+def _between(
+    spans: Sequence[Span], lo: float, hi: float, target: float
+) -> float | None:
+    """The point in [lo, hi] nearest ``target`` that is inside none of
+    ``spans``; None when every point there is."""
+    if lo > hi:
+        return None
+    points = [target] + [t for a, b in spans for t in (a, b)]
+    free = [t for t in points if lo <= t <= hi and not strictly_inside(t, spans)]
+    return min(free, key=lambda t: (abs(t - target), t), default=None)
+
+
+def strictly_inside(t: float, spans: Sequence[Span]) -> bool:
+    return any(a < t < b for a, b in spans)

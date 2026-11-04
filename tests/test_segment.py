@@ -28,6 +28,31 @@ def test_split_long_equal_windows_at_boundary() -> None:
     assert [s.index for s in segs] == [0, 1, 2]
 
 
+def test_split_long_moves_splits_between_sentences() -> None:
+    sentences = [(8.5, 10.5), (10.8, 14.0)]
+    segs = split_long([(0.0, 20.0)], max_len=10.0, sentences=sentences)
+    assert [(s.start, s.end) for s in segs] == [(0.0, 10.5), (10.5, 20.0)]
+
+
+def test_split_long_then_between_clauses_then_stays() -> None:
+    sentences = [(7.0, 13.0)]
+    clauses = [(7.0, 9.6), (9.6, 13.0)]
+    segs = split_long([(0.0, 20.0)], 10.0, sentences, clauses)
+    assert segs[0].end == 9.6
+    # Speech all around the split point: it stays at the equal window.
+    segs = split_long([(0.0, 20.0)], 10.0, sentences)
+    assert segs[0].end == 10.0
+
+
+def test_split_long_shift_is_bounded() -> None:
+    # The only gap is 3 s away, beyond SPLIT_SHIFT_SEC.
+    segs = split_long([(0.0, 20.0)], 10.0, [(5.0, 13.0), (13.0, 19.0)])
+    assert segs[0].end == 10.0
+    # Later splits share what is left: 30 s, first split moved to 9.5.
+    segs = split_long([(0.0, 30.0)], 10.0, [(9.5, 11.0)])
+    assert [s.end for s in segs] == [9.5, 19.75, 30.0]
+
+
 def test_split_long_rejects_bad_input() -> None:
     with pytest.raises(ValueError):
         split_long([(3.0, 3.0)])

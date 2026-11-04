@@ -25,13 +25,15 @@ def _cand(
     flags = kw.pop("flags", [])
     rel = kw.pop("sharpness_rel", 1.0)
     quality = kw.pop("quality", 0.5)
+    tags = _tags(**kw)
     return suggest.Candidate(
         video="v.webm",
         index=i,
         shot=i if shot is None else shot,
         start=i * 10.0,
         end=i * 10.0 + dur,
-        tags=_tags(**kw),
+        tags=tags,
+        highlight=float(tags["highlight"]),
         flags=flags,
         sharpness=500.0,
         sharpness_rel=rel,
@@ -96,6 +98,7 @@ def _two_video_pool(names: tuple[str, str]) -> list[suggest.Candidate]:
                 shot_size="远景",
                 tags=[f"t{v}{i}a", f"t{v}{i}b", f"t{v}{i}c"],
             ),
+            highlight=4.0,
             flags=[],
             sharpness=500.0,
             sharpness_rel=r,
@@ -201,3 +204,22 @@ def test_calibration_ranks_night_among_night() -> None:
     got = [c.quality for c in suggest.calibrate_by_time(cands)]
     assert got == [0.75, 0.25, 0.75, 0.25]
     assert suggest.calibrate_by_time([_cand(0, quality=0.1)])[0].quality == 0.5
+
+
+def test_the_weighted_highlight_counts_with_its_decimals() -> None:
+    low = suggest.assess(_cand(0, highlight=3))
+    high = suggest.Candidate(**{**_cand(1, highlight=3).__dict__, "highlight": 3.6})
+    # score = 1 + 4 x (0.8 x quality + 0.2 x (highlight - 1) / 4)
+    gain = 4 * suggest.VLM_WEIGHT * (3.6 - 3.0) / 4
+    assert suggest.assess(high).score - low.score == pytest.approx(gain)
+    assert "3.60/5" in suggest.assess(high).reasons[1]
+    with pytest.raises(ValueError, match="highlight must be in"):
+        suggest.assess(suggest.Candidate(**{**high.__dict__, "highlight": 0.4}))
+
+
+def test_dark_film_footage_is_not_penalised() -> None:
+    film = suggest.Candidate(
+        **{**_cand(0, flags=["low_light"]).__dict__, "category": "film"}
+    )
+    walk = _cand(1, flags=["low_light"])
+    assert suggest.assess(film).score - suggest.assess(walk).score == pytest.approx(1.0)

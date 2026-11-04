@@ -1,0 +1,227 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>钢铁之泪</title><style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e3e2dc;
+--keep:#2f7d4f;--drop:#b4442f;--sel:#2b5fd9;--chip:#efeee8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161614;
+--card:#1f1f1c;--ink:#ecebe6;--muted:#a3a29b;--line:#34332f;--keep:#5fbf86;
+--drop:#e0765f;--sel:#7fa3ff;--chip:#2a2a26}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:19px;margin:36px 0 12px}
+h3{font-size:16px;margin:20px 0 8px}.muted{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;
+margin:16px 0}.card{background:var(--card);border:1px solid var(--line);
+border-radius:10px;padding:12px}.card b{display:block;font-size:20px}
+table{width:100%;border-collapse:collapse;background:var(--card);font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;
+vertical-align:top}th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.bar{position:relative;height:34px;background:var(--chip);border-radius:6px;
+overflow:hidden;margin:8px 0 4px}.bar span{position:absolute;top:0;bottom:0;
+border-right:1px solid var(--bg)}.bar span.sel{box-shadow:inset 0 0 0 3px var(--sel)}
+.thumbs img{width:120px;border-radius:4px;display:block;margin-bottom:3px}
+.chip{display:inline-block;background:var(--chip);border-radius:10px;
+padding:0 7px;margin:1px 2px 1px 0;font-size:12px}
+.keep{color:var(--keep);font-weight:600}.drop{color:var(--drop);font-weight:600}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.clip{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:8px;font-size:12px}.clip img{width:100%;border-radius:4px}
+video{width:100%;max-width:640px;border-radius:8px;background:#000}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;
+padding:4px 12px;margin:12px 0}summary{cursor:pointer;font-weight:600;padding:8px 0}
+.ok{color:var(--keep)}.miss{color:var(--drop)}
+.part{border-left:4px solid;padding:2px 0 2px 12px;margin:18px 0}
+.part h3{margin:4px 0}.slot{background:var(--card);border:1px solid var(--line);
+border-radius:8px;padding:8px 10px;margin:8px 0}
+.strip{display:flex;gap:4px;overflow-x:auto;margin:6px 0}
+.strip img{width:112px;flex:none;border-radius:4px;border:3px solid transparent}
+.strip img.taken{border-color:var(--sel)}.strip img.dropped{opacity:.35}
+pre.raw{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:10px 12px;overflow-x:auto;font-size:12px;white-space:pre-wrap}
+</style></head>
+<body><main>
+<h1>钢铁之泪</h1>
+<p class="muted">20261104-075813 · 按用户要求剪辑 · 大纲 云端
+（用时 0.0s）·
+检索 EmbeddingGemma 2 文本、图像向量 + BM25</p>
+<div class="slot"><b>剪辑要求</b><p>剪成一条不剧透结局的电影预告片</p>
+<b>选用的素材</b><ul><li>场景 2（0:08.9–0:25.0）「工业内火箭点火」：火箭点火倒计时，冷开场</li><li>场景 3（0:25.0–0:40.3）「运河桥上的科幻对峙」：运河桥上分手，男主嫌弃女主的机械手</li><li>场景 5（1:09.9–1:35.4）「夜晚狙击手瞄准」：报纸上的机器人杀手新闻，狙击手瞄准</li><li>场景 8（2:32.9–3:26.7）「废弃教堂对峙」：废弃教堂里的对峙与挟持</li><li>场景 13（5:46.5–6:16.0）「霓虹下的对峙与尖叫」：男主承认年轻时混蛋，但不该毁灭世界</li><li>场景 14（6:23.1–7:11.5）「机械义肢绑架对峙」：你伤透了我的心，机械装置的绑架对峙</li><li>场景 12（5:00.9–5:46.5）「未来都市对峙」：机械义眼倒计时红光闪烁</li><li>场景 16（7:41.8–8:22.4）「废弃温室对峙与教堂纵跃」：废弃温室射击机械生物，教堂里纵身跃下</li></ul>
+<b>成片设计</b><p>冷开场用场景 2 的火箭倒计时；接着用场景 3 交代男女主分手和机械手，再用 5 交代机器人横行的城市；中段用 8、13、14 的教堂对峙和台词抛出冲突，随后快切战斗；结尾收在场景 12 的义眼倒计时，不交代结局。没有用片尾字幕和结尾的和解场面。</p>
+<p class="muted">节奏：快（每段最多 3 秒，取中间，避开句子）</p>
+<b>审片</b><p>按预告片结构重排：火箭倒计时冷开场，桥上分手的两句完整对白交代主角，报纸和飞船交代机器人横行的世界；中段用“我年轻时混蛋”和“你伤透了我的心”两段连续对白抛出旧账，再快切五个最紧张的镜头；收在“我们大概还有 10 分钟”和义眼倒计时上，不用结尾的和解与片尾字幕。</p><p class="muted">粗剪 20 段 → 审定 21 段（审片用时 0.0s）</p></div>
+<div class="cards"><div class="card"><span class="muted">目标</span><b>60s</b><span class="muted">请求给定的秒数</span></div><div class="card"><span class="muted">选到</span><b>60.0s</b><span class="muted">21 段</span></div><div class="card"><span class="muted">素材</span><b>12.2 分钟</b><span class="muted">1 条视频，视频按文件名排列</span></div><div class="card"><span class="muted">场景</span><b>21</b><span class="muted">19 个有可用片段</span></div></div>
+<ul class="miss"><li>「倒计时」素材只够 3.0s（计划 10s），其余分给其他部分</li><li>「旧账」素材不足：选到 9.0s，目标 11.7s</li><li>「倒计时归零」素材不足：选到 7.4s，目标 10.4s</li></ul>
+<h2>大纲与检索到的场景</h2>
+<p class="muted">大纲由模型读要求和场景目录（每个场景的标题和概况）写成：先挑场景，
+再写设计，最后按设计分部分、定场景槽位，并标出每个槽位取自哪几个场景。
+每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），相关度为主、
+画质为辅，一个场景只给一个槽位。场景内选片时相关度占 70%、画质占 30%（都缩放到
+0–1），分段总结点名的亮点另有加分；节奏为适中或快时只取片段中间。
+成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
+<div class="part" style="border-left-color:#2b5fd9"><h3>1. 倒计时 <span class='muted'>分量 2 · 目标 10s · <span class='miss'>选到 3s</span></span></h3><p class='muted'>火箭点火的倒计时作冷开场。</p><div class="slot"><b>「火箭点火升空」</b><span class='muted'> 设计取自场景 2</span> → 场景 2<span class='muted'>（case-08-1.webm 0:08.9–0:25.0，2 段）</span><br><span class='muted'>检索相关度 100% · 分到 3s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg001_0.jpg" title="#1 火箭在工业设施内点火升空，尾焰照亮周围金属结构。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg003_0.jpg" title="#3 画面底部显示资助方字幕，远景为工业设施与一道强烈的垂直光束。" alt=""></div><span class='muted'>其他候选：场景 5（case-08-1.webm 1:09.9–1:35.4）、场景 9（case-08-1.webm 3:26.7–4:13.4）、场景 15（case-08-1.webm 7:11.5–7:41.8）、场景 6（case-08-1.webm 1:35.4–1:56.7）</span></div></div><div class="part" style="border-left-color:#d9822b"><h3>2. 分手 <span class='muted'>分量 3 · 目标 10s · <span class='ok'>选到 12s</span></span></h3><p class='muted'>运河桥上，男主说要追求梦想，被问是不是怕她的机械手。</p><div class="slot"><b>「运河桥上的两人」</b><span class='muted'> 设计取自场景 3</span> → 场景 3<span class='muted'>（case-08-1.webm 0:25.0–0:40.3，2 段）</span><br><span class='muted'>检索相关度 100% · 分到 6s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg004_0.jpg" title="#4 两名年轻男子在运河桥上并肩站立交谈，背景为欧式建筑与绿树。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg005_0.jpg" title="#5 两名年轻人在运河桥上对峙，一人伸出机械义肢进行互动。" alt=""></div><span class='muted'>其他候选：场景 13（case-08-1.webm 5:46.5–6:16.0）、场景 17（case-08-1.webm 8:25.9–8:57.7）、场景 12（case-08-1.webm 5:00.9–5:46.5）、场景 9（case-08-1.webm 3:26.7–4:13.4）</span></div><div class="slot"><b>「伸出的机械义肢」</b><span class='muted'> 设计取自场景 3</span> → 场景 14<span class='muted'>（case-08-1.webm 6:23.1–7:11.5，11 段）</span><br><span class='muted'>检索相关度 98% · 分到 6s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg087_0.jpg" title="#87 一名红发女子与头部装有机械装置的男子在户外对峙，女子表情从惊恐转为凝重。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg088_0.jpg" title="#88 一名年轻男子闭眼躺在地上，一只巨大的机械义肢正紧紧钳住他的嘴部。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg089_0.jpg" title="#89 一名女子与机械手臂近距离对峙，眼神充满惊恐与紧张。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg091_0.jpg" title="#91 一名女子面对一个机器人发出尖叫，随后表情转为震惊与恐惧。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg092_0.jpg" title="#92 一名男子闭眼接受机械装置从口中注入液体，背景为户外公园" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg094_0.jpg" title="#94 一名头部带伤的男子在昏暗房间内与身后女子对峙，气氛紧张。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg095_0.jpg" title="#95 一名男子闭眼接受机械臂操作，背景为模糊街道与粉色霓虹灯。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg096_0.jpg" title="#96 一名独眼男子在昏暗房间内惊恐抬头并触摸面部，身后女子神情凝重注视。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg097_0.jpg" title="#97 一名女子与一个机械装置在户外近距离对视，神情凝重。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg100_0.jpg" title="#100 戴眼镜男子在充满霓虹灯光的未来感空间内专注操作设备，神情严肃。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg102_0.jpg" title="#102 一名独眼男子在昏暗室内举着金属管状物，面部表情痛苦并向上仰视。" alt=""></div><span class='muted'>其他候选：场景 18（case-08-1.webm 8:57.7–10:01.0）、场景 15（case-08-1.webm 7:11.5–7:41.8）、场景 12（case-08-1.webm 5:00.9–5:46.5）、场景 13（case-08-1.webm 5:46.5–6:16.0）</span></div></div><div class="part" style="border-left-color:#2f9d8f"><h3>3. 机器人的城市 <span class='muted'>分量 2 · 目标 10s · <span class='miss'>选到 7s</span></span></h3><p class='muted'>报纸上的机器人杀手，飞船在城市上空开火。</p><div class="slot"><b>「机器人杀手的报纸」</b><span class='muted'> 设计取自场景 5</span> → 场景 5<span class='muted'>（case-08-1.webm 1:09.9–1:35.4，4 段）</span><br><span class='muted'>检索相关度 100% · 分到 6s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg014_0.jpg" title="#14 阴沉天空下，一座充满蒸汽朋克风格的哥特式城市全景，远处有巨大的机械装置和升空飞行器。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg015_0.jpg" title="#15 镜头穿过布满线缆和设备的船舱内部，透过玻璃窗看到外面停泊在港口的船只与阴沉的海面。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg016_0.jpg" title="#16 一只手拿着印有机器人杀手新闻标题的报纸特写。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg019_0.jpg" title="#19 一名持枪者透过瞄准镜进行瞄准的特写镜头" alt=""></div><span class='muted'>其他候选：场景 14（case-08-1.webm 6:23.1–7:11.5）、场景 18（case-08-1.webm 8:57.7–10:01.0）、场景 12（case-08-1.webm 5:00.9–5:46.5）、场景 11（case-08-1.webm 4:59.0–5:00.9）</span></div><div class="slot"><b>「城市上空的飞船」</b><span class='muted'> 设计取自场景 5</span> → 场景 6<span class='muted'>（case-08-1.webm 1:35.4–1:56.7，3 段）</span><br><span class='muted'>检索相关度 100% · 分到 6s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg020_0.jpg" title="#20 透过瞄准镜视角俯瞰城镇上空，一艘巨大的飞行战舰缓缓降落并展开结构。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg022_0.jpg" title="#22 透过圆形视野观察一艘悬浮在城镇上空、正在发射武器的巨大飞船。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg023_0.jpg" title="#23 透过圆形监视器观察一艘大型飞船在城市上空飞行并逐渐远离的画面。" alt=""></div><span class='muted'>其他候选：场景 5（case-08-1.webm 1:09.9–1:35.4）、场景 9（case-08-1.webm 3:26.7–4:13.4）、场景 12（case-08-1.webm 5:00.9–5:46.5）、场景 15（case-08-1.webm 7:11.5–7:41.8）</span></div></div><div class="part" style="border-left-color:#b04aa8"><h3>4. 旧账 <span class='muted'>分量 3 · 目标 10s · <span class='ok'>选到 19s</span></span></h3><p class='muted'>废弃教堂里的对峙，男主认错，对方却说他伤透了她的心。</p><div class="slot"><b>「教堂里持枪挟持」</b><span class='muted'> 设计取自场景 8</span> → 场景 8<span class='muted'>（case-08-1.webm 2:32.9–3:26.7，9 段）</span><br><span class='muted'>检索相关度 100% · 分到 4s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg031_0.jpg" title="#31 一名男子在长满青苔的废弃教堂里攀爬巨大的管风琴。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg032_0.jpg" title="#32 一名男子在昏暗的工业废墟中手持绳索，神情警惕地环顾四周。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg033_0.jpg" title="#33 一名白发男子背对镜头，独自走向昏暗破败的室内空间深处。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg035_0.jpg" title="#35 一名身穿军装的年轻女性与一位白发年长男性在昏暗室内对峙，两人神情严肃且充满警惕。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg036_0.jpg" title="#36 一名男子在布满藤蔓和杂草的废弃建筑前缓缓行走，室内灯光昏黄。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg037_0.jpg" title="#37 一名白发老人背对镜头，站在昏暗街道上凝视前方巨大的神秘机械装置。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg038_0.jpg" title="#38 室内场景中，一名男子将另一名男子按在墙上，随后举起枪指向天花板方向。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg039_0.jpg" title="#39 一名男子在白色栏杆后手持狙击步枪瞄准，神情专注紧张。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg040_0.jpg" title="#40 三名身着未来风格服装的人物在昏暗室内对峙，其中一人手持枪械指向同伴。" alt=""></div><span class='muted'>其他候选：场景 16（case-08-1.webm 7:41.8–8:22.4）、场景 7（case-08-1.webm 1:56.7–2:32.9）、场景 5（case-08-1.webm 1:09.9–1:35.4）、场景 15（case-08-1.webm 7:11.5–7:41.8）</span></div><div class="slot"><b>「男主认错的特写」</b><span class='muted'> 设计取自场景 13</span> → 场景 12<span class='muted'>（case-08-1.webm 5:00.9–5:46.5，8 段）</span><br><span class='muted'>检索相关度 99% · 分到 4s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg060_0.jpg" title="#60 一名年轻男子站在运河边，与一个巨大的金属机器人对峙。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg061_0.jpg" title="#61 戴眼镜男子在充满霓虹灯光的未来感空间内专注操作设备，神情严肃。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg062_0.jpg" title="#62 画面中一个被蓝色全息线框覆盖的机器人头部特写与一名神情凝重的年轻女性面部特写交替出现。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg066_0.jpg" title="#66 一名神情凝重的年轻女子在户外凝视前方，背景为模糊的建筑与树木。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg067_0.jpg" title="#67 男子侧脸特写凝视阿姆斯特丹运河街景，画面叠加紫色对话字幕" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg070_0.jpg" title="#70 透过类似望远镜或瞄准镜的圆形视野，一个巨大的机械生物在红瓦屋顶间移动并展开肢体。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg071_0.jpg" title="#71 一名黑人男子在白色栏杆后持狙击步枪瞄准，神情专注紧张。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg072_0.jpg" title="#72 一名男子眼部装有机械装置，面部特写展示其紧张神情与倒计时红光闪烁。" alt=""></div><span class='muted'>其他候选：场景 13（case-08-1.webm 5:46.5–6:16.0）、场景 18（case-08-1.webm 8:57.7–10:01.0）、场景 14（case-08-1.webm 6:23.1–7:11.5）、场景 5（case-08-1.webm 1:09.9–1:35.4）</span></div><div class="slot"><b>「机械装置绑架对峙」</b><span class='muted'> 设计取自场景 14</span> → 场景 18<span class='muted'>（case-08-1.webm 8:57.7–10:01.0，9 段）</span><br><span class='muted'>检索相关度 98% · 分到 4s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg129_0.jpg" title="#129 人物背影面对显示&#x27;OVERWRITE COMPLETE&#x27;及进度条100%的蓝色霓虹数据界面。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg130_0.jpg" title="#130 戴眼镜男子在充满霓虹灯光的未来实验室中，神情紧张地注视着面前出现的机械装置。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg131_0.jpg" title="#131 一位老人站在机械装置前，双手触摸其表面，神情专注。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg132_0.jpg" title="#132 一名灰发男子手持机械装置，神情专注地凝视前方。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg133_0.jpg" title="#133 一名眼部装有机械装置的男人坐在室内，神情紧张地做出手势。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg134_0.jpg" title="#134 一名男子坐在杂乱的房间里，另一名女子在他身后走动并靠近他。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg135_0.jpg" title="#135 一名老人在充满蒸汽与机械的未来废墟中，面对巨大的机器人进行互动。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg137_0.jpg" title="#137 黑底上呈现橙色机械主体与蓝色发光线条构成的科幻风格定场画面，叠加制作人员名单文字。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg138_0.jpg" title="#138 视频包含制作人员名单字幕及机械臂特写画面。" alt=""></div><span class='muted'>其他候选：场景 14（case-08-1.webm 6:23.1–7:11.5）、场景 15（case-08-1.webm 7:11.5–7:41.8）、场景 9（case-08-1.webm 3:26.7–4:13.4）、场景 17（case-08-1.webm 8:25.9–8:57.7）</span></div></div><div class="part" style="border-left-color:#8a9a2b"><h3>5. 交火 <span class='muted'>分量 3 · 目标 10s · <span class='ok'>选到 10s</span></span></h3><p class='muted'>狙击、机械怪物、纵身一跃，几个最紧张的镜头快切。</p><div class="slot"><b>「雾中持枪瞄准」</b><span class='muted'> 设计取自场景 8</span> → 场景 7<span class='muted'>（case-08-1.webm 1:56.7–2:32.9，5 段）</span><br><span class='muted'>检索相关度 100% · 分到 4s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg024_0.jpg" title="#24 一名身穿深色夹克的男子在昏暗环境中持狙击步枪瞄准射击。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg026_0.jpg" title="#26 一名灰发男子在昏暗的室内痛苦地捂住脖子，背景中有人影蹲伏。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg027_0.jpg" title="#27 一名男子独自坐在船舱甲板上，神情凝重地望向远方。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg028_0.jpg" title="#28 一名男子在雾中持狙击步枪瞄准，神情专注紧张。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg030_0.jpg" title="#30 一名黑人男性在昏暗环境中持枪瞄准，期间喝了一口饮料，随后表情变得紧张并张嘴说话。" alt=""></div><span class='muted'>其他候选：场景 8（case-08-1.webm 2:32.9–3:26.7）、场景 5（case-08-1.webm 1:09.9–1:35.4）、场景 12（case-08-1.webm 5:00.9–5:46.5）、场景 15（case-08-1.webm 7:11.5–7:41.8）</span></div><div class="slot"><b>「机械怪物行走」</b><span class='muted'> 设计取自场景 16</span> → 场景 17<span class='muted'>（case-08-1.webm 8:25.9–8:57.7，4 段）</span><br><span class='muted'>检索相关度 98% · 分到 4s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg123_0.jpg" title="#123 室内对峙后转至室外，一名面部受伤的男子与女子对话，随后镜头切换至男子仰望巨型机械装置。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg125_0.jpg" title="#125 一名年轻男子站在阿姆斯特丹风格的运河边，神情严肃地望向右侧一辆模糊的车辆。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg126_0.jpg" title="#126 一名身穿重型外骨骼装甲的角色在布满锈迹管道的工业废墟中行走" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg128_0.jpg" title="#128 一名灰发白胡子的男子在昏暗环境中凝视着右侧模糊的物体，神情严肃。" alt=""></div><span class='muted'>其他候选：场景 9（case-08-1.webm 3:26.7–4:13.4）、场景 18（case-08-1.webm 8:57.7–10:01.0）、场景 14（case-08-1.webm 6:23.1–7:11.5）、场景 8（case-08-1.webm 2:32.9–3:26.7）</span></div><div class="slot"><b>「教堂里纵身跃下」</b><span class='muted'> 设计取自场景 16</span> → 场景 16<span class='muted'>（case-08-1.webm 7:41.8–8:22.4，6 段）</span><br><span class='muted'>检索相关度 100% · 分到 4s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg109_0.jpg" title="#109 废弃温室中，几名身穿白大褂的人正蹲在地上专注地操作仪器或整理物品。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg112_0.jpg" title="#112 多名白衣人跪在废弃温室中，正举枪对准后方巨大的机械生物射击。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg113_0.jpg" title="#113 一名男子在昏暗环境中持枪对峙，随后镜头切换至充满金属质感的工业废墟场景。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg116_0.jpg" title="#116 昏暗破败的工业废墟中，一个渺小身影在远处微弱光源下行走。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg118_0.jpg" title="#118 一名持枪男子在古老建筑内攀爬绳索，与大型机械生物对峙。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg120_0.jpg" title="#120 一名黑衣人从高处纵身跳入下方聚集的人群中" alt=""></div><span class='muted'>其他候选：场景 8（case-08-1.webm 2:32.9–3:26.7）、场景 9（case-08-1.webm 3:26.7–4:13.4）、场景 13（case-08-1.webm 5:46.5–6:16.0）、场景 5（case-08-1.webm 1:09.9–1:35.4）</span></div></div><div class="part" style="border-left-color:#c4473a"><h3>6. 倒计时归零 <span class='muted'>分量 2 · 目标 10s · <span class='ok'>选到 9s</span></span></h3><p class='muted'>机械义眼的红光倒计时，收在悬念上。</p><div class="slot"><b>「义眼倒计时红光」</b><span class='muted'> 设计取自场景 12</span> → 场景 4<span class='muted'>（case-08-1.webm 0:40.3–1:04.5，5 段）</span><br><span class='muted'>检索相关度 95% · 分到 10s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg006_0.jpg" title="#6 霓虹灯光下，两个由发光线条构成的机器人正在对峙，背景充满赛博朋克风格的废墟与机械结构。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg009_0.jpg" title="#9 特写镜头展示一只手在复杂的电子合成器面板上操作旋钮和按键，屏幕显示着数字与彩色光效。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg010_0.jpg" title="#10 戴眼镜男子在充满霓虹灯光的实验室中专注操作设备。" alt=""><img class="" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg011_0.jpg" title="#11 一名长发男子在充满霓虹全息投影的未来感空间内操作设备，神情专注。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg012_0.jpg" title="#12 一名男子将发光的机械眼植入自己头部，正专注地观察着盘中的大脑模型。" alt=""></div><span class='muted'>其他候选：场景 12（case-08-1.webm 5:00.9–5:46.5）、场景 9（case-08-1.webm 3:26.7–4:13.4）、场景 13（case-08-1.webm 5:46.5–6:16.0）、场景 18（case-08-1.webm 8:57.7–10:01.0）</span></div></div>
+<h2>预览</h2>
+<video src="output.mp4" controls preload="metadata"></video>
+
+<div class="clips"><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg001_0.jpg" alt=""><b>1. 倒计时</b> <span class='muted'>3.4s</span><br><span class='muted'>case-08/case-08-1.webm 0:09.3–0:12.7</span><br>火箭在工业设施内点火升空，尾焰照亮周围金属结构。<br><span class='muted'>审片：火箭点火，倒计时数到一，冷开场（得分 2.9）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg004_0.jpg" alt=""><b>2. 分手</b> <span class='muted'>5.7s</span><br><span class='muted'>case-08/case-08-1.webm 0:25.0–0:30.7</span><br>两名年轻男子在运河桥上并肩站立交谈，背景为欧式建筑与绿树。<br><span class='muted'>审片：男主说要追求梦想、去太空，完整一句交代主角（得分 3.6）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg005_0.jpg" alt=""><b>3. 分手</b> <span class='muted'>6.4s</span><br><span class='muted'>case-08/case-08-1.webm 0:30.7–0:37.1</span><br>两名年轻人在运河桥上对峙，一人伸出机械义肢进行互动。<br><span class='muted'>审片：女主伸出机械手质问他是不是害怕，冲突的起点，说完整句（得分 3.9）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg016_0.jpg" alt=""><b>4. 机器人的城市</b> <span class='muted'>2.5s</span><br><span class='muted'>case-08/case-08-1.webm 1:19.5–1:22.0</span><br>一只手拿着印有机器人杀手新闻标题的报纸特写。<br><span class='muted'>审片：机器人杀手新闻的报纸特写，交代世界（得分 2.6）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg022_0.jpg" alt=""><b>5. 机器人的城市</b> <span class='muted'>2.5s</span><br><span class='muted'>case-08/case-08-1.webm 1:44.8–1:47.2</span><br>透过圆形视野观察一艘悬浮在城镇上空、正在发射武器的巨大飞船。<br><span class='muted'>审片：飞船在城镇上空开火，规模升级（得分 2.1）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg105_0.jpg" alt=""><b>6. 机器人的城市</b> <span class='muted'>2.5s</span><br><span class='muted'>case-08/case-08-1.webm 7:18.7–7:21.1</span><br>镜头跟随一群飞鸟掠过一座装饰繁复、带有金色雕塑的古老塔楼，天空云层密布。<br><span class='muted'>审片：飞鸟掠过古塔的远景，节奏上喘一口气（得分 2.6）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg031_0.jpg" alt=""><b>7. 旧账</b> <span class='muted'>2.5s</span><br><span class='muted'>case-08/case-08-1.webm 2:34.5–2:36.9</span><br>一名男子在长满青苔的废弃教堂里攀爬巨大的管风琴。<br><span class='muted'>审片：废弃教堂里攀爬管风琴，进入新的地点（得分 3.7）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg035_0.jpg" alt=""><b>8. 旧账</b> <span class='muted'>2.5s</span><br><span class='muted'>case-08/case-08-1.webm 2:59.3–3:01.8</span><br>一名身穿军装的年轻女性与一位白发年长男性在昏暗室内对峙，两人神情严肃且充满警惕。<br><span class='muted'>审片：军装女子与白发老人对峙，交代同伴（得分 3.6）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg077_0.jpg" alt=""><b>9. 旧账</b> <span class='muted'>5.8s</span><br><span class='muted'>case-08/case-08-1.webm 5:56.3–6:02.1</span><br>男子与戴手套女子在街道对峙，气氛紧张<br><span class='muted'>审片：男主认错：年轻时混蛋，但不该毁灭世界，全片的核心对白（得分 4.3）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg087_0.jpg" alt=""><b>10. 旧账</b> <span class='muted'>2.3s</span><br><span class='muted'>case-08/case-08-1.webm 6:23.1–6:25.4</span><br>一名红发女子与头部装有机械装置的男子在户外对峙，女子表情从惊恐转为凝重。<br><span class='muted'>审片：红发女子面对机械装置：你伤透了我的心（得分 4.5）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg088_0.jpg" alt=""><b>11. 旧账</b> <span class='muted'>1.5s</span><br><span class='muted'>case-08/case-08-1.webm 6:25.5–6:27.0</span><br>一名年轻男子闭眼躺在地上，一只巨大的机械义肢正紧紧钳住他的嘴部。<br><span class='muted'>审片：机械钳夹住男子的嘴，接住上一句的反转（得分 4.1）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg089_0.jpg" alt=""><b>12. 旧账</b> <span class='muted'>2.0s</span><br><span class='muted'>case-08/case-08-1.webm 6:27.0–6:29.0</span><br>一名女子与机械手臂近距离对峙，眼神充满惊恐与紧张。<br><span class='muted'>审片：女子与机械臂近距离对峙，台词继续（得分 4.4）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg091_0.jpg" alt=""><b>13. 旧账</b> <span class='muted'>2.3s</span><br><span class='muted'>case-08/case-08-1.webm 6:30.2–6:32.5</span><br>一名女子面对一个机器人发出尖叫，随后表情转为震惊与恐惧。<br><span class='muted'>审片：女子尖叫，威胁要碾碎他，冲突顶点（得分 4.3）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg028_0.jpg" alt=""><b>14. 交火</b> <span class='muted'>2.0s</span><br><span class='muted'>case-08/case-08-1.webm 2:20.6–2:22.6</span><br>一名男子在雾中持狙击步枪瞄准，神情专注紧张。<br><span class='muted'>审片：雾中狙击手瞄准，快切开始（得分 3.9）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg042_0.jpg" alt=""><b>15. 交火</b> <span class='muted'>2.0s</span><br><span class='muted'>case-08/case-08-1.webm 3:29.6–3:31.6</span><br>巨大的机械怪物在废墟街道上行走，背景是布满橙色光线的建筑。<br><span class='muted'>审片：巨型机械怪物走过废墟街道（得分 2.4）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg112_0.jpg" alt=""><b>16. 交火</b> <span class='muted'>2.0s</span><br><span class='muted'>case-08/case-08-1.webm 7:55.3–7:57.3</span><br>多名白衣人跪在废弃温室中，正举枪对准后方巨大的机械生物射击。<br><span class='muted'>审片：白衣人跪地向机械生物射击（得分 2.4）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg083_0.jpg" alt=""><b>17. 交火</b> <span class='muted'>2.0s</span><br><span class='muted'>case-08/case-08-1.webm 6:13.9–6:15.9</span><br>戴眼镜男子在霓虹灯光下张大嘴巴惊恐尖叫的特写镜头。<br><span class='muted'>审片：戴眼镜男子惊恐尖叫的特写（得分 4.7）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg120_0.jpg" alt=""><b>18. 交火</b> <span class='muted'>1.6s</span><br><span class='muted'>case-08/case-08-1.webm 8:20.8–8:22.4</span><br>一名黑衣人从高处纵身跳入下方聚集的人群中<br><span class='muted'>审片：黑衣人从高处纵身跃下，快切的最高点（得分 2.4）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg012_0.jpg" alt=""><b>19. 倒计时归零</b> <span class='muted'>2.5s</span><br><span class='muted'>case-08/case-08-1.webm 0:58.6–1:01.1</span><br>一名男子将发光的机械眼植入自己头部，正专注地观察着盘中的大脑模型。<br><span class='muted'>审片：把发光的机械眼植入头部，转入悬念（得分 4.0）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg039_0.jpg" alt=""><b>20. 倒计时归零</b> <span class='muted'>2.7s</span><br><span class='muted'>case-08/case-08-1.webm 3:18.5–3:21.2</span><br>一名男子在白色栏杆后手持狙击步枪瞄准，神情专注紧张。<br><span class='muted'>审片：狙击手瞄准，说我们大概还有 10 分钟（得分 3.1）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_76d05c9a5d08c4fe/seg072_0.jpg" alt=""><b>21. 倒计时归零</b> <span class='muted'>3.5s</span><br><span class='muted'>case-08/case-08-1.webm 5:42.1–5:45.6</span><br>一名男子眼部装有机械装置，面部特写展示其紧张神情与倒计时红光闪烁。<br><span class='muted'>审片：义眼倒计时红光闪烁，收在悬念上，不交代结局（得分 4.6）</span></div></div>
+<h2>大纲原文</h2>
+<p class="muted">模型输出的 JSON，未经改动；各部分的秒数由程序按 weight 另算。</p>
+<pre class="raw">{
+ &quot;title&quot;: &quot;钢铁之泪&quot;,
+ &quot;materials&quot;: [
+  {
+   &quot;scene&quot;: 2,
+   &quot;content&quot;: &quot;火箭点火倒计时，冷开场&quot;
+  },
+  {
+   &quot;scene&quot;: 3,
+   &quot;content&quot;: &quot;运河桥上分手，男主嫌弃女主的机械手&quot;
+  },
+  {
+   &quot;scene&quot;: 5,
+   &quot;content&quot;: &quot;报纸上的机器人杀手新闻，狙击手瞄准&quot;
+  },
+  {
+   &quot;scene&quot;: 8,
+   &quot;content&quot;: &quot;废弃教堂里的对峙与挟持&quot;
+  },
+  {
+   &quot;scene&quot;: 13,
+   &quot;content&quot;: &quot;男主承认年轻时混蛋，但不该毁灭世界&quot;
+  },
+  {
+   &quot;scene&quot;: 14,
+   &quot;content&quot;: &quot;你伤透了我的心，机械装置的绑架对峙&quot;
+  },
+  {
+   &quot;scene&quot;: 12,
+   &quot;content&quot;: &quot;机械义眼倒计时红光闪烁&quot;
+  },
+  {
+   &quot;scene&quot;: 16,
+   &quot;content&quot;: &quot;废弃温室射击机械生物，教堂里纵身跃下&quot;
+  }
+ ],
+ &quot;design&quot;: &quot;冷开场用场景 2 的火箭倒计时；接着用场景 3 交代男女主分手和机械手，再用 5 交代机器人横行的城市；中段用 8、13、14 的教堂对峙和台词抛出冲突，随后快切战斗；结尾收在场景 12 的义眼倒计时，不交代结局。没有用片尾字幕和结尾的和解场面。&quot;,
+ &quot;pace&quot;: &quot;快&quot;,
+ &quot;unmet&quot;: [],
+ &quot;parts&quot;: [
+  {
+   &quot;name&quot;: &quot;倒计时&quot;,
+   &quot;summary&quot;: &quot;火箭点火的倒计时作冷开场。&quot;,
+   &quot;weight&quot;: 2,
+   &quot;scenes&quot;: [
+    {
+     &quot;query&quot;: &quot;火箭点火升空&quot;,
+     &quot;sources&quot;: [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   &quot;name&quot;: &quot;分手&quot;,
+   &quot;summary&quot;: &quot;运河桥上，男主说要追求梦想，被问是不是怕她的机械手。&quot;,
+   &quot;weight&quot;: 3,
+   &quot;scenes&quot;: [
+    {
+     &quot;query&quot;: &quot;运河桥上的两人&quot;,
+     &quot;sources&quot;: [
+      3
+     ]
+    },
+    {
+     &quot;query&quot;: &quot;伸出的机械义肢&quot;,
+     &quot;sources&quot;: [
+      3
+     ]
+    }
+   ]
+  },
+  {
+   &quot;name&quot;: &quot;机器人的城市&quot;,
+   &quot;summary&quot;: &quot;报纸上的机器人杀手，飞船在城市上空开火。&quot;,
+   &quot;weight&quot;: 2,
+   &quot;scenes&quot;: [
+    {
+     &quot;query&quot;: &quot;机器人杀手的报纸&quot;,
+     &quot;sources&quot;: [
+      5
+     ]
+    },
+    {
+     &quot;query&quot;: &quot;城市上空的飞船&quot;,
+     &quot;sources&quot;: [
+      5
+     ]
+    }
+   ]
+  },
+  {
+   &quot;name&quot;: &quot;旧账&quot;,
+   &quot;summary&quot;: &quot;废弃教堂里的对峙，男主认错，对方却说他伤透了她的心。&quot;,
+   &quot;weight&quot;: 3,
+   &quot;scenes&quot;: [
+    {
+     &quot;query&quot;: &quot;教堂里持枪挟持&quot;,
+     &quot;sources&quot;: [
+      8
+     ]
+    },
+    {
+     &quot;query&quot;: &quot;男主认错的特写&quot;,
+     &quot;sources&quot;: [
+      13
+     ]
+    },
+    {
+     &quot;query&quot;: &quot;机械装置绑架对峙&quot;,
+     &quot;sources&quot;: [
+      14
+     ]
+    }
+   ]
+  },
+  {
+   &quot;name&quot;: &quot;交火&quot;,
+   &quot;summary&quot;: &quot;狙击、机械怪物、纵身一跃，几个最紧张的镜头快切。&quot;,
+   &quot;weight&quot;: 3,
+   &quot;scenes&quot;: [
+    {
+     &quot;query&quot;: &quot;雾中持枪瞄准&quot;,
+     &quot;sources&quot;: [
+      8
+     ]
+    },
+    {
+     &quot;query&quot;: &quot;机械怪物行走&quot;,
+     &quot;sources&quot;: [
+      16
+     ]
+    },
+    {
+     &quot;query&quot;: &quot;教堂里纵身跃下&quot;,
+     &quot;sources&quot;: [
+      16
+     ]
+    }
+   ]
+  },
+  {
+   &quot;name&quot;: &quot;倒计时归零&quot;,
+   &quot;summary&quot;: &quot;机械义眼的红光倒计时，收在悬念上。&quot;,
+   &quot;weight&quot;: 2,
+   &quot;scenes&quot;: [
+    {
+     &quot;query&quot;: &quot;义眼倒计时红光&quot;,
+     &quot;sources&quot;: [
+      12
+     ]
+    }
+   ]
+  }
+ ]
+}</pre>
+
+</main></body></html>

@@ -1,0 +1,183 @@
+{
+  "preview": "preview_highlights.mp4",
+  "track": "zh.bilingual",
+  "rule": "被切点截断的字幕只留切点内听得到的字（不拆英文单词），剩不到 0.5s 或没有完整的字就丢弃；截断的译文在片段内不足一半就丢弃，否则整句显示并加“…”",
+  "counts": {
+    "kept": 8,
+    "trimmed": 5,
+    "dropped": 2
+  },
+  "videos_without_subtitles": [],
+  "cues": [
+    {
+      "clip": 13,
+      "video": "18e16a82dbdc9c38",
+      "source": [
+        3.778,
+        4.778
+      ],
+      "text": "Yeah。",
+      "status": "kept",
+      "at": 69.378
+    },
+    {
+      "clip": 17,
+      "video": "2c36abc81b285d57",
+      "source": [
+        0.226,
+        3.252
+      ],
+      "text": "大家好，不是。",
+      "status": "trimmed",
+      "at": 97.759,
+      "kept": "大家好，不…"
+    },
+    {
+      "clip": 22,
+      "video": "2c36abc81b285d57",
+      "source": [
+        17.054,
+        18.194
+      ],
+      "text": "欢迎来到我的频道。\nWelcome to my channel.",
+      "status": "kept",
+      "at": 110.496
+    },
+    {
+      "clip": 22,
+      "video": "2c36abc81b285d57",
+      "source": [
+        18.254,
+        19.064
+      ],
+      "text": "我是金尼。\nI'm Ginny.",
+      "status": "trimmed",
+      "at": 111.696,
+      "kept": "我是金尼。\nI'm Ginny.…"
+    },
+    {
+      "clip": 23,
+      "video": "2c36abc81b285d57",
+      "source": [
+        18.254,
+        19.064
+      ],
+      "text": "我是金尼。\nI'm Ginny.",
+      "status": "dropped",
+      "reason": "译文只有 8%（0.06s）在片段内"
+    },
+    {
+      "clip": 23,
+      "video": "2c36abc81b285d57",
+      "source": [
+        19.064,
+        20.692
+      ],
+      "text": "我现在在上海。\nI'm in Shanghai right now.",
+      "status": "kept",
+      "at": 112.497
+    },
+    {
+      "clip": 23,
+      "video": "2c36abc81b285d57",
+      "source": [
+        21.39,
+        22.998
+      ],
+      "text": "天气非常晴朗且风大\nThe weather is so sunny and",
+      "status": "kept",
+      "at": 114.823
+    },
+    {
+      "clip": 23,
+      "video": "2c36abc81b285d57",
+      "source": [
+        22.998,
+        28.998
+      ],
+      "text": "但幸运的是接下来的四天都不会下雨。\nwindy, but luckily it doesn't rain over the next four days. We're going to explore the",
+      "status": "dropped",
+      "reason": "译文只有 38%（2.27s）在片段内"
+    },
+    {
+      "clip": 24,
+      "video": "2c36abc81b285d57",
+      "source": [
+        37.918,
+        41.398
+      ],
+      "text": "敬请期待令人惊叹的风景和友善的人\nStay tuned for amazing views and",
+      "status": "trimmed",
+      "at": 118.7,
+      "kept": "…敬请期待令人惊叹的风景和友善的人\nStay tuned for amazing views and"
+    },
+    {
+      "clip": 24,
+      "video": "2c36abc81b285d57",
+      "source": [
+        41.398,
+        44.788
+      ],
+      "text": "以及中国优质的水果。\nfriendly people, good fruit in China.",
+      "status": "trimmed",
+      "at": 121.057,
+      "kept": "以及中国优质的水果。\nfriendly people, good fruit in China.…"
+    },
+    {
+      "clip": 25,
+      "video": "2c36abc81b285d57",
+      "source": [
+        160.586,
+        162.1
+      ],
+      "text": "看起来是这样。\nIt looks like.",
+      "status": "kept",
+      "at": 123.928
+    },
+    {
+      "clip": 25,
+      "video": "2c36abc81b285d57",
+      "source": [
+        162.658,
+        163.658
+      ],
+      "text": "你知道的。\nYou know.",
+      "status": "kept",
+      "at": 126.0
+    },
+    {
+      "clip": 25,
+      "video": "2c36abc81b285d57",
+      "source": [
+        163.938,
+        166.228
+      ],
+      "text": "动画版会打包吗？\nAnimated will be packed?",
+      "status": "kept",
+      "at": 127.28
+    },
+    {
+      "clip": 26,
+      "video": "2c36abc81b285d57",
+      "source": [
+        186.73,
+        188.18
+      ],
+      "text": "你好。\nHello.",
+      "status": "trimmed",
+      "at": 133.372,
+      "kept": "你好。\nHello.…"
+    },
+    {
+      "clip": 27,
+      "video": "2c36abc81b285d57",
+      "source": [
+        191.294,
+        192.294
+      ],
+      "text": "不。\nNo.",
+      "status": "kept",
+      "at": 134.836
+    }
+  ]
+}

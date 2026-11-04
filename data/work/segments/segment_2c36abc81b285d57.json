@@ -6,8 +6,10 @@
   "analysed_until": 300.0,
   "fps": 24.0,
   "has_audio": true,
-  "detect_seconds": 55.75,
+  "detect_seconds": 77.54,
   "max_segment_sec": 10.0,
+  "split_rule": "speech",
+  "split_shift_sec": 2.0,
   "cuts": [
     {
       "time": 0.958,
@@ -661,12 +663,12 @@
     {
       "index": 32,
       "start": 120.75,
-      "end": 127.062,
+      "end": 127.228,
       "shot": 30
     },
     {
       "index": 33,
-      "start": 127.062,
+      "start": 127.228,
       "end": 133.375,
       "shot": 30
     },
@@ -709,12 +711,12 @@
     {
       "index": 40,
       "start": 168.916,
-      "end": 177.27,
+      "end": 177.086,
       "shot": 36
     },
     {
       "index": 41,
-      "start": 177.27,
+      "start": 177.086,
       "end": 185.625,
       "shot": 36
     },
@@ -745,12 +747,12 @@
     {
       "index": 46,
       "start": 203.125,
-      "end": 208.688,
+      "end": 207.738,
       "shot": 41
     },
     {
       "index": 47,
-      "start": 208.688,
+      "start": 207.738,
       "end": 214.25,
       "shot": 41
     },
@@ -811,12 +813,12 @@
     {
       "index": 57,
       "start": 249.916,
-      "end": 257.708,
+      "end": 257.844,
       "shot": 50
     },
     {
       "index": 58,
-      "start": 257.708,
+      "start": 257.844,
       "end": 265.5,
       "shot": 50
     },
@@ -861,6 +863,333 @@
       "start": 295.916,
       "end": 300.0,
       "shot": 55
+    }
+  ],
+  "boundaries": [
+    {
+      "time": 2.75,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 4.083,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 5.5,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 8.625,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 10.166,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 13.125,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 14.458,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 15.958,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 19.0,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 25.25,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 29.958,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 33.583,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 37.583,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 39.041,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 44.125,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 48.833,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 54.333,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 60.083,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 65.833,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 69.0,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 71.625,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 76.25,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 77.5,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 80.875,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 84.875,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 87.625,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 94.0,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 102.166,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 107.978,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 113.791,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 116.208,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 120.75,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 127.228,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 133.375,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 136.666,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 140.625,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 146.791,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 153.625,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 160.458,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 168.916,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 177.086,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 185.625,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 188.041,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 191.125,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 194.25,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 203.125,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 207.738,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 214.25,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 221.333,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 225.458,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 230.833,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 233.208,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 238.479,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 243.75,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 246.833,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 248.375,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 249.916,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 257.844,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 265.5,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 271.208,
+      "kind": "split",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 276.916,
+      "kind": "shot",
+      "speech": "mid_clause"
+    },
+    {
+      "time": 279.416,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 285.208,
+      "kind": "shot",
+      "speech": "quiet"
+    },
+    {
+      "time": 290.562,
+      "kind": "split",
+      "speech": "quiet"
+    },
+    {
+      "time": 295.916,
+      "kind": "shot",
+      "speech": "quiet"
     }
   ]
 }

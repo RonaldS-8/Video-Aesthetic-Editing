@@ -23,6 +23,7 @@ def _cand(i: int, start: float, tags: list[str], dur: float = 8.0, **kw: Any):
             "highlight": 4,
             "issues": ["无明显问题"],
         },
+        highlight=4.0,
         flags=[],
         sharpness=500.0,
         sharpness_rel=1.0,
@@ -63,7 +64,7 @@ def _chunks(
     return [
         outline.Chunk(
             number=k,
-            video=cands[g[0]].video,
+            videos=[cands[g[0]].video],
             members=g,
             start=cands[g[0]].start,
             end=cands[g[-1]].end,
@@ -231,6 +232,16 @@ def test_part_scenes_and_share() -> None:
     assert outline.share(30.0, [100.0, 100.0]) == [15.0, 15.0]
     assert outline.share(30.0, [8.0, 100.0]) == [8.0, 22.0]
     assert outline.share(30.0, [5.0, 5.0]) == [5.0, 5.0]
+    # Weighted: 45:17:13 of 75 s, the first part holds only 6 s; the other
+    # two take the rest in their own proportion.
+    out = outline.share(75.0, [6.0, 100.0, 100.0], [45.0, 17.0, 13.0])
+    assert out == pytest.approx([6.0, 69.0 * 17 / 30, 69.0 * 13 / 30])
+    assert outline.share(30.0, [100.0, 100.0], [2.0, 1.0]) == [20.0, 10.0]
+    # 15 clips of 6 s for a 75 s cut: each is cut to 5 s.
+    assert outline.level([6.0] * 15, 75.0, 1.5) == pytest.approx(5.0)
+    # Short clips stay whole; the long ones share what is left.
+    assert outline.level([2.0, 10.0, 10.0], 12.0, 1.5) == pytest.approx(5.0)
+    assert outline.level([6.0] * 10, 5.0, 1.5) == 1.5
     assert outline.rescale({1: 0.9, 2: 1.0, 3: 0.95}) == pytest.approx(
         {1: 0.0, 2: 1.0, 3: 0.5}
     )
@@ -334,3 +345,107 @@ def test_fill_reports_missing_scenes_and_short_parts() -> None:
     assert "「p0」场景「b」没有可用的场景" in notes[0]
     assert "「p0」素材不足" in notes[1]
     assert [c.index for c in clips] == [0, 1, 2, 3]
+
+
+# --- groups of short videos -----------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("lengths", "groups"),
+    [
+        # Short videos fill a group until it holds CHUNK_SEC.
+        ([181.0, 153.0, 128.0, 17.0, 31.0, 300.0], [[0, 1], [2, 3, 4], [5]]),
+        # A long video closes the open group and stands alone.
+        ([100.0, 4020.0, 50.0], [[0], [1], [2]]),
+        ([300.0], [[0]]),
+        ([10.0] * 3, [[0, 1, 2]]),
+        ([], []),
+    ],
+)
+def test_group_videos_never_splits_a_video(
+    lengths: list[float], groups: list[list[int]]
+) -> None:
+    assert outline.group_videos(lengths) == groups
+
+
+def test_group_highlights_renumber_along_the_group() -> None:
+    videos = [(3, _summary([2])), (2, _summary([1, 2]))]
+    assert [h["segment"] for h in outline.group_highlights(videos)] == [2, 4, 5]
+
+
+def test_summarize_group_reads_the_video_summaries(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[tuple[str, dict]] = []
+    reply = {
+        "summary": "先逛寺庙再看湖",
+        "places": [],
+        "subjects": [],
+        "activities": [],
+    }
+
+    def fake(prompt: str, _t: float, schema: dict, *_: Any) -> tuple[str, float]:
+        seen.append((prompt, schema))
+        return json.dumps(reply), 1.0
+
+    monkeypatch.setattr(outline, "_request", fake)
+    summary, _, _, _ = outline.summarize_group(
+        [(181.0, _summary(text="寺庙")), (153.0, _summary(text="湖"))]
+    )
+    assert summary == reply
+    prompt, schema = seen[0]
+    assert "连续拍摄的 2 段视频（共 5.6 分钟）" in prompt
+    assert "[1] 3:01 | 寺庙 | 森林 | 徒步\n[2] 2:33 | 湖" in prompt
+    assert "highlights" not in schema["properties"]
+    with pytest.raises(outline.OutlineError, match="non-empty"):
+        outline.validate_group({"summary": " "})
+
+
+def test_clip_span_keeps_the_middle() -> None:
+    c = _cand(0, 10.0, ["a"], dur=8.0)
+    assert outline.clip_span(c, None) == (10.0, 18.0)
+    assert outline.clip_span(c, 3.0) == (12.5, 15.5)
+    assert outline.clip_span(c, 10.0) == (10.0, 18.0)
+
+
+def test_clip_span_avoids_cutting_sentences() -> None:
+    c = _cand(0, 10.0, ["a"], dur=8.0)
+    # The middle window 12.5-15.5 would cut the sentence 11-14 in half.
+    assert outline.clip_span(c, 3.0, [(11.0, 14.0)]) == (11.0, 14.0)
+    # A sentence longer than the window: cut it where least is lost.
+    assert outline.clip_span(c, 3.0, [(10.5, 17.5)]) == (10.0, 13.0)
+    # Speech outside the segment changes nothing.
+    assert outline.clip_span(c, 3.0, [(0.0, 9.0)]) == (12.5, 15.5)
+
+
+def test_pick_segments_counts_trimmed_lengths() -> None:
+    cands = [_cand(i, 10.0 * i, [f"t{i}"]) for i in range(4)]
+    rel = {i: 1.0 for i in range(4)}
+    # 12 s from 8 s segments: two whole ones, or four 3 s middles.
+    assert len(outline.pick_segments(rel, 12.0, cands, _assess(cands), set())) == 2
+    picked = outline.pick_segments(rel, 12.0, cands, _assess(cands), set(), 3.0)
+    assert len(picked) == 4
+
+
+def test_retry_is_told_why_the_last_answer_failed(monkeypatch) -> None:
+    asked: list[Any] = []
+    answers = iter(['{"n": 1}', '{"n": 2}'])
+
+    def request(prompt, temperature, schema, name, server_url):
+        asked.append(prompt)
+        return next(answers), 1.0
+
+    def validate(parsed: dict) -> dict:
+        if parsed["n"] != 2:
+            raise outline.OutlineError("n must be 2")
+        return parsed
+
+    monkeypatch.setattr(outline, "_request", request)
+    parsed, raw, seconds, errors = outline._ask(
+        "问题", {}, "edit_outline", validate, ""
+    )
+    assert parsed == {"n": 2} and seconds == 2.0
+    assert asked[0] == "问题"
+    assert asked[1].startswith("问题") and "n must be 2" in asked[1]
+    picture = [{"type": "image_url", "image_url": {"url": "data:"}}]
+    assert outline._with_error(picture, "x")[-1]["type"] == "text"

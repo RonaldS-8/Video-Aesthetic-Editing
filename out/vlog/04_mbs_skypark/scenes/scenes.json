@@ -1,0 +1,60 @@
+{
+  "video": "18e16a82dbdc9c38",
+  "file": "vlog/04_mbs_skypark.webm",
+  "rule": "片段得分 ≤ 2 或短于 1.5s 的视为废片，从场景中切除；每个场景的保留片段按时间顺序接成一个视频，原片不改动",
+  "complete": true,
+  "scenes_total": 1,
+  "kept_sec": 16.68,
+  "removed_sec": 0,
+  "scenes": [
+    {
+      "number": 1,
+      "start": 0.0,
+      "end": 16.679,
+      "title": "新加坡滨海湾夜景",
+      "summary": "无人机航拍新加坡滨海湾，展现灯火辉煌的城市天际线及其在水面的倒影。",
+      "kept_sec": 16.68,
+      "time_of_day": "夜晚",
+      "shot_sizes": [
+        "远景",
+        "全景"
+      ],
+      "tags": [
+        "城市夜景",
+        "新加坡",
+        "摩天大楼",
+        "滨海湾",
+        "航拍视角",
+        "灯光秀",
+        "无人机航拍",
+        "高楼大厦"
+      ],
+      "file": "scene_01.mp4",
+      "duration": 16.679,
+      "parts": [
+        {
+          "start": 0.0,
+          "end": 16.679,
+          "at": 0.0,
+          "segments": [
+            {
+              "index": 0,
+              "start": 0.0,
+              "end": 8.339,
+              "score": 2.6,
+              "description": "镜头从新加坡滨海湾城市天际线向右侧平移，展现夜景灯火辉煌的高楼与水面倒影。"
+            },
+            {
+              "index": 1,
+              "start": 8.339,
+              "end": 16.679,
+              "score": 4.0,
+              "description": "无人机夜景航拍镜头缓缓移动，展现灯火辉煌的城市天际线与平静水面倒影。"
+            }
+          ]
+        }
+      ],
+      "removed": []
+    }
+  ]
+}

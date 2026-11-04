@@ -4,11 +4,15 @@ An hour of footage has hundreds of segments, too many for the model to read
 at once (the scene list of a 67-minute walk was ~20k tokens and the 4B model
 lost the order of its parts). So the work is split, map-reduce style:
 
-1. Chunks: consecutive segments of one video, cut every CHUNK_SEC.
-2. Chunk summaries: Qwen3.5-4B (llama-server) reads one chunk's segment
-   descriptions and returns a short summary, places, subjects, activities
-   and up to three highlight segments. Chunks are summarised independently,
-   so nothing earlier is forgotten; summaries are cached per video.
+1. Chunks: a long video is cut every CHUNK_SEC; shorter videos (clips
+   shot on a trip) are summarised whole, then consecutive ones are grouped
+   into chunks of at least CHUNK_SEC, never splitting a video.
+2. Chunk summaries: Qwen3.5-4B (llama-server) reads one chunk's (or short
+   video's) segment descriptions and returns a short summary, places,
+   subjects, activities and up to three highlight segments. A group of
+   videos gets a summary written from its videos' summaries. Chunks are
+   summarised independently, so nothing earlier is forgotten; summaries
+   are cached.
 3. Outline: the model reads all chunk summaries (a few hundred tokens) and
    returns parts in shooting order, each covering a range of chunks, with a
    weight and 1-4 scene slots (what each scene should show). Seconds per
@@ -29,6 +33,7 @@ import json
 import math
 import statistics
 import time
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -48,6 +53,22 @@ from video_demo.suggest import (
 SERVER_URL = "http://127.0.0.1:8092"
 TIMEOUT_SEC = 900
 TEMPERATURES = (0.2, 0.5, 0.8)
+
+# The calls a planner other than the local model may answer (ab_eval.cloud):
+# with PLANNER set to (system, prompt, schema, name, temperature) -> (answer,
+# seconds), these go to it instead. Prompts with pictures stay local.
+PLANNER_CALLS = frozenset({"edit_outline", "edit_review"})
+Planner = Callable[[str, str, dict[str, Any], str, float], tuple[str, float]]
+PLANNER: Planner | None = None
+# Told each PLANNER_CALLS prompt (system, prompt, schema, name, temperature)
+# whoever answers it, so a run can keep what was asked.
+RECORDER: Callable[[str, str, dict[str, Any], str, float], None] | None = None
+
+
+def planner_name() -> str:
+    """Where PLANNER_CALLS are answered, for reports."""
+    return "Qwen3.5-4B（本地）" if PLANNER is None else "云端"
+
 
 CHUNK_SEC = 300.0
 # Bump when the summary prompt or schema changes, so cached summaries are
@@ -70,14 +91,18 @@ MAX_SLOTS = 4  # scene slots per part
 # Choosing a scene for a slot: rescaled relevance + this x the mean quality
 # of its usable segments ((score - 1) / 4); relevance leads.
 SCENE_QUALITY_WEIGHT = 0.2
-# Ranking inside the chosen scene: segment score (1-5) + relevance to the
-# slot, rescaled among the scene's segments, x this,
-# + this bonus when the chunk summary named the segment as a highlight.
-MATCH_WEIGHT = 1.0
+# Ranking inside the chosen scene, on one 0-1 scale: quality ((score - 1)
+# / 4) x (1 - share) + relevance to the slot (rescaled among the scene's
+# segments) x share, + HIGHLIGHT_BONUS when the chunk summary named the
+# segment. Highlights keep the footage most worth keeping, so quality
+# leads; 0.2 is the order the earlier score (1-5) + relevance + 0.5 bonus
+# gave. An edit by instruction lets relevance lead (instruct.py).
+RELEVANCE_SHARE = 0.2
 # Checked on Edinburgh: most named segments already rank high without it;
-# 0.5 brings in the distinct ones (a landmark among plain street walks),
-# 1.0 also forces in ones the text-only summary overrated.
-HIGHLIGHT_BONUS = 0.5
+# 0.1 (0.5 on the 1-5 score) brings in the distinct ones (a landmark among
+# plain street walks), 0.2 also forces in ones the text-only summary
+# overrated.
+HIGHLIGHT_BONUS = 0.1
 
 
 class OutlineError(RuntimeError):
@@ -87,7 +112,7 @@ class OutlineError(RuntimeError):
 @dataclass(frozen=True)
 class Chunk:
     number: int  # 1-based along the timeline, as shown to the model
-    video: str
+    videos: list[str]  # one, or a group of whole short videos
     members: list[int]  # indices into the candidate list
     start: float  # on the shared timeline
     end: float
@@ -173,10 +198,16 @@ def segment_lines(
     """One line per segment, numbered 1.. within the chunk."""
     return "\n".join(
         f"[{n}] {_fmt(candidates[i].start)} | {candidates[i].tags['time_of_day']} | "
-        f"{assessments[i].score:.1f} | {candidates[i].tags['description']} | "
+        f"{assessments[i].score:.1f} | {_described(candidates[i].tags)} | "
         f"{'、'.join(candidates[i].tags['tags'])}"
         for n, i in enumerate(members, start=1)
     )
+
+
+def _described(tags: dict[str, Any]) -> str:
+    """The description, with the landmark when category tags name one."""
+    landmark = tags.get("landmark")
+    return f"{tags['description']}（{landmark}）" if landmark else tags["description"]
 
 
 def validate_summary(summary: Any, n_segments: int) -> dict[str, Any]:
@@ -215,6 +246,92 @@ def summarize_chunk(
         lambda parsed: validate_summary(parsed, len(members)),
         server_url,
     )
+
+
+# --- groups of short videos ----------------------------------------------------
+
+
+def group_videos(lengths: list[float], chunk_sec: float = CHUNK_SEC) -> list[list[int]]:
+    """Positions of the videos (in timeline order) that form each chunk.
+
+    A video of ``chunk_sec`` or more stands alone (it is cut into chunks of
+    its own); shorter ones are grouped with the next until the group holds
+    ``chunk_sec``. A long video closes the group before it; what is left at
+    the end is a group too. A video is never split between groups.
+    """
+    groups: list[list[int]] = []
+    open_group: list[int] = []
+    held = 0.0
+    for k, length in enumerate(lengths):
+        if length >= chunk_sec:
+            if open_group:
+                groups.append(open_group)
+            groups.append([k])
+            open_group, held = [], 0.0
+            continue
+        open_group.append(k)
+        held += length
+        if held >= chunk_sec:
+            groups.append(open_group)
+            open_group, held = [], 0.0
+    if open_group:
+        groups.append(open_group)
+    return groups
+
+
+GROUP_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        k: v for k, v in SUMMARY_SCHEMA["properties"].items() if k != "highlights"
+    },
+    "required": ["summary", "places", "subjects", "activities"],
+}
+
+GROUP_PROMPT = """下面是连续拍摄的 {n} 段视频（共 {minutes:.1f} 分钟），按时间排列，
+每段已有总结。
+每行：[视频序号] 时长 | 总结 | 地点 | 活动
+
+{lines}
+
+请把这几段合起来总结：
+- summary 用 2–4 句话说明这些视频里依次发生了什么、在什么地方；
+- places、subjects、activities 分别列出主要地点、人物或主体、活动，各不超过 5 个。
+只输出 JSON。"""
+
+
+def validate_group(summary: Any) -> dict[str, Any]:
+    if not isinstance(summary, dict) or not str(summary.get("summary", "")).strip():
+        raise OutlineError("summary must be a non-empty string")
+    return summary
+
+
+def summarize_group(
+    videos: list[tuple[float, dict[str, Any]]], server_url: str = SERVER_URL
+) -> tuple[dict[str, Any], str, float, list[str]]:
+    """(summary, raw, seconds, failed tries) for a group of short videos,
+    each given as (length in seconds, its summary)."""
+    lines = "\n".join(
+        f"[{n}] {_fmt(length)} | {s['summary']} | "
+        f"{'、'.join(s['places']) or '—'} | {'、'.join(s['activities']) or '—'}"
+        for n, (length, s) in enumerate(videos, start=1)
+    )
+    prompt = GROUP_PROMPT.format(
+        n=len(videos), minutes=sum(x for x, _ in videos) / 60, lines=lines
+    )
+    return _ask(prompt, GROUP_SCHEMA, "group_summary", validate_group, server_url)
+
+
+def group_highlights(
+    videos: list[tuple[int, dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    """The videos' highlights renumbered along the group's segments; each
+    video is given as (its number of segments, its summary)."""
+    out: list[dict[str, Any]] = []
+    before = 0
+    for n_segments, summary in videos:
+        out += [{**h, "segment": before + h["segment"]} for h in summary["highlights"]]
+        before += n_segments
+    return out
 
 
 # --- outline -----------------------------------------------------------------
@@ -410,20 +527,23 @@ def plan_outline(
 
 
 def _ask(
-    prompt: str,
+    prompt: str | list[dict[str, Any]],
     schema: dict[str, Any],
     name: str,
     validate: Any,
     server_url: str,
 ) -> tuple[dict[str, Any], str, float, list[str]]:
-    """Ask with each temperature until the answer validates.
+    """Ask with each temperature until the answer validates; a retry is told
+    why the answer before it failed.
 
+    ``prompt`` is text, or text and image parts (OpenAI message content).
     Raises OutlineError listing every attempt when all fail.
     """
     errors: list[str] = []
     seconds = 0.0
+    asked = prompt
     for temperature in TEMPERATURES:
-        raw, elapsed = _request(prompt, temperature, schema, name, server_url)
+        raw, elapsed = _request(asked, temperature, schema, name, server_url)
         seconds += elapsed
         try:
             try:
@@ -433,16 +553,37 @@ def _ask(
             return validate(parsed), raw, seconds, errors
         except OutlineError as exc:
             errors.append(f"temperature={temperature}: {exc}")
+            asked = _with_error(prompt, str(exc))
     raise OutlineError("；".join(errors))
 
 
+RETRY_NOTE = (
+    "\n\n上一次的回答没有通过检查：{error}\n请改正这个问题，重新输出完整的 JSON。"
+)
+
+
+def _with_error(
+    prompt: str | list[dict[str, Any]], error: str
+) -> str | list[dict[str, Any]]:
+    """``prompt`` with the reason the last answer failed added at its end."""
+    note = RETRY_NOTE.format(error=error)
+    if isinstance(prompt, str):
+        return prompt + note
+    return [*prompt, {"type": "text", "text": note.strip()}]
+
+
 def _request(
-    prompt: str,
+    prompt: str | list[dict[str, Any]],
     temperature: float,
     schema: dict[str, Any],
     name: str,
     server_url: str,
 ) -> tuple[str, float]:
+    if name in PLANNER_CALLS and isinstance(prompt, str):
+        if RECORDER is not None:
+            RECORDER(SYSTEM_PROMPT, prompt, schema, name, temperature)
+        if PLANNER is not None:
+            return PLANNER(SYSTEM_PROMPT, prompt, schema, name, temperature)
     body = {
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -492,16 +633,148 @@ def rescale(values: dict[int, float]) -> dict[int, float]:
     return {i: (v - low) / (high - low) for i, v in values.items()}
 
 
-def share(total: float, capacity: list[float]) -> list[float]:
-    """Split ``total`` evenly, no share above its capacity; what a small
-    scene cannot hold goes to the others."""
+def share(
+    total: float, capacity: list[float], weights: list[float] | None = None
+) -> list[float]:
+    """Split ``total`` in proportion to ``weights`` (evenly by default), no
+    share above its capacity; what a small one cannot hold goes to the
+    others in the same proportions."""
+    w = weights or [1.0] * len(capacity)
     out = [0.0] * len(capacity)
     left = total
-    order = sorted(range(len(capacity)), key=lambda j: capacity[j])
-    for n, j in enumerate(order):
-        out[j] = min(capacity[j], left / (len(order) - n))
-        left -= out[j]
+    open_ = set(range(len(capacity)))
+    while open_:
+        unit = left / sum(w[j] for j in open_)
+        full = [j for j in open_ if capacity[j] < w[j] * unit]
+        if not full:
+            for j in open_:
+                out[j] = w[j] * unit
+            break
+        for j in full:
+            out[j] = capacity[j]
+            left -= capacity[j]
+            open_.remove(j)
     return out
+
+
+def level(lengths: list[float], total: float, floor: float) -> float:
+    """The cap L (at least ``floor``) for which the lengths, each cut to at
+    most L, add up to ``total``; ``floor`` when even that runs over."""
+    ordered = sorted(lengths)
+    for n, cap in enumerate(ordered):
+        # Lengths below ``cap`` stay whole, the rest are cut to the level.
+        candidate = (total - sum(ordered[:n])) / (len(ordered) - n)
+        if candidate <= cap:
+            return max(floor, candidate)
+    return ordered[-1]
+
+
+def clip_length(c: Candidate, max_clip_sec: float | None) -> float:
+    """How long a segment runs in the cut: whole, or at most max_clip_sec."""
+    return c.duration if max_clip_sec is None else min(c.duration, max_clip_sec)
+
+
+def clip_span(
+    c: Candidate,
+    max_clip_sec: float | None,
+    speech: Sequence[tuple[float, float]] = (),
+) -> tuple[float, float]:
+    """The part of a segment that goes into the cut: all of it, or a window
+    of ``max_clip_sec``. The window cuts as little of ``speech`` (sentence
+    spans) as it can, each cut sentence costing its shorter side; among
+    equal windows the one nearest the middle wins (the start and end of a
+    handheld segment are where the camera is still moving into or out of
+    the shot)."""
+    length = clip_length(c, max_clip_sec)
+    middle = (c.start + c.end) / 2
+    lo, hi = c.start, c.end - length
+    if hi - lo < 1e-9:
+        return c.start, c.end
+    edges = [t for span in speech for t in span if c.start < t < c.end]
+    starts = {middle - length / 2} | {
+        min(max(x, lo), hi) for t in edges for x in (t, t - length)
+    }
+
+    def cut(x: float) -> float:
+        return sum(
+            min(e - a, b - e) for e in (x, x + length) for a, b in speech if a < e < b
+        )
+
+    best = min(
+        starts, key=lambda x: (round(cut(x), 2), abs(x + length / 2 - middle), x)
+    )
+    return best, best + length
+
+
+# Kept before and after a sentence a window is widened to take in, so its
+# first and last syllables are not clipped.
+SPEECH_PAD_SEC = 0.2
+
+
+def whole_sentences(
+    start: float,
+    end: float,
+    lo: float,
+    hi: float,
+    speech: Sequence[tuple[float, float]],
+) -> tuple[float, float]:
+    """[start, end] widened to take in every sentence it cuts, with
+    SPEECH_PAD_SEC around it, as far as [lo, hi] (the segment) allows; a
+    sentence that runs past the segment stays cut."""
+    for a, b in sorted(speech):
+        if a < start < b and a >= lo:
+            start = max(lo, a - SPEECH_PAD_SEC)
+        if a < end < b and b <= hi:
+            end = min(hi, b + SPEECH_PAD_SEC)
+    return start, end
+
+
+def pick_segments(
+    rel: dict[int, float],
+    seconds: float,
+    candidates: list[Candidate],
+    assessments: list[Assessment],
+    named: set[int],
+    max_clip_sec: float | None = None,
+    relevance_share: float = RELEVANCE_SHARE,
+) -> list[int]:
+    """Segments of one scene for a slot of ``seconds``.
+
+    ``rel`` maps the scene's usable candidates to their rescaled relevance.
+    They are ranked by quality and relevance, both 0-1, weighed by
+    ``relevance_share``, + highlight bonus, and taken while a segment
+    brings the total closer to ``seconds``, skipping near repeats. A
+    segment counts whole, or as at most ``max_clip_sec`` (clip_span).
+    """
+
+    def value(i: int) -> float:
+        quality = (assessments[i].score - 1) / 4
+        return (
+            (1 - relevance_share) * quality
+            + relevance_share * rel[i]
+            + (HIGHLIGHT_BONUS if i in named else 0.0)
+        )
+
+    # Ties in timeline order (candidate index), also across videos.
+    members = sorted(rel, key=lambda i: (-value(i), i))
+    picked: list[int] = []
+    total = 0.0
+    for i in members:
+        c = candidates[i]
+        length = clip_length(c, max_clip_sec)
+        if picked and total + length / 2 > seconds:
+            continue
+        repeat = any(
+            candidates[p].video == c.video
+            and abs(candidates[p].start - c.start) <= DUP_NEAR_SEC
+            and _jaccard(candidates[p].tags["tags"], c.tags["tags"]) >= DUP_JACCARD
+            for p in picked
+        )
+        if repeat:
+            continue
+        picked.append(i)
+        total += length
+    return picked
 
 
 def fill(
@@ -590,42 +863,17 @@ def fill(
             )
             slot["relevance"] = round(scene_relevance[k][j][scene.number], 3)
             slot["seconds"] = round(seconds[j], 1)
-            members = sorted(
-                (i for i in scene.members if usable(i)),
-                key=lambda i: (
-                    -(
-                        assessments[i].score
-                        + MATCH_WEIGHT * rel[i]
-                        + (HIGHLIGHT_BONUS if i in named else 0.0)
-                    ),
-                    candidates[i].start,
-                ),
-            )
-            picked: list[int] = []
-            total = 0.0
-            for i in members:
-                c = candidates[i]
-                if picked and total + c.duration / 2 > seconds[j]:
-                    continue
-                repeat = any(
-                    abs(candidates[p].start - c.start) <= DUP_NEAR_SEC
-                    and _jaccard(candidates[p].tags["tags"], c.tags["tags"])
-                    >= DUP_JACCARD
-                    for p in picked
-                )
-                if repeat:
-                    continue
-                picked.append(i)
-                chosen.append((k, j, i))
-                total += c.duration
-            part_total += total
+            picked = pick_segments(rel, seconds[j], candidates, assessments, named)
+            chosen += [(k, j, i) for i in picked]
+            part_total += sum(candidates[i].duration for i in picked)
         slots_out.append(slots)
         if part_total < 0.8 * part["duration_sec"]:
             notes.append(
                 f"「{part['name']}」素材不足：选到 {part_total:.1f}s，"
                 f"目标 {part['duration_sec']}s"
             )
-    chosen.sort(key=lambda x: (x[0], candidates[x[2]].start))
+    # Candidates are in timeline order, also across videos.
+    chosen.sort(key=lambda x: (x[0], x[2]))
     clips = []
     for order, (k, j, i) in enumerate(chosen):
         c = candidates[i]
