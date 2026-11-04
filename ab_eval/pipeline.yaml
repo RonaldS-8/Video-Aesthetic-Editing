@@ -1,0 +1,184 @@
+# 方案 B 的链路说明（#343）。人和 agent 读同一份；没有实测的数字标「待验证」。
+version: 1
+plan: B
+summary: >-
+  本机按语音切分、听写对白、看图打标签并打画质分，建检索库；规划模型读
+  场景目录写大纲、按大纲检索填出粗剪，再审片定出最终镜头，有对白的镜头
+  保留整句；按目标时长渲染 1080p 成片，保留原声，切点处声音交叉淡化。
+entry: ["python", "-m", "ab_eval.run"]
+# 标准命令把 /case/case-XX.json 和 /out 接在 entry 之后。
+dependencies:
+  - {name: Python, version: "3.13", license: PSF-2.0}
+  - {name: FFmpeg（PyAV 内置的库）, version: 待验证, license: LGPL-2.1-or-later}
+  - {name: llama.cpp llama-server（纯 CPU 构建，不依赖 AVX-512）, version: 待验证, license: MIT}
+  - {name: PySceneDetect, version: 待验证, license: BSD-3-Clause}
+  - {name: sherpa-onnx, version: 待验证, license: Apache-2.0}
+  - {name: MediaPipe, version: 待验证, license: Apache-2.0}
+  - {name: PyTorch（CPU）, version: 待验证, license: BSD-3-Clause}
+  - {name: kokoro, version: 待验证, license: Apache-2.0}
+models:
+  - name: Qwen3.5-4B（GGUF Q4_K_M）
+    use: 看图打标签、分块与场景摘要、本地大纲与审片
+    source: Qwen/Qwen3.5-4B，llama.cpp e36df60 转换并量化
+    sha256: 28f8d724a519e33e7b8b394dafde357c02f14ae44855fb224296e4318f2861cd
+    bytes: 2783446912
+    license: Apache-2.0
+  - name: Qwen3.5-4B 视觉投影（mmproj Q8_0）
+    sha256: 40a4f07d7bbdbb43011d6cf35ef751e4b1829ff47ee8aa4964c6296f571725ad
+    bytes: 366894656
+    license: Apache-2.0
+  - name: SenseVoice-Small int8 + silero VAD（sherpa-onnx）
+    use: 听写对白，按句切分的依据
+    source: sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17
+    sha256: 待验证
+    license: 待验证
+  - name: Hy-MT2-1.8B（GGUF Q4_K_M）
+    use: 外语对白译成中文字幕
+    source: tencent/Hy-MT2-1.8B-GGUF
+    sha256: dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699
+    bytes: 1133080448
+    license: Apache-2.0
+  - name: EmbeddingGemma 2 740M（LiteRT-LM）
+    use: 文本与图像向量，检索和场景聚类
+    source: litert-community/embeddinggemma-2-740m-litert-lm@24d962e906c7d332c6428e71c9676855024569e2
+    sha256: e7a8a2204b91e0f96e92960e84a09a89212e1633dcb7575a9bf3378b4df77f4c
+    bytes: 484622336
+    license: 待验证（仓库标 Apache-2.0，模型卡链接 Gemma 许可）
+  - name: DOVER
+    use: 画质与美学分
+    source: QualityAssessment/DOVER v0.1.0
+    sha256: f4a42c0bbc94c94dd7409e7f40887d44c5c30314d1d09e7edf03cc35813b4838
+    bytes: 239729097
+    license: S-Lab 非商用（不满足随产品分发，待替换）
+  - name: Kokoro-82M-v1.1-zh
+    use: 解说配音（只用于带解说的版本）
+    source: ModelScope hexgrad/Kokoro-82M-v1.1-zh@3bb92ed837a15179e8ccae96912cf71b196279ee
+    sha256: b1d8410fa44dfb5c15471fd6c4225ea6b4e9ac7fa03c98e8bea47a9928476e2b
+    bytes: 327247856
+    license: Apache-2.0
+phases:
+  prepare: [check, stage, prepare, shortlist, analyze, subtitle, translate, index,
+    catalog]
+  cut: [edit, render]
+stages:
+  - id: check
+    category: check
+    does: 校验 case.json 的结构，按 sha256 核对每个素材
+    inputs: [case.json, 素材]
+    outputs: [用例]
+    uses: [Python]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败，报出不符的字段或文件
+  - id: stage
+    category: decode
+    does: 把素材链接进本用例的工作目录
+    inputs: [素材]
+    outputs: [工作目录]
+    uses: [Python]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败
+  - id: prepare
+    category: segment
+    does: >-
+      听写对白（SenseVoice + VAD）；按镜头切换和渐变切分，长镜头最长 10 秒，
+      切点挪到句子之间；测亮度、清晰度、抖动并抽关键帧
+    inputs: [素材]
+    outputs: [对白, 片段, 画面信号, 关键帧]
+    uses: [PySceneDetect, sherpa-onnx, PyAV]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败
+  - id: shortlist
+    category: arrange
+    does: >-
+      不用模型，按画面信号先筛候选：全片按时间等分，每段时间里留最好的
+      片段；模糊、抖动、过短扣分，暗轻扣（可能是风格），有对白略加分；
+      同一镜头最多留 2 段。候选数为目标秒数 ÷ 3 × 5，至少 40
+    inputs: [片段, 画面信号, 对白]
+    outputs: [候选片段]
+    uses: [Python]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败
+  - id: analyze
+    category: understand
+    does: >-
+      4B 判断素材类型，按类型的看片重点和评分标准看候选的关键帧打标签，
+      精彩度取 1–5 各分的概率加权；DOVER 给候选打画质分
+    inputs: [关键帧, 片段]
+    outputs: [标签, 画质分]
+    uses: [Qwen3.5-4B, DOVER]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 每段最多重试 3 次，仍不合格则用例失败
+  - id: subtitle
+    category: understand
+    does: 4B 校对听写结果，按字对齐断句（只在要字幕或解说时）
+    inputs: [对白, 标签]
+    outputs: [校对后的对白]
+    uses: [Qwen3.5-4B]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败
+  - id: translate
+    category: understand
+    does: 外语对白译成中文（只在要字幕或解说时）
+    inputs: [校对后的对白]
+    outputs: [中文字幕]
+    uses: [Hy-MT2-1.8B]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败
+  - id: index
+    category: understand
+    does: 片段的标签、对白和关键帧编成文本与图像向量
+    inputs: [标签, 对白, 关键帧]
+    outputs: [检索库]
+    uses: [EmbeddingGemma 2]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败
+  - id: catalog
+    category: understand
+    does: >-
+      4B 按时间分块总结素材，再把相近的片段归成场景，给每个场景写标题和
+      概况；只取决于素材，结果缓存，剪辑时直接读
+    inputs: [标签, 画质分, 对白, 检索库]
+    outputs: [场景目录]
+    uses: [Qwen3.5-4B, EmbeddingGemma 2]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 每块和每个场景最多重试 3 次，仍不合格则用例失败
+  - id: edit
+    category: arrange
+    does: >-
+      读场景目录；规划模型读要求和目录写大纲（片名、结构、各部分
+      时长与要找的画面）；按大纲在全部场景里检索填出粗剪；规划模型审片，
+      看每段的描述、画质、出自哪个连续镜头和对白，定出最终镜头、顺序和
+      时长；有对白的镜头补全整句
+    inputs: [检索库, 标签, 画质分, 对白, 剪辑要求, 目标时长]
+    outputs: [timeline.json]
+    uses: [Qwen3.5-4B 或云端规划模型, EmbeddingGemma 2]
+    runs_on: cloud
+    sends_out:
+      - to: 云端规划模型
+        what: >-
+          剪辑要求、场景目录和片段的文字描述、对白文字；不发送画面和声音
+        cost: 待验证
+    on_failure: >-
+      不合格的回答换温度重试 3 次，仍不合格则用例失败；没有云端时由本地
+      Qwen3.5-4B 规划
+  - id: render
+    category: render
+    does: >-
+      按时间线逐帧读取并渲染 1080p（竖屏素材为主时 1080×1920），保留原声；
+      换段落处 0.6 秒溶解，其余切点声音交叉淡化 0.15 秒，首尾淡入淡出；
+      PQ 编码的 HDR 素材映射为 SDR
+    inputs: [timeline.json, 素材]
+    outputs: [output.mp4]
+    uses: [PyAV, libx264]
+    runs_on: nas-cpu
+    sends_out: []
+    on_failure: 用例失败

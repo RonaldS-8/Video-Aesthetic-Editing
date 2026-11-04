@@ -11,6 +11,9 @@ from typing import Any
 
 # Segments shorter than this are penalised and never selected.
 MIN_CLIP_SEC = 1.5
+# Categories whose footage is dark on purpose (film noir, night scenes in
+# a film): a low mean brightness is not taken off their score.
+DARK_BY_DESIGN = frozenset({"film"})
 DROP_SCORE = 2.0
 DUP_JACCARD = 0.5
 # "Is this shot good" comes mainly from the DOVER quality model (0-1); the VLM
@@ -38,6 +41,11 @@ class Candidate:
     quality: float
     tech_raw: float
     aes_raw: float
+    # The material category the segment was tagged with (category.py)
+    category: str | None = None
+    # Mean luma 0-255 (signals.py): a measured cue for day and night, which
+    # the tags' time of day often gets wrong.
+    brightness: float | None = None
 
     @property
     def duration(self) -> float:
@@ -92,7 +100,11 @@ def assess(c: Candidate) -> Assessment:
     if "shaky" in c.flags:
         score -= 1.0
         reasons.append("抖动明显")
-    if "low_light" in c.flags and tags["time_of_day"] != "夜晚":
+    if (
+        "low_light" in c.flags
+        and tags["time_of_day"] != "夜晚"
+        and c.category not in DARK_BY_DESIGN
+    ):
         score -= 1.0
         reasons.append("非夜景但亮度过低")
     if c.duration < MIN_CLIP_SEC:

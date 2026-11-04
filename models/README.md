@@ -24,6 +24,8 @@ sha256sum models/*/*.pth models/*/*.litertlm models/*/*.gguf
 | `models/uvq/distortion_net.pth` | 质量模型对比（UVQ 1.5） | 15290142 | Apache-2.0 |
 | `models/uvq/aggregation_net.pth` | 质量模型对比（UVQ 1.5） | 300021 | Apache-2.0 |
 | `models/embeddinggemma/embeddinggemma-2-740m.litertlm` | 检索和场景聚类用的文本与图像向量 | 484622336 | 见下文 |
+| `models/asr/silero_vad.onnx` | 语音识别前的人声检测 | 643854 | MIT |
+| `models/asr/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17/model.int8.onnx` | 语音识别 | 239233841 | 见目录内 LICENSE |
 | `models/Kokoro-82M-v1.1-zh/kokoro-v1_1-zh.pth` | 解说配音（另有 55 个女声 `voices/zf_*.pt`，共 28783205） | 327247856 | Apache-2.0 |
 
 合计约 5.4 GB。剪辑建议（精彩瞬间）需要两个 gguf、`DOVER.pth` 和
@@ -33,11 +35,25 @@ EmbeddingGemma 2；只按得分的对照（`--mode ranked`）只用 Qwen3.5-4B
 
 ## 打标签与大纲：Qwen3.5-4B（GGUF，Q4_K_M）
 
-- 来源：官方权重 `Qwen/Qwen3.5-4B`（Transformers 格式），在本机用
-  llama.cpp（提交 `e36df60`，2026-10-15）转为 GGUF 后量化为 Q4_K_M。
-  转换时的命令没有留下记录，以下面的 SHA-256 为准。
-- 视觉投影 `mmproj-Qwen3.5-4B-Q8_0.gguf` 与上面的权重配套，同样没有留下
-  转换记录，以 SHA-256 为准。
+- 来源：官方权重 `Qwen/Qwen3.5-4B`（Transformers 格式，
+  <https://www.modelscope.cn/models/Qwen/Qwen3.5-4B>），用 llama.cpp
+  （<https://github.com/ggml-org/llama.cpp>，提交 `e36df60`，2026-10-15）
+  自带的转换和量化脚本转成 GGUF 并量化为 Q4_K_M，视觉投影另外转成
+  Q8_0。llama.cpp 版本不同时得到的文件可能和下面的 SHA-256 不一致。
+- 转换命令（在 llama.cpp 目录下，`Qwen3.5-4B/` 是下载的官方权重）：
+
+```bash
+python convert_hf_to_gguf.py Qwen3.5-4B --outtype f16 --outfile Qwen3.5-4B-F16.gguf
+```
+
+```bash
+llama-quantize Qwen3.5-4B-F16.gguf models/gguf/Qwen3.5-4B-Q4_K_M.gguf Q4_K_M
+```
+
+```bash
+python convert_hf_to_gguf.py Qwen3.5-4B --mmproj --outtype q8_0 --outfile models/gguf/mmproj-Qwen3.5-4B-Q8_0.gguf
+```
+
 - 运行：llama.cpp `llama-server`（Vulkan 版），端口 8092，带 `--mmproj`；
   看图打标签和写摘要、大纲共用这一个服务，命令见项目 README 的
   "快速开始"。
@@ -117,6 +133,28 @@ curl -L --create-dirs -o models/embeddinggemma/embeddinggemma-2-740m.litertlm ht
 | 文件 | SHA-256 |
 |---|---|
 | `Hy-MT2-1.8B-Q4_K_M.gguf` | `dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699` |
+
+## 语音识别：silero VAD 与 SenseVoice-Small（sherpa-onnx）
+
+- 来源：sherpa-onnx 官方发布的模型
+  （<https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models>）。
+- `silero_vad.onnx` 放在 `models/asr/`；SenseVoice 压缩包解压到
+  `models/asr/`，用到其中的 `model.int8.onnx` 和 `tokens.txt`。
+- 许可：见各模型目录里的 LICENSE。
+
+| 文件 | SHA-256 |
+|---|---|
+| `silero_vad.onnx` | `9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6` |
+| `sherpa-onnx-sense-voice-…/model.int8.onnx` | `c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51` |
+| `sherpa-onnx-sense-voice-…/tokens.txt` | `f449eb28dc567533d7fa59be34e2abca8784f771850c78a47fb731a31429a1dc` |
+
+```bash
+curl -L --create-dirs -o models/asr/silero_vad.onnx https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
+```
+
+```bash
+curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2 | tar xj -C models/asr
+```
 
 ## 解说配音：Kokoro-82M-v1.1-zh（PyTorch）
 

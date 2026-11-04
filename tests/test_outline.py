@@ -425,3 +425,27 @@ def test_pick_segments_counts_trimmed_lengths() -> None:
     assert len(outline.pick_segments(rel, 12.0, cands, _assess(cands), set())) == 2
     picked = outline.pick_segments(rel, 12.0, cands, _assess(cands), set(), 3.0)
     assert len(picked) == 4
+
+
+def test_retry_is_told_why_the_last_answer_failed(monkeypatch) -> None:
+    asked: list[Any] = []
+    answers = iter(['{"n": 1}', '{"n": 2}'])
+
+    def request(prompt, temperature, schema, name, server_url):
+        asked.append(prompt)
+        return next(answers), 1.0
+
+    def validate(parsed: dict) -> dict:
+        if parsed["n"] != 2:
+            raise outline.OutlineError("n must be 2")
+        return parsed
+
+    monkeypatch.setattr(outline, "_request", request)
+    parsed, raw, seconds, errors = outline._ask(
+        "问题", {}, "edit_outline", validate, ""
+    )
+    assert parsed == {"n": 2} and seconds == 2.0
+    assert asked[0] == "问题"
+    assert asked[1].startswith("问题") and "n must be 2" in asked[1]
+    picture = [{"type": "image_url", "image_url": {"url": "data:"}}]
+    assert outline._with_error(picture, "x")[-1]["type"] == "text"

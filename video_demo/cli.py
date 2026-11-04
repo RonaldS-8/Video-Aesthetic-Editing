@@ -20,6 +20,7 @@ from typing import Any
 import numpy as np
 
 from video_demo import (
+    beats,
     category,
     evaluate,
     instruct,
@@ -40,19 +41,28 @@ from video_demo import (
 )
 from video_demo import scenes as scene_material
 from video_demo.media import (
+    AUDIO_RATE,
+    AUDIO_XFADE_SEC,
     DISSOLVE_SEC,
     DUCK_GAIN,
-    EDIT_SIZE,
+    EDIT_CRF,
     OUT_FPS,
     OUT_SIZE,
+    PREVIEW_CRF,
+    PROXY_SIZE,
     FrameDraw,
     SubtitlePainter,
     TitlePainter,
     capture_time,
     compose,
     count_frames,
+    crossfade,
     cut_clip,
     dissolve,
+    edit_size,
+    is_pq,
+    iter_clip,
+    make_proxy,
     probe,
     read_audio_clip,
     read_clip,
@@ -73,9 +83,12 @@ from video_demo.segment import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
-RAW_DIR = ROOT / "data" / "raw"
-WORK_DIR = ROOT / "data" / "work"
-OUT_DIR = ROOT / "out"
+# VIDEO_DEMO_DATA (layout.data_dir) and VIDEO_DEMO_OUT move the data and
+# result folders, e.g. to scratch space for one case of an evaluation.
+DATA_DIR = layout.data_dir(ROOT)
+RAW_DIR = DATA_DIR / "raw"
+WORK_DIR = DATA_DIR / "work"
+OUT_DIR = Path(os.environ.get("VIDEO_DEMO_OUT", ROOT / "out"))
 # Burned subtitles are drawn with this font unless VIDEO_DEMO_FONT is set.
 # Language of the subtitles burned into previews: speech in another
 # language is shown translated (``subtitle --translate``).
@@ -92,7 +105,7 @@ SYNTH_PATH = ROOT / "data" / "synth" / "synth_cuts.mp4"
 # models/ (see models/README.md for sources, versions and SHA-256).
 DOVER_ROOT = ROOT / "third_party" / "DOVER"
 UVQ_ROOT = ROOT / "third_party" / "uvq"
-MODELS_DIR = ROOT / "models"
+MODELS_DIR = layout.models_dir(ROOT)
 DOVER_WEIGHTS = MODELS_DIR / "dover"
 UVQ_WEIGHTS = MODELS_DIR / "uvq"
 
@@ -169,6 +182,29 @@ def _raw(video: layout.Video) -> Path:
     return RAW_DIR / video.file
 
 
+def _picture(video: layout.Video) -> Path:
+    """The file whose picture analysis reads: the proxy when the video has
+    one (make_proxy), else the video itself."""
+    proxy = layout.proxy_path(WORK_DIR, video.id)
+    return proxy if proxy.exists() else _raw(video)
+
+
+def _make_proxies(videos: list[layout.Video]) -> None:
+    """A proxy for every video larger than PROXY_SIZE that has none yet."""
+    for video in videos:
+        info = probe(_raw(video))
+        proxy = layout.proxy_path(WORK_DIR, video.id)
+        if info.width * info.height <= PROXY_SIZE[0] * PROXY_SIZE[1] or proxy.exists():
+            continue
+        t0 = time.perf_counter()
+        make_proxy(_raw(video), proxy)
+        print(
+            f"{video.id} {video.file}: proxy {info.width}x{info.height} -> "
+            f"{PROXY_SIZE[1]}p in {time.perf_counter() - t0:.0f}s",
+            flush=True,
+        )
+
+
 def _write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), "utf-8")
@@ -236,9 +272,10 @@ def _segment(videos: list[layout.Video]) -> None:
     for video in videos:
         layout.verify(RAW_DIR, video)
         infos[video.id] = probe(_raw(video))
+    _make_proxies(videos)
     _recognise([v for v in videos if infos[v.id].has_audio], force=False)
     for video in videos:
-        path = _raw(video)
+        path = _picture(video)
         info = infos[video.id]
         end_time = END_TIME.get(video.id)
         analysed = info.duration if end_time is None else end_time
@@ -323,7 +360,7 @@ def _signals(videos: list[layout.Video]) -> None:
         _, segments = _load_segments(video.id)
         t0 = time.perf_counter()
         results = signals.compute(
-            _raw(video),
+            _picture(video),
             segments,
             layout.keyframes_dir(WORK_DIR, video.id),
             END_TIME.get(video.id),
@@ -481,10 +518,10 @@ def _dover_frames(
     error rather than a silently different sample.
     """
     end = END_TIME.get(video.id)
-    counts = count_frames(_raw(video), spans, end)
+    counts = count_frames(_picture(video), spans, end)
     picks = [adapter.needed_frames(n) if n else set() for n in counts]
     for i, frames, seen in segment_frames_picked(
-        _raw(video), spans, picks, DOVER_MAX_SIDE, end
+        _picture(video), spans, picks, DOVER_MAX_SIDE, end
     ):
         if seen != counts[i]:
             raise ValueError(
@@ -733,7 +770,7 @@ def _compare_frames(
     from video_demo import uvq
 
     for i, frames in segment_frames_every(
-        _raw(video), spans, uvq.STEP_SECONDS, uvq.SIZE, END_TIME.get(video.id)
+        _picture(video), spans, uvq.STEP_SECONDS, uvq.SIZE, END_TIME.get(video.id)
     ):
         yield i, dict(enumerate(frames)), len(frames)
 
@@ -1078,6 +1115,8 @@ def _candidates(video: layout.Video) -> list[suggest.Candidate]:
             quality=quality[s.index]["fused"],
             tech_raw=quality[s.index]["technical"],
             aes_raw=quality[s.index]["aesthetic"],
+            category=rows[s.index].get("category"),
+            brightness=sig[s.index]["brightness"],
         )
         for s in segments
     ]
@@ -1679,11 +1718,46 @@ def _scene_catalog(
     return catalog
 
 
-def cmd_edit(args: argparse.Namespace) -> None:
+def _collection_candidates(
+    videos: list[layout.Video],
+) -> tuple[list[suggest.Candidate], dict[str, float], float]:
+    """Candidates of ``videos`` one after another, each video's start on
+    that timeline, and the timeline's length."""
+    cands: list[suggest.Candidate] = []
+    offsets: dict[str, float] = {}
+    total = 0.0
+    for video in videos:
+        cands += _candidates(video)
+        offsets[video.id] = total
+        total += _load_segments(video.id)[0]["analysed_until"]
+    return cands, offsets, total
+
+
+def cmd_catalog(args: argparse.Namespace) -> None:
+    """Summarise the chunks and scenes ``edit`` reads, ahead of it: they
+    depend on the footage only, so they belong to preparing it, and edit
+    then finds them cached."""
+    try:
+        tag.check_server(outline.SERVER_URL)
+    except ConnectionError as exc:
+        raise SystemExit(f"{exc}\n    启动命令：{LLAMA_SERVER_CMD}") from exc
+    videos, _ = _ordered(_selected(args))
+    cands, offsets, _ = _collection_candidates(videos)
+    chunks = _chunks(cands, offsets)
+    retrieval = _Retrieval(videos)
+    try:
+        scenes = retrieval.scenes(chunks, suggest.calibrate_by_time(cands), offsets)
+        catalog = _scene_catalog(scenes, cands, offsets)
+    finally:
+        retrieval.embedder.close()
+    print(f"{len(chunks)} 块、{len(catalog)} 个场景的概况已缓存")
+
+
+def cmd_edit(args: argparse.Namespace) -> Path:
     """A cut for the user's instruction across the selected videos: the
     outline model reads the instruction and the scene catalog, every scene
     is searched for its slots. Timeline, preview and report go to a folder
-    of their own under out/<collection>/edits/."""
+    of their own under out/<collection>/edits/, which is returned."""
     instruction = args.instruction.strip()
     if not instruction:
         raise SystemExit("剪辑要求不能为空")
@@ -1693,20 +1767,21 @@ def cmd_edit(args: argparse.Namespace) -> None:
     except ConnectionError as exc:
         raise SystemExit(f"{exc}\n    启动命令：{LLAMA_SERVER_CMD}") from exc
     videos, order = _ordered(_selected(args))
-    cands: list[suggest.Candidate] = []
-    offsets: dict[str, float] = {}
-    total = 0.0
-    for video in videos:
-        cands += _candidates(video)
-        offsets[video.id] = total
-        total += _load_segments(video.id)[0]["analysed_until"]
+    cands, offsets, total = _collection_candidates(videos)
     chunks = _chunks(cands, offsets)
-    try:
-        duration, duration_raw, _, duration_errors = instruct.parse_duration(
-            instruction
-        )
-    except outline.OutlineError as exc:
-        raise SystemExit(f"读取成片时长失败（3 次都没通过校验）：{exc}") from exc
+    if args.target is not None:
+        # The request gives the length in seconds: nothing to read.
+        if args.target <= 0:
+            raise SystemExit(f"--target 必须大于 0：{args.target}")
+        duration = {"target_sec": args.target, "quote": ""}
+        duration_raw, duration_errors = "", []
+    else:
+        try:
+            duration, duration_raw, _, duration_errors = instruct.parse_duration(
+                instruction
+            )
+        except outline.OutlineError as exc:
+            raise SystemExit(f"读取成片时长失败（3 次都没通过校验）：{exc}") from exc
     raw = cands
     cands = suggest.calibrate_by_time(cands)
     assessments = [suggest.assess(c) for c in cands]
@@ -1715,7 +1790,10 @@ def cmd_edit(args: argparse.Namespace) -> None:
         for c, a in zip(cands, assessments, strict=True)
         if a.keep and c.duration >= suggest.MIN_CLIP_SEC
     )
-    if duration["target_sec"]:
+    if args.target is not None:
+        target = float(args.target)
+        source = {"kind": "request"}
+    elif duration["target_sec"]:
         target = float(duration["target_sec"])
         source = {"kind": "instruction", "quote": duration["quote"]}
     else:
@@ -1747,6 +1825,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
     finally:
         retrieval.embedder.close()
     named = set().union(*(outline.highlight_members(ch) for ch in chunks))
+    speech = _speech_spans(videos)
     clips, notes, slots = instruct.fill_request(
         plan,
         scenes,
@@ -1755,10 +1834,38 @@ def cmd_edit(args: argparse.Namespace) -> None:
         [r[0] for r in ranked],
         [r[1] for r in ranked],
         named,
-        _speech_spans(videos),
+        speech,
     )
     if not clips:
         raise SystemExit(f"没有选到任何片段：{'；'.join(notes)}")
+    reviewed: dict | None = None
+    if args.review:
+        filled = clips
+        try:
+            clips, review, review_raw, review_seconds, review_errors = (
+                instruct.review_request(
+                    instruction,
+                    target,
+                    plan,
+                    clips,
+                    cands,
+                    assessments,
+                    [r[1] for r in ranked],
+                    _speech_lines(videos),
+                    profile=_main_profile(videos),
+                    beat_grid=_beat_grid(videos),
+                )
+            )
+        except outline.OutlineError as exc:
+            raise SystemExit(f"审片失败（3 次都没通过校验）：{exc}") from exc
+        reviewed = {
+            "notes": review["notes"],
+            "fit": review["fit"],
+            "raw": review_raw,
+            "seconds": round(review_seconds, 1),
+            "failed_attempts": review_errors,
+            "filled": [suggest.clip_to_dict(c) for c in filled],
+        }
     stamp = time.strftime("%Y%m%d-%H%M%S")
     folder = layout.edit_dir(out, stamp, instruction)
     timeline = {
@@ -1782,9 +1889,12 @@ def cmd_edit(args: argparse.Namespace) -> None:
             for part, r in zip(plan["parts"], ranked, strict=True)
         ],
         "outline": plan,
+        "planner": outline.planner_name(),
         "outline_raw": outline_raw,
         "outline_seconds": round(seconds, 1),
         "outline_failed_attempts": errors,
+        # With --review: the planner's review and the cut it replaced.
+        "review": reviewed,
         "chunks": _chunk_rows(chunks, cands),
         # The scenes the model read; catalog_total counts all that keep
         # footage (more than MAX_CATALOG_SCENES are shortlisted).
@@ -1801,15 +1911,18 @@ def cmd_edit(args: argparse.Namespace) -> None:
     if args.narrate:
         timeline["narration"], voices = _narrate(timeline, videos, args.voice)
     _write_json(layout.edit_timeline_path(folder), timeline)
-    _write_preview(
-        timeline,
-        {v.id: v.file for v in videos},
-        layout.edit_preview_path(folder),
-        voices,
-        _title_card(plan["title"], videos),
-    )
+    # A caller that renders the timeline itself skips the preview.
+    if getattr(args, "preview", True):
+        _write_preview(
+            timeline,
+            {v.id: v.file for v in videos},
+            layout.edit_preview_path(folder),
+            voices,
+            _title_card(plan["title"], videos),
+        )
     print(f"Wrote {report.write_edit(ROOT, folder, videos, timeline)}")
     _write_index()
+    return folder
 
 
 def cmd_render(args: argparse.Namespace) -> None:
@@ -1830,6 +1943,40 @@ def _speech_spans(videos: list[layout.Video]) -> dict[str, list[tuple[float, flo
         path = layout.asr_path(WORK_DIR, v.id)
         if path.exists():
             out[v.id] = subtitle.speech_spans(subtitle.read_asr(path, v.id))[0]
+    return out
+
+
+def _beat_grid(
+    videos: list[layout.Video],
+) -> Callable[[str, float, float], tuple[float, list[float]]]:
+    """Beats of a video's own sound between two times (beats.find_beats):
+    (period, times in the video's seconds)."""
+    files = {v.id: _raw(v) for v in videos}
+
+    def grid(vid: str, lo: float, hi: float) -> tuple[float, list[float]]:
+        sound = read_audio_clip(files[vid], lo, hi - lo, fade_in=False, fade_out=False)
+        period, times = beats.find_beats(sound.mean(axis=0), AUDIO_RATE)
+        return period, [lo + t for t in times]
+
+    return grid
+
+
+def _speech_lines(
+    videos: list[layout.Video],
+) -> dict[str, list[tuple[float, float, str]]]:
+    """(start, end, text) of each sentence said in each video: the refined
+    subtitles where they exist, else what was recognised."""
+    out = {}
+    for v in videos:
+        refined = layout.subtitle_path(WORK_DIR, v.id)
+        if refined.exists():
+            data = subtitle.read_subtitles(refined, v.id)
+            sentences = subtitle.sentences_from_json(data["sentences"])
+        elif layout.asr_path(WORK_DIR, v.id).exists():
+            sentences = subtitle.read_asr(layout.asr_path(WORK_DIR, v.id), v.id)
+        else:
+            continue
+        out[v.id] = [(s.start, s.end, s.text) for s in sentences if s.times]
     return out
 
 
@@ -1854,18 +2001,33 @@ def _write_preview(
     target: Path,
     voices: list[tuple[float, np.ndarray]] | None = None,
     title: tuple[str, str] | None = None,
+    finished: bool | None = None,
+    burn: bool = True,
 ) -> None:
     """The timeline's clips joined into one preview video with their sound;
     ``files`` maps video ids to raw file names; ``voices`` are narration
     lines (start, stereo samples) mixed over the sound. Subtitles of what is
     said, and the narration's, go to the subtitles folder next to it, with a
-    second preview there that has them drawn into the picture.
+    second preview there that has them drawn into the picture (unless
+    ``burn`` is False).
 
-    With ``title`` (a title and a line under it) the cut is finished for
-    showing: EDIT_SIZE, a title card, a dissolve where the outline moves to
-    its next part, and fades from and to black at both ends."""
+    A ``finished`` cut is made for showing: EDIT_SIZE (upright when portrait
+    sources fill more of it, media.edit_size), a dissolve where the outline
+    moves to its next part, and fades from and to black at both ends; it is
+    finished by default when it has a ``title`` (a title and a line under
+    it), which is drawn as a title card."""
+    finished = title is not None if finished is None else finished
     played = _played(timeline["clips"])
-    size = EDIT_SIZE if title else OUT_SIZE
+    if finished:
+        shapes = {v: probe(RAW_DIR / f) for v, f in files.items()}
+        size = edit_size(
+            [
+                (shapes[c["video"]].width, shapes[c["video"]].height, c["duration"])
+                for c in played
+            ]
+        )
+    else:
+        size = OUT_SIZE
     cues = _preview_subtitles({**timeline, "clips": played}, target) or []
     said = [
         (line["start"], line["start"] + line["seconds"], line["text"])
@@ -1886,37 +2048,62 @@ def _write_preview(
         else None
     )
     outputs: list[tuple[Path, FrameDraw | None]] = [(target, card)]
-    if cues or said:
+    if burn and (cues or said):
         shown = sorted([(c.start, c.end, c.text) for c in cues] + said)
         painter = SubtitlePainter(shown, _subtitle_font(), frame=size)
         outputs.append((layout.burned_preview_path(target), compose(card, painter)))
 
-    def clips() -> Iterator[tuple[list[np.ndarray], np.ndarray]]:
-        tail = None
+    # HDR (PQ) sources are shown as SDR in a finished cut.
+    pq = {v: finished and is_pq(RAW_DIR / f) for v, f in files.items()}
+
+    def clips() -> Iterator[tuple[Iterator[np.ndarray], np.ndarray]]:
+        # What the clip before runs on with past its end: its picture where
+        # the outline moves to its next part (dissolve), and its sound at
+        # every cut of a finished cut (crossfade).
+        tail: list[np.ndarray] | None = None
+        carry: np.ndarray | None = None
         for k, clip in enumerate(played):
             path = RAW_DIR / files[clip["video"]]
             start, duration = clip["src_start"], clip["duration"]
-            frames = read_clip(path, start, duration, size)
-            sound = read_audio_clip(path, start, duration)
-            if tail is not None:
-                frames, sound = dissolve(tail, (frames, sound))
-            tail = None
             nxt = played[k + 1] if k + 1 < len(played) else None
-            if title and nxt is not None and nxt["role"] != clip["role"]:
-                # The handle runs on past the clip's end, as far as the
-                # source goes.
-                handle = min(DISSOLVE_SEC, probe(path).duration - start - duration)
-                if handle >= 2 / OUT_FPS:
-                    end = start + duration
-                    tail = (
-                        read_clip(path, end, handle, size),
-                        read_audio_clip(path, end, handle),
-                    )
+            dissolving = finished and nxt is not None and nxt["role"] != clip["role"]
+            # The handle runs on past the clip's end, as far as the source goes.
+            wanted = DISSOLVE_SEC if dissolving else AUDIO_XFADE_SEC
+            handle = (
+                min(wanted, probe(path).duration - start - duration)
+                if finished and nxt is not None
+                else 0.0
+            )
+            if handle < 2 / OUT_FPS:
+                handle, dissolving = 0.0, False
+            n = round(duration * AUDIO_RATE)
+            heard = read_audio_clip(
+                path,
+                start,
+                duration + handle,
+                fade_in=carry is None,
+                fade_out=handle == 0.0,
+            )
+            sound, next_carry = heard[:, :n], heard[:, n:]
+            # Read as encoded: one frame at a time in memory, not the clip.
+            frames = iter_clip(path, start, duration, size, pq[clip["video"]])
+            if tail is not None and carry is not None:
+                frames, sound = dissolve((tail, carry), (frames, sound))
+            elif carry is not None:
+                sound = crossfade(carry, sound)
+            tail = (
+                read_clip(path, start + duration, handle, size, pq[clip["video"]])
+                if dissolving
+                else None
+            )
+            carry = next_carry if handle else None
             yield frames, sound
 
     t0 = time.perf_counter()
-    total = sum(c["duration"] for c in played) if title else None
-    write_av(clips(), outputs, voices, size, total)
+    total = sum(c["duration"] for c in played) if finished else None
+    write_av(
+        clips(), outputs, voices, size, total, EDIT_CRF if finished else PREVIEW_CRF
+    )
     print(f"{target}: {time.perf_counter() - t0:.1f}s")
 
 
@@ -2257,7 +2444,7 @@ def _recognise(
         return []
     # Recognition runs alone and frees its models before the 4B is used.
     try:
-        asr = subtitle.SenseVoiceAdapter(ROOT / "models" / "asr", language)
+        asr = subtitle.SenseVoiceAdapter(MODELS_DIR / "asr", language)
     except subtitle.SubtitleError as exc:
         raise SystemExit(f"语音识别模型不可用：{exc}") from exc
     for v in todo:
@@ -2592,6 +2779,12 @@ def main() -> None:
     p_index.add_argument("--collection", default="", help=COLLECTION_HELP)
     p_index.add_argument("--only", default="", help=ONLY_HELP)
     p_index.set_defaults(func=cmd_index)
+    p_catalog = sub.add_parser(
+        "catalog", help="summarise the chunks and scenes edit reads (cached)"
+    )
+    p_catalog.add_argument("--collection", default="", help=COLLECTION_HELP)
+    p_catalog.add_argument("--only", default="", help=ONLY_HELP)
+    p_catalog.set_defaults(func=cmd_catalog)
     p_tag = sub.add_parser("tag")
     p_tag.add_argument("--collection", default="", help=COLLECTION_HELP)
     p_tag.add_argument("--only", default="", help=ONLY_HELP)
@@ -2737,6 +2930,17 @@ def main() -> None:
         type=float,
         default=suggest.HIGHLIGHT_RATIO,
         help="cut length / input length when the instruction gives none",
+    )
+    p_edit.add_argument(
+        "--target",
+        type=float,
+        default=None,
+        help="cut length in seconds; the instruction is then not read for one",
+    )
+    p_edit.add_argument(
+        "--review",
+        action="store_true",
+        help="let the planner review the filled cut and set the final clips",
     )
     p_edit.set_defaults(func=cmd_edit)
     p_synth = sub.add_parser("synth")

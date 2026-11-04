@@ -20,11 +20,26 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 ID_LENGTH = 16
+
+
+def data_dir(root: Path) -> Path:
+    """``root``/data, or VIDEO_DEMO_DATA when set (e.g. scratch space for
+    one case of an evaluation)."""
+    return Path(os.environ.get("VIDEO_DEMO_DATA", root / "data"))
+
+
+def models_dir(root: Path) -> Path:
+    """``root``/models, or VIDEO_DEMO_MODELS when set (e.g. the models baked
+    into a container image)."""
+    return Path(os.environ.get("VIDEO_DEMO_MODELS", root / "models"))
+
+
 MANIFEST_NAME = "manifest.json"
 # Containers the photo library accepts as video (A-NAS photo-video spec).
 VIDEO_SUFFIXES = frozenset(
@@ -314,6 +329,11 @@ def scene_summary_path(work: Path, vid: str) -> Path:
 def multi_scene_path(work: Path) -> Path:
     """Summaries of scenes that run across videos (cached)."""
     return work / "scenes" / "scene_multi.json"
+
+
+def proxy_path(work: Path, vid: str) -> Path:
+    """A smaller copy of a large video's picture that analysis reads."""
+    return work / "proxy" / f"proxy_{vid}.mp4"
 
 
 def asr_path(work: Path, vid: str) -> Path:

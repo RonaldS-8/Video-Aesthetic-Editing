@@ -1,0 +1,50 @@
+{
+ "phases": {
+  "prepare": 2.8,
+  "narrated": 609.33
+ },
+ "steps": [
+  {
+   "step": "check",
+   "category": "check",
+   "seconds": 2.8,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "stage",
+   "category": "decode",
+   "seconds": 0.0,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "subtitle",
+   "category": "understand",
+   "seconds": 4.16,
+   "ok": true,
+   "phase": "narrated"
+  },
+  {
+   "step": "translate",
+   "category": "understand",
+   "seconds": 6.86,
+   "ok": true,
+   "phase": "narrated"
+  },
+  {
+   "step": "narrate",
+   "category": "other",
+   "seconds": 464.36,
+   "ok": true,
+   "phase": "narrated"
+  },
+  {
+   "step": "render",
+   "category": "render",
+   "seconds": 133.95,
+   "ok": true,
+   "phase": "narrated"
+  }
+ ]
+}

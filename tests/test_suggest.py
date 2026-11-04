@@ -215,3 +215,11 @@ def test_the_weighted_highlight_counts_with_its_decimals() -> None:
     assert "3.60/5" in suggest.assess(high).reasons[1]
     with pytest.raises(ValueError, match="highlight must be in"):
         suggest.assess(suggest.Candidate(**{**high.__dict__, "highlight": 0.4}))
+
+
+def test_dark_film_footage_is_not_penalised() -> None:
+    film = suggest.Candidate(
+        **{**_cand(0, flags=["low_light"]).__dict__, "category": "film"}
+    )
+    walk = _cand(1, flags=["low_light"])
+    assert suggest.assess(film).score - suggest.assess(walk).score == pytest.approx(1.0)

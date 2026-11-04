@@ -279,7 +279,7 @@ def keyframe_paths(
 def _video_section(
     root: Path, out_dir: Path, result_dir: Path, mode: str, video: layout.Video, n: int
 ) -> tuple[str, dict, dict]:
-    work = root / "data" / "work"
+    work = layout.data_dir(root) / "work"
     vid = video.id
     seg = _read_json(layout.segments_path(work, vid))
     sig = _read_json(layout.signals_path(work, vid))
@@ -701,7 +701,7 @@ def write_edit(
     """Write ``folder/report.html`` for an edit by instruction: the
     instruction and how the model read it, each part's slots with the scene
     retrieved for it, the preview and the clips."""
-    work = root / "data" / "work"
+    work = layout.data_dir(root) / "work"
     files = {v.id: v.file for v in videos}
     frames: dict[tuple[str, int], str] = {}
     descriptions: dict[tuple[str, int], str] = {}
@@ -800,6 +800,8 @@ def write_edit(
     source = timeline["target_source"]
     if source["kind"] == "instruction":
         target_note = f"指令里的「{escape(source['quote'])}」"
+    elif source["kind"] == "request":
+        target_note = "请求给定的秒数"
     else:
         target_note = f"指令没说时长，按素材的 {source['ratio']:.0%}"
     analysed = sum(ch["end"] - ch["start"] for ch in timeline["chunks"])
@@ -835,20 +837,30 @@ def write_edit(
         if failed
         else ""
     )
+    review = timeline.get("review")
+    review_html = (
+        f"<b>审片</b><p>{escape(review['notes'])}</p>"
+        f"<p class=\"muted\">粗剪 {len(review['filled'])} 段 → 审定 "
+        f"{len(timeline['clips'])} 段（审片用时 {review['seconds']}s）</p>"
+        + (f'<p class="miss">{escape(review["fit"])}</p>' if review["fit"] else "")
+        if review
+        else ""
+    )
+    planner = escape(timeline.get("planner", "Qwen3.5-4B"))
     player, subs = _preview(layout.edit_preview_path(folder), folder)
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)}</title><style>{CSS}</style></head>
 <body><main>
 <h1>{escape(title)}</h1>
-<p class="muted">{escape(timeline['created'])} · 按用户要求剪辑 · 大纲 Qwen3.5-4B
+<p class="muted">{escape(timeline['created'])} · 按用户要求剪辑 · 大纲 {planner}
 （用时 {timeline['outline_seconds']}s{f"，重试 {tries} 次" if tries else ""}）·
 检索 EmbeddingGemma 2 文本、图像向量 + BM25</p>
 <div class="slot"><b>剪辑要求</b><p>{escape(timeline['instruction'])}</p>
 <b>选用的素材</b><ul>{materials}</ul>
 <b>成片设计</b><p>{escape(plan['design'])}</p>
 <p class="muted">节奏：{escape(plan['pace'])}（{pace_note}）</p>
-{f'<p class="miss">素材里找不到：{unmet}</p>' if unmet else ""}</div>
+{f'<p class="miss">素材里找不到：{unmet}</p>' if unmet else ""}{review_html}</div>
 <div class="cards">{cards_html}</div>
 {f'<ul class="miss">{notes}</ul>' if notes else ""}
 <h2>大纲与检索到的场景</h2>

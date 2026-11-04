@@ -1,0 +1,114 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>巴黎，从白昼到夜晚</title><style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e3e2dc;
+--keep:#2f7d4f;--drop:#b4442f;--sel:#2b5fd9;--chip:#efeee8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161614;
+--card:#1f1f1c;--ink:#ecebe6;--muted:#a3a29b;--line:#34332f;--keep:#5fbf86;
+--drop:#e0765f;--sel:#7fa3ff;--chip:#2a2a26}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:19px;margin:36px 0 12px}
+h3{font-size:16px;margin:20px 0 8px}.muted{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;
+margin:16px 0}.card{background:var(--card);border:1px solid var(--line);
+border-radius:10px;padding:12px}.card b{display:block;font-size:20px}
+table{width:100%;border-collapse:collapse;background:var(--card);font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;
+vertical-align:top}th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.bar{position:relative;height:34px;background:var(--chip);border-radius:6px;
+overflow:hidden;margin:8px 0 4px}.bar span{position:absolute;top:0;bottom:0;
+border-right:1px solid var(--bg)}.bar span.sel{box-shadow:inset 0 0 0 3px var(--sel)}
+.thumbs img{width:120px;border-radius:4px;display:block;margin-bottom:3px}
+.chip{display:inline-block;background:var(--chip);border-radius:10px;
+padding:0 7px;margin:1px 2px 1px 0;font-size:12px}
+.keep{color:var(--keep);font-weight:600}.drop{color:var(--drop);font-weight:600}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.clip{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:8px;font-size:12px}.clip img{width:100%;border-radius:4px}
+video{width:100%;max-width:640px;border-radius:8px;background:#000}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;
+padding:4px 12px;margin:12px 0}summary{cursor:pointer;font-weight:600;padding:8px 0}
+.ok{color:var(--keep)}.miss{color:var(--drop)}
+.part{border-left:4px solid;padding:2px 0 2px 12px;margin:18px 0}
+.part h3{margin:4px 0}.slot{background:var(--card);border:1px solid var(--line);
+border-radius:8px;padding:8px 10px;margin:8px 0}
+.strip{display:flex;gap:4px;overflow-x:auto;margin:6px 0}
+.strip img{width:112px;flex:none;border-radius:4px;border:3px solid transparent}
+.strip img.taken{border-color:var(--sel)}.strip img.dropped{opacity:.35}
+pre.raw{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:10px 12px;overflow-x:auto;font-size:12px;white-space:pre-wrap}
+</style></head>
+<body><main>
+<h1>巴黎，从白昼到夜晚</h1>
+<p class="muted">20261104-104042 · 按用户要求剪辑 · 大纲 云端
+（用时 0.0s）·
+检索 EmbeddingGemma 2 文本、图像向量 + BM25</p>
+<div class="slot"><b>剪辑要求</b><p>把白天的埃菲尔铁塔航拍和夜晚的巴黎街景合成一条从白天到夜晚的巴黎短片</p>
+<b>选用的素材</b><ul><li>场景 9（7:49.6–8:24.9）「埃菲尔铁塔黄昏航拍」：白天正上方俯拍铁塔，塔下公园与塞纳河</li><li>场景 31（26:41.0–27:09.3）「巴黎埃菲尔铁塔风光」：蓝天下仰拍铁塔塔身与塔顶细节</li><li>场景 8（6:36.0–7:23.1）「巴黎街角与埃菲尔铁塔」：白天巴黎街角的奥斯曼式建筑与林荫道</li><li>场景 13（11:02.4–11:31.5）「埃菲尔铁塔黄昏光影」：暮色中铁塔下的广场，塔身灯光亮起</li><li>场景 35（29:41.8–30:10.9）「巴黎凯旋门黄昏车流」：黄昏凯旋门前香榭丽舍大街的车流</li><li>场景 36（30:30.3–30:58.8）「埃菲尔铁塔夜景」：夜晚金色灯光的铁塔，塔下车辆穿梭</li><li>场景 37（31:07.8–32:13.3）「巴黎地标夜景」：夜晚城市全景与塞纳河灯火</li><li>场景 39（33:07.2–33:54.8）「巴黎埃菲尔铁塔夜景」：夜色里铁塔灯光由金色变成蓝色</li></ul>
+<b>成片设计</b><p>开头用 9、31 的白天铁塔航拍和仰拍，接 8 的白天街区；中间用 13 的暮色亮灯过渡到夜晚；后段用 35、36、37 的夜晚街景与城市灯火，结尾停在 39 变蓝的铁塔。按白天到夜晚的顺序排列，不用片尾的音乐字幕。</p>
+<p class="muted">节奏：适中（每段最多 6 秒，取中间，避开句子）</p>
+<b>审片</b><p>粗剪里 c8、c31 实际是夕阳逆光，放在白天部分会把顺序打乱；白天部分改用正上方俯拍、蓝天仰拍和环绕全景，街区换成白天的街角和林荫道；中间加一个夕阳中的铁塔做白天到黄昏的过渡，再接灯光亮起和探照灯；夜晚部分用凯旋门大道车流、塔下车流和满城灯火，结尾收在蓝色灯光的铁塔。</p><p class="muted">粗剪 11 段 → 审定 12 段（审片用时 0.0s）</p></div>
+<div class="cards"><div class="card"><span class="muted">目标</span><b>60s</b><span class="muted">请求给定的秒数</span></div><div class="card"><span class="muted">选到</span><b>60.0s</b><span class="muted">12 段</span></div><div class="card"><span class="muted">素材</span><b>32.3 分钟</b><span class="muted">2 条视频，视频按文件名排列</span></div><div class="card"><span class="muted">场景</span><b>39</b><span class="muted">38 个有可用片段</span></div></div>
+<ul class="miss"><li>「夜色铁塔」素材只够 6.0s（计划 11s），其余分给其他部分</li><li>选中的镜头共 66.0s，超过目标，每段最多取 5.5s</li></ul>
+<h2>大纲与检索到的场景</h2>
+<p class="muted">大纲由模型读要求和场景目录（每个场景的标题和概况）写成：先挑场景，
+再写设计，最后按设计分部分、定场景槽位，并标出每个槽位取自哪几个场景。
+每个槽位在全部素材的场景里检索（文本向量、图像向量、BM25 融合），相关度为主、
+画质为辅，一个场景只给一个槽位。场景内选片时相关度占 70%、画质占 30%（都缩放到
+0–1），分段总结点名的亮点另有加分；节奏为适中或快时只取片段中间。
+成片按大纲顺序排列。关键帧蓝框为取用的片段，变淡的是画质不合格的片段。</p>
+<div class="part" style="border-left-color:#2b5fd9"><h3>1. 白天的铁塔 <span class='muted'>分量 3 · 目标 12s · <span class='ok'>选到 15s</span></span></h3><p class='muted'>阳光下的铁塔，从正上方俯拍到仰望塔身。</p><div class="slot"><b>「正上方俯拍铁塔」</b><span class='muted'> 设计取自场景 9</span> → 场景 9<span class='muted'>（case-10-1.webm 7:49.6–8:24.9，3 段）</span><br><span class='muted'>检索相关度 96% · 分到 5s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg063_0.jpg" title="#63 航拍视角下埃菲尔铁塔塔身及周围公园、道路的全景画面。" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg064_0.jpg" title="#64 无人机从高空俯瞰并环绕拍摄埃菲尔铁塔塔身及周边塞纳河与城市街景。" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg067_0.jpg" title="#67 无人机从埃菲尔铁塔塔身侧面掠过，俯瞰巴黎市区与塞纳河风光。" alt=""></div><span class='muted'>其他候选：场景 3（case-10-1.webm 2:44.3–3:31.5）、场景 1（case-10-1.webm 0:08.1–1:47.0）、场景 2（case-10-1.webm 2:07.1–2:30.0）、场景 31（case-10-2.webm 10:50.9–11:19.2）</span></div><div class="slot"><b>「蓝天下仰拍铁塔」</b><span class='muted'> 设计取自场景 31</span> → 场景 31<span class='muted'>（case-10-2.webm 10:50.9–11:19.2，2 段）</span><br><span class='muted'>检索相关度 98% · 分到 5s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg075_0.jpg" title="#75 埃菲尔铁塔与旋转木马在蓝天下的仰拍画面" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg077_0.jpg" title="#77 镜头从埃菲尔铁塔底部仰拍至塔顶，背景可见协和广场建筑与蓝天。" alt=""></div><span class='muted'>其他候选：场景 38（case-10-2.webm 16:40.8–17:10.0）、场景 3（case-10-1.webm 2:44.3–3:31.5）、场景 9（case-10-1.webm 7:49.6–8:24.9）、场景 30（case-10-2.webm 10:07.7–10:42.8）</span></div><div class="slot"><b>「铁塔与塞纳河航拍」</b><span class='muted'> 设计取自场景 9</span> → 场景 3<span class='muted'>（case-10-1.webm 2:44.3–3:31.5，3 段）</span><br><span class='muted'>检索相关度 99% · 分到 5s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg024_0.jpg" title="#24 埃菲尔铁塔特写与塞纳河、巴黎城市全景同框的航拍镜头。" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg027_0.jpg" title="#27 无人机环绕拍摄巴黎埃菲尔铁塔全景及周边塞纳河景观" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg029_0.jpg" title="#29 航拍视角下，埃菲尔铁塔顶层观景台聚集着大量游客，背景是塞纳河与巴黎城市全景，镜头缓慢环绕拍摄。" alt=""></div><span class='muted'>其他候选：场景 9（case-10-1.webm 7:49.6–8:24.9）、场景 16（case-10-1.webm 13:46.3–14:34.9）、场景 4（case-10-1.webm 3:50.4–4:16.3）、场景 10（case-10-1.webm 8:40.2–9:28.9）</span></div></div><div class="part" style="border-left-color:#d9822b"><h3>2. 白天的街区 <span class='muted'>分量 2 · 目标 12s · <span class='ok'>选到 10s</span></span></h3><p class='muted'>飞过巴黎街角的奥斯曼式建筑。</p><div class="slot"><b>「奥斯曼建筑街角」</b><span class='muted'> 设计取自场景 8</span> → 场景 12<span class='muted'>（case-10-1.webm 10:23.6–10:51.1，2 段）</span><br><span class='muted'>检索相关度 97% · 分到 12s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg082_0.jpg" title="#82 无人机俯瞰巴黎风格街道，两侧是密集的欧式建筑与屋顶，视角稳定且无遮挡。" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg084_0.jpg" title="#84 黄昏时分，无人机俯瞰巴黎街道，车辆行驶在两旁欧式建筑间的林荫道上。" alt=""></div><span class='muted'>其他候选：场景 28（case-10-2.webm 7:46.3–8:57.9）、场景 8（case-10-1.webm 6:36.0–7:23.1）、场景 6（case-10-1.webm 5:10.8–5:39.6）、场景 32（case-10-2.webm 11:35.9–12:04.0）</span></div></div><div class="part" style="border-left-color:#2f9d8f"><h3>3. 华灯初上 <span class='muted'>分量 2 · 目标 12s · <span class='ok'>选到 15s</span></span></h3><p class='muted'>暮色降临，铁塔的灯光亮起。</p><div class="slot"><b>「暮色中亮灯的铁塔」</b><span class='muted'> 设计取自场景 13</span> → 场景 15<span class='muted'>（case-10-1.webm 13:13.0–13:37.9，2 段）</span><br><span class='muted'>检索相关度 98% · 分到 12s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg104_0.jpg" title="#104 埃菲尔铁塔夜景延时摄影，塔身灯光亮起，城市灯火璀璨，天空呈现黄昏至夜幕的渐变色彩。" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg106_0.jpg" title="#106 黄昏时分，埃菲尔铁塔在暮色中亮起灯光，俯瞰巴黎城市全景。" alt=""></div><span class='muted'>其他候选：场景 13（case-10-1.webm 11:02.4–11:31.5）、场景 17（case-10-1.webm 14:50.0–15:19.2）、场景 36（case-10-2.webm 14:40.2–15:08.7）、场景 14（case-10-1.webm 11:41.3–12:48.6）</span></div></div><div class="part" style="border-left-color:#b04aa8"><h3>4. 夜晚的街景 <span class='muted'>分量 4 · 目标 13s · <span class='ok'>选到 15s</span></span></h3><p class='muted'>凯旋门前的车流、塔下的街道和满城灯火。</p><div class="slot"><b>「凯旋门大道的车流」</b><span class='muted'> 设计取自场景 35</span> → 场景 35<span class='muted'>（case-10-2.webm 13:51.7–14:20.8，2 段）</span><br><span class='muted'>检索相关度 100% · 分到 5s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg095_0.jpg" title="#95 黄昏时分，巴黎香榭丽舍大街车流穿梭，凯旋门在远处矗立，天空呈现粉紫色晚霞。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg097_0.jpg" title="#97 黄昏时分，车辆行驶在巴黎凯旋门前的宽阔街道上，天空云层厚重。" alt=""></div><span class='muted'>其他候选：场景 32（case-10-2.webm 11:35.9–12:04.0）、场景 6（case-10-1.webm 5:10.8–5:39.6）、场景 12（case-10-1.webm 10:23.6–10:51.1）、场景 8（case-10-1.webm 6:36.0–7:23.1）</span></div><div class="slot"><b>「塔下车流夜景」</b><span class='muted'> 设计取自场景 36</span> → 场景 16<span class='muted'>（case-10-1.webm 13:46.3–14:34.9，3 段）</span><br><span class='muted'>检索相关度 96% · 分到 5s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg108_0.jpg" title="#108 夜幕下埃菲尔铁塔在灯光照耀中巍然耸立，塞纳河与两岸城市灯火交相辉映。" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg112_0.jpg" title="#112 夜幕下埃菲尔铁塔在灯光照耀中矗立，俯瞰巴黎城市全景与塞纳河夜景。" alt=""><img class="" src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg113_0.jpg" title="#113 夜幕下埃菲尔铁塔在灯光照耀下矗立，俯瞰巴黎城市夜景与塞纳河" alt=""></div><span class='muted'>其他候选：场景 37（case-10-2.webm 15:17.7–16:23.2）、场景 36（case-10-2.webm 14:40.2–15:08.7）、场景 13（case-10-1.webm 11:02.4–11:31.5）、场景 39（case-10-2.webm 17:17.1–18:04.7）</span></div><div class="slot"><b>「夜色中的城市灯火」</b><span class='muted'> 设计取自场景 37</span> → 场景 37<span class='muted'>（case-10-2.webm 15:17.7–16:23.2，4 段）</span><br><span class='muted'>检索相关度 98% · 分到 5s · </span><span class='ok'>是设计的场景</span><div class="strip"><img class="" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg104_0.jpg" title="#104 夜幕下埃菲尔铁塔被暖色灯光照亮，镜头缓慢向上仰拍展示其宏伟结构" alt=""><img class="taken" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg106_0.jpg" title="#106 巴黎圣母院夜景航拍，城市灯火璀璨，塞纳河静静流淌。" alt=""><img class="" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg109_0.jpg" title="#109 夜幕下埃菲尔铁塔与巴黎城市全景灯光航拍，画面稳定清晰。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg113_0.jpg" title="#113 夜幕下城市全景航拍，灯火璀璨展现繁华夜景与天际线" alt=""></div><span class='muted'>其他候选：场景 16（case-10-1.webm 13:46.3–14:34.9）、场景 36（case-10-2.webm 14:40.2–15:08.7）、场景 15（case-10-1.webm 13:13.0–13:37.9）、场景 39（case-10-2.webm 17:17.1–18:04.7）</span></div></div><div class="part" style="border-left-color:#8a9a2b"><h3>5. 夜色铁塔 <span class='muted'>分量 2 · 目标 11s · <span class='miss'>选到 5s</span></span></h3><p class='muted'>铁塔的灯光由金转蓝，收在夜色里。</p><div class="slot"><b>「蓝色灯光的铁塔」</b><span class='muted'> 设计取自场景 39</span> → 场景 36<span class='muted'>（case-10-2.webm 14:40.2–15:08.7，2 段）</span><br><span class='muted'>检索相关度 98% · 分到 6s · </span><span class='miss'>不是设计的场景</span><div class="strip"><img class="taken" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg100_0.jpg" title="#100 埃菲尔铁塔在夜色中被暖黄色灯光照亮，塔身结构清晰可见，底部有车辆驶过。" alt=""><img class="dropped" src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg102_0.jpg" title="#102 夜幕下埃菲尔铁塔被金色灯光照亮，镜头缓慢向上拉升展示建筑全貌。" alt=""></div><span class='muted'>其他候选：场景 39（case-10-2.webm 17:17.1–18:04.7）、场景 16（case-10-1.webm 13:46.3–14:34.9）、场景 15（case-10-1.webm 13:13.0–13:37.9）、场景 37（case-10-2.webm 15:17.7–16:23.2）</span></div></div>
+<h2>预览</h2>
+<video src="output.mp4" controls preload="metadata"></video>
+
+<div class="clips"><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg009_0.jpg" alt=""><b>1. 白天的铁塔</b> <span class='muted'>5.5s</span><br><span class='muted'>case-10/case-10-1.webm 1:04.0–1:09.5</span><br>无人机垂直俯拍埃菲尔铁塔及塞纳河畔全景，展现建筑全貌与周边城市景观。<br><span class='muted'>审片：正上方垂直俯拍铁塔与塞纳河，白天最抓人的开场（得分 4.9）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg077_0.jpg" alt=""><b>2. 白天的铁塔</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-2.webm 11:12.6–11:17.5</span><br>镜头从埃菲尔铁塔底部仰拍至塔顶，背景可见协和广场建筑与蓝天。<br><span class='muted'>审片：蓝天下从塔底仰拍到塔顶，换一个角度看白天的铁塔（得分 3.8）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg027_0.jpg" alt=""><b>3. 白天的铁塔</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-1.webm 3:10.1–3:15.1</span><br>无人机环绕拍摄巴黎埃菲尔铁塔全景及周边塞纳河景观<br><span class='muted'>审片：环绕俯拍铁塔与周边街区，承上启下飞向城市（得分 4.7）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg054_0.jpg" alt=""><b>4. 白天的街区</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-1.webm 6:37.0–6:42.0</span><br>无人机俯瞰巴黎街角，红顶建筑与绿树相映，车辆穿梭其间。<br><span class='muted'>审片：白天的巴黎街角，红顶建筑与绿树车流（得分 4.4）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg082_0.jpg" alt=""><b>5. 白天的街区</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-1.webm 10:25.7–10:30.7</span><br>无人机俯瞰巴黎风格街道，两侧是密集的欧式建筑与屋顶，视角稳定且无遮挡。<br><span class='muted'>审片：飞过奥斯曼式建筑夹道的街道（得分 4.6）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg003_0.jpg" alt=""><b>6. 华灯初上</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-1.webm 0:25.9–0:30.9</span><br>埃菲尔铁塔在日落时分矗立，背景是塞纳河与巴黎城市天际线。<br><span class='muted'>审片：夕阳中的铁塔剪影，从白天过渡到黄昏（得分 3.2）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg092_0.jpg" alt=""><b>7. 华灯初上</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-1.webm 11:43.1–11:48.1</span><br>黄昏时分埃菲尔铁塔全景航拍，城市天际线灯火初上，天空呈现紫粉渐变。<br><span class='muted'>审片：紫粉色天空下铁塔灯光初上（得分 4.1）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_9460e0ee36f60463/seg104_0.jpg" alt=""><b>8. 华灯初上</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-1.webm 13:14.6–13:19.6</span><br>埃菲尔铁塔夜景延时摄影，塔身灯光亮起，城市灯火璀璨，天空呈现黄昏至夜幕的渐变色彩。<br><span class='muted'>审片：塔顶探照灯亮起，正式入夜（得分 3.7）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg095_0.jpg" alt=""><b>9. 夜晚的街景</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-2.webm 13:54.1–13:59.0</span><br>黄昏时分，巴黎香榭丽舍大街车流穿梭，凯旋门在远处矗立，天空呈现粉紫色晚霞。<br><span class='muted'>审片：凯旋门前大道的车流与车灯，夜晚街景（得分 2.2）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg100_0.jpg" alt=""><b>10. 夜晚的街景</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-2.webm 14:42.6–14:47.5</span><br>埃菲尔铁塔在夜色中被暖黄色灯光照亮，塔身结构清晰可见，底部有车辆驶过。<br><span class='muted'>审片：金色灯光的铁塔下车辆驶过（得分 3.8）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg106_0.jpg" alt=""><b>11. 夜晚的街景</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-2.webm 15:37.4–15:42.4</span><br>巴黎圣母院夜景航拍，城市灯火璀璨，塞纳河静静流淌。<br><span class='muted'>审片：满城灯火与塞纳河夜景航拍（得分 2.4）</span></div><div class="clip"><img src="work/data/work/keyframes/keyframe_6b105bdece8ef36b/seg125_0.jpg" alt=""><b>12. 夜色铁塔</b> <span class='muted'>5.0s</span><br><span class='muted'>case-10/case-10-2.webm 17:58.5–18:03.4</span><br>夜幕下埃菲尔铁塔被蓝色灯光点亮，城市灯火在背景中闪烁。<br><span class='muted'>审片：铁塔换成蓝色灯光，收在夜色里（得分 3.4）</span></div></div>
+<h2>大纲原文</h2>
+<p class="muted">模型输出的 JSON，未经改动；各部分的秒数由程序按 weight 另算。</p>
+<pre class="raw">{
+  &quot;title&quot;: &quot;巴黎，从白昼到夜晚&quot;,
+  &quot;materials&quot;: [
+    {&quot;scene&quot;: 9, &quot;content&quot;: &quot;白天正上方俯拍铁塔，塔下公园与塞纳河&quot;},
+    {&quot;scene&quot;: 31, &quot;content&quot;: &quot;蓝天下仰拍铁塔塔身与塔顶细节&quot;},
+    {&quot;scene&quot;: 8, &quot;content&quot;: &quot;白天巴黎街角的奥斯曼式建筑与林荫道&quot;},
+    {&quot;scene&quot;: 13, &quot;content&quot;: &quot;暮色中铁塔下的广场，塔身灯光亮起&quot;},
+    {&quot;scene&quot;: 35, &quot;content&quot;: &quot;黄昏凯旋门前香榭丽舍大街的车流&quot;},
+    {&quot;scene&quot;: 36, &quot;content&quot;: &quot;夜晚金色灯光的铁塔，塔下车辆穿梭&quot;},
+    {&quot;scene&quot;: 37, &quot;content&quot;: &quot;夜晚城市全景与塞纳河灯火&quot;},
+    {&quot;scene&quot;: 39, &quot;content&quot;: &quot;夜色里铁塔灯光由金色变成蓝色&quot;}
+  ],
+  &quot;design&quot;: &quot;开头用 9、31 的白天铁塔航拍和仰拍，接 8 的白天街区；中间用 13 的暮色亮灯过渡到夜晚；后段用 35、36、37 的夜晚街景与城市灯火，结尾停在 39 变蓝的铁塔。按白天到夜晚的顺序排列，不用片尾的音乐字幕。&quot;,
+  &quot;pace&quot;: &quot;适中&quot;,
+  &quot;unmet&quot;: [],
+  &quot;parts&quot;: [
+    {&quot;name&quot;: &quot;白天的铁塔&quot;, &quot;summary&quot;: &quot;阳光下的铁塔，从正上方俯拍到仰望塔身。&quot;, &quot;weight&quot;: 3,
+     &quot;scenes&quot;: [
+       {&quot;query&quot;: &quot;正上方俯拍铁塔&quot;, &quot;sources&quot;: [9]},
+       {&quot;query&quot;: &quot;蓝天下仰拍铁塔&quot;, &quot;sources&quot;: [31]},
+       {&quot;query&quot;: &quot;铁塔与塞纳河航拍&quot;, &quot;sources&quot;: [9]}
+     ]},
+    {&quot;name&quot;: &quot;白天的街区&quot;, &quot;summary&quot;: &quot;飞过巴黎街角的奥斯曼式建筑。&quot;, &quot;weight&quot;: 2,
+     &quot;scenes&quot;: [
+       {&quot;query&quot;: &quot;奥斯曼建筑街角&quot;, &quot;sources&quot;: [8]}
+     ]},
+    {&quot;name&quot;: &quot;华灯初上&quot;, &quot;summary&quot;: &quot;暮色降临，铁塔的灯光亮起。&quot;, &quot;weight&quot;: 2,
+     &quot;scenes&quot;: [
+       {&quot;query&quot;: &quot;暮色中亮灯的铁塔&quot;, &quot;sources&quot;: [13]}
+     ]},
+    {&quot;name&quot;: &quot;夜晚的街景&quot;, &quot;summary&quot;: &quot;凯旋门前的车流、塔下的街道和满城灯火。&quot;, &quot;weight&quot;: 4,
+     &quot;scenes&quot;: [
+       {&quot;query&quot;: &quot;凯旋门大道的车流&quot;, &quot;sources&quot;: [35]},
+       {&quot;query&quot;: &quot;塔下车流夜景&quot;, &quot;sources&quot;: [36]},
+       {&quot;query&quot;: &quot;夜色中的城市灯火&quot;, &quot;sources&quot;: [37]}
+     ]},
+    {&quot;name&quot;: &quot;夜色铁塔&quot;, &quot;summary&quot;: &quot;铁塔的灯光由金转蓝，收在夜色里。&quot;, &quot;weight&quot;: 2,
+     &quot;scenes&quot;: [
+       {&quot;query&quot;: &quot;蓝色灯光的铁塔&quot;, &quot;sources&quot;: [39]}
+     ]}
+  ]
+}
+</pre>
+
+</main></body></html>

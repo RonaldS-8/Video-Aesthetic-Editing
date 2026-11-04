@@ -1,0 +1,13 @@
+{
+ "phases": {
+  "prepare": 6906.85
+ },
+ "steps": [
+  {"step": "check", "category": "check", "seconds": 0.55, "ok": true, "phase": "prepare"},
+  {"step": "stage", "category": "decode", "seconds": 0.0, "ok": true, "phase": "prepare"},
+  {"step": "prepare", "category": "segment", "seconds": 3.51, "ok": true, "phase": "prepare"},
+  {"step": "shortlist", "category": "arrange", "seconds": 0.1, "ok": true, "phase": "prepare", "segments": 100},
+  {"step": "analyze", "category": "understand", "seconds": 6289.18, "ok": true, "phase": "prepare"},
+  {"step": "index", "category": "understand", "seconds": 613.5, "ok": true, "phase": "prepare"}
+ ]
+}

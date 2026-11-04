@@ -31,9 +31,10 @@ from __future__ import annotations
 
 import json
 import statistics
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from video_demo import outline
+from video_demo import beats, outline
 
 if TYPE_CHECKING:
     from video_demo.category import Profile
@@ -223,19 +224,23 @@ REQUEST_PROMPT = """用户的剪辑要求：
    这个场景里能用的具体内容（content：地点、主体、画面，不超过 {max_material} 个字），
    不超过 {max_materials} 条；
 2. design：用 2–3 句话写成片的设计：开头、中间、结尾分别用 materials 里的
-   哪些场景，为什么这样安排；写完对照用户的要求检查内容和先后顺序；
+   哪些场景，为什么这样安排；要求里有时间先后（如从白天到夜晚、春夏秋冬）
+   时，按这个先后安排；写完对照用户的要求检查内容和先后顺序；
 3. pace：成片的剪辑节奏，按用户的要求判断：整段（每段素材完整保留，约 10 秒，
    适合慢慢看的风景、过程）、适中（每段最多 6 秒）、快（每段最多 3 秒，
    适合节奏轻快的混剪）；
-4. unmet：要求里提到、但场景里找不到的内容，都找得到就留空；
+4. unmet：要求里提到、但场景里找不到的内容，都找得到就留空；找不到的
+   内容不要拿别的场景冒充；
 5. parts：照 design 分成 1–{max_parts} 个部分（不能超过 {max_parts} 个），按成片里的
    先后排列，先后由 design 决定，不必按拍摄时间：
    - name 是这一部分的标题，summary 用一句话说明这部分讲什么；
    - weight 是这一部分的分量（1–10 的整数），程序会按分量把 {target_sec:.0f} 秒
      分给各部分，每部分至少 {min_part:.0f} 秒；
    - scenes 是这一部分要的 1–{max_slots} 个镜头：query 用一个短语说明要的画面
-     （如“远处的城堡”“教堂里的彩色玻璃窗”），所有部分的 query 互不重复；
-     sources 写这个画面取自 materials 里的哪几个场景（1–{max_sources} 个编号）。
+     （如“远处的城堡”“教堂里的彩色玻璃窗”），写看得见的主体、动作和光线，
+     不写地名（场景标题里的地名可能认错），所有部分的 query 互不重复；
+     sources 写这个画面取自哪几个场景（1–{max_sources} 个编号），只能写
+     materials 里已经列出的编号，要用的场景先加进 materials。
 程序会按每个 query 从全部场景里检索一个最符合的场景，一个场景只用一次。
 只输出 JSON。"""
 
@@ -576,3 +581,388 @@ def fill_request(
         )
     validate_timeline(clips, candidates)
     return clips, notes, slots_out
+
+
+# --- review --------------------------------------------------------------------
+
+# Unused segments offered per part besides the cut, by retrieval relevance.
+REVIEW_POOL = 12
+# The reviewed cut may run this much under or over the target; a cut that
+# runs over is then levelled down to it (outline.level).
+REVIEW_UNDER_SEC = 1.0
+REVIEW_OVER_SEC = 6.0
+MAX_WHY_CHARS = 40
+MAX_REVIEW_NOTES = 200
+# What is said in a segment, as shown to the reviewer.
+MAX_SAID_CHARS = 160
+
+REVIEW_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "notes": {"type": "string", "minLength": 1, "maxLength": MAX_REVIEW_NOTES},
+        "on_beat": {"type": "boolean"},
+        "clips": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "segment": {"type": "string", "pattern": "^c[0-9]+$"},
+                    "part": {"type": "string", "minLength": 1},
+                    "seconds": {"type": "number", "minimum": MIN_CLIP_SEC},
+                    "why": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": MAX_WHY_CHARS,
+                    },
+                },
+                "required": ["segment", "part", "seconds", "why"],
+            },
+        },
+    },
+    "required": ["notes", "on_beat", "clips"],
+}
+
+REVIEW_PROMPT = """你是这条成片的剪辑总监。程序已经按大纲选出一版粗剪，\
+请审片并定出最终剪辑。
+
+用户的剪辑要求：「{instruction}」
+成片时长：{target:.0f} 秒，最终各镜头秒数合计在 {low:.0f}–{high:.0f} 秒之间。
+片名：{title}
+大纲（按播放顺序）：
+{parts}
+{structure}
+现在的粗剪，按播放顺序：
+{current}
+
+还没用上的候选镜头，按所属部分和检索相关度排列：
+{pool}
+
+镜头每行：编号 | 视频与原片时间、时长 | 连续镜头 | 画面描述 | 地标 | \
+时段，光线，明暗 | 精彩度（1–5）| 画质分（1–5）| 景别{speech_note}
+“连续镜头”相同（如都是 s12）的几段出自原片同一个不间断的镜头。
+“时段”和“光线”是看图写的，常把白天的逆光写成黄昏；“明暗”是程序量出来的
+画面亮度，更可靠：夜景画面很暗，白天和黄昏画面明亮。
+
+审片时：
+- 先看整体：开场第一个镜头要能抓人、交代地点或主角；结尾镜头要有收束感；
+  中间按大纲推进；
+- 先后：要求里有时间先后（如从白天到夜晚、春夏秋冬、一天的行程）时，镜头
+  要按这个先后排；白天和夜晚先看“明暗”，再看画面描述，不要只看“时段”；
+  放错时段的镜头换掉；
+- 衔接：相邻两个镜头要在景别、角度或场景上有明显变化，不要连着几个几乎
+  一样的画面；同一连续镜头的两段不要前后挨着放，那会像跳切；换场景时用
+  远景、空镜或一个动作的开始和结束来过渡；同一场景里景别可以由远到近推进，
+  运动方向前后一致；
+- 节奏：每个镜头的秒数按内容定，动作、人物和快切段落短，风景、建筑和
+  需要看清的画面长；不要每段都一样长；
+- 画面描述是依据，不要用描述里没有的内容做判断；画质分低或有晃动的镜头
+  只在内容不可替代时使用；电影和夜景本来就暗，暗不算毛病；
+- 不要用片头片尾字幕、黑场或纯文字画面；画面描述里提到字幕、名单、
+  文字或黑屏的镜头都不要用；
+- 有对白的镜头按台词取舍：要用就让秒数盖住完整的句子（对白前的数字是句子在
+  镜头里的起止秒数），不要停在半句话上；程序也会把切到的句子补全；
+- 可以替换、删除、增加或调整顺序，只能用上面列出的编号，每个编号最多用一次，
+  秒数不超过这个镜头的时长。
+
+输出 JSON：
+- notes：一两句话说明你对粗剪改了什么、为什么；
+- on_beat：剪辑要求让切点卡在音乐节拍上时写 true（程序会把每个镜头的起点
+  挪到节拍上、秒数取整拍），否则写 false；
+- clips：最终的镜头，按播放顺序，每项 segment 是编号（如 c12），part 是所属部分的
+  名称（大纲里的名称之一），seconds 是这个镜头在成片里放多少秒，why 是一句话理由。
+只输出 JSON。"""
+
+
+# Mean luma (signals.py) below which a segment reads as very dark (night,
+# lit by lamps) and as dim (lights coming on, deep shade); measured on day,
+# dusk and night aerials: night 8-36, lights on about 50, day and dusk 80+.
+VERY_DARK_LUMA = 45.0
+DIM_LUMA = 75.0
+
+
+def lightness(brightness: float) -> str:
+    """The measured brightness of a segment, in words for the review."""
+    if brightness < VERY_DARK_LUMA:
+        return "画面很暗"
+    if brightness < DIM_LUMA:
+        return "画面偏暗"
+    return "画面明亮"
+
+
+def _segment_line(
+    i: int,
+    c: Candidate,
+    a: Assessment,
+    videos: dict[str, int],
+    lines: dict[str, list[tuple[float, float, str]]],
+) -> str:
+    """One segment for the review: where it is, what is seen and, when
+    someone speaks in it, what is said (sentences with their seconds into
+    the segment)."""
+    tags = c.tags
+    where = f"视频{videos[c.video]} " if len(videos) > 1 else ""
+    light = f"{tags['time_of_day']}，{tags.get('light') or '—'}"
+    if c.brightness is not None:
+        light += f"，{lightness(c.brightness)}"
+    said = [
+        f"{max(0.0, s - c.start):.1f}–{min(c.duration, e - c.start):.1f}s「{text}」"
+        for s, e, text in lines.get(c.video, [])
+        if s < c.end and e > c.start
+    ]
+    words = " ".join(said)
+    if len(words) > MAX_SAID_CHARS:
+        words = words[:MAX_SAID_CHARS] + "…"
+    return (
+        f"c{i} | {where}{outline._fmt(c.start)}–{outline._fmt(c.end)} "
+        f"{c.duration:.1f}s | s{c.shot} | {tags['description']} | "
+        f"{tags.get('landmark') or '—'} | {light} | "
+        f"{c.highlight:.1f} | {a.score:.1f} | {tags['shot_size']}"
+        + (f" | 对白：{words}" if said else "")
+    )
+
+
+def _fit(
+    spans: list[tuple[float, float]],
+    picked: list[int],
+    candidates: list[Candidate],
+    speech: dict[str, list[tuple[float, float]]],
+    target_sec: float,
+) -> tuple[list[tuple[float, float]], str]:
+    """Bring a cut that runs over the target back to it by shortening the
+    clips without speech (outline.level), so no sentence is cut; returns
+    the spans and a note when the speech alone keeps it over."""
+    total = sum(e - s for s, e in spans)
+    if total <= target_sec + 0.5:
+        return spans, ""
+
+    def spoken(k: int) -> bool:
+        s, e = spans[k]
+        video = candidates[picked[k]].video
+        return any(a < e and b > s for a, b in speech.get(video, []))
+
+    free = [k for k in range(len(spans)) if not spoken(k)]
+    fixed = sum(e - s for k, (s, e) in enumerate(spans) if k not in free)
+    if free:
+        cap = outline.level(
+            [spans[k][1] - spans[k][0] for k in free], target_sec - fixed, MIN_CLIP_SEC
+        )
+        for k in free:
+            c = candidates[picked[k]]
+            length = min(spans[k][1] - spans[k][0], cap)
+            spans[k] = outline.clip_span(c, length, speech.get(c.video, []))
+    total = sum(e - s for s, e in spans)
+    if total > target_sec + 0.5:
+        return spans, f"对白镜头保留整句，成片 {total:.1f}s，超出目标"
+    return spans, ""
+
+
+# Sound looked at around a segment to find its beats.
+BEAT_MARGIN_SEC = 4.0
+BeatGrid = Callable[[str, float, float], tuple[float, list[float]]]
+
+
+def _on_beats(
+    items: list[dict[str, Any]],
+    picked: list[int],
+    candidates: list[Candidate],
+    speech: dict[str, list[tuple[float, float]]],
+    target_sec: float,
+    beat_grid: BeatGrid,
+) -> tuple[list[tuple[float, float]], str]:
+    """Windows that start on a beat and last whole beats (beats.snap), then
+    whole beats taken off the longest clips while the cut runs over."""
+    spans, periods = [], []
+    for item, i in zip(items, picked, strict=True):
+        c = candidates[i]
+        period, times = beat_grid(
+            c.video, max(0.0, c.start - BEAT_MARGIN_SEC), c.end + BEAT_MARGIN_SEC
+        )
+        start, _ = outline.clip_span(c, float(item["seconds"]), speech.get(c.video, []))
+        spans.append(
+            beats.snap(start, float(item["seconds"]), c.start, c.end, period, times)
+        )
+        periods.append(period)
+    while sum(e - s for s, e in spans) > target_sec + 0.5:
+        k = max(range(len(spans)), key=lambda k: spans[k][1] - spans[k][0])
+        s, e = spans[k]
+        if e - s - periods[k] < MIN_CLIP_SEC:
+            total = sum(e - s for s, e in spans)
+            return spans, f"按整拍剪，成片 {total:.1f}s，超出目标"
+        spans[k] = (s, e - periods[k])
+    return spans, ""
+
+
+def validate_review(
+    parsed: Any,
+    offered: set[int],
+    parts: list[str],
+    candidates: list[Candidate],
+    target_sec: float,
+) -> dict[str, Any]:
+    """The reviewed cut: offered segments once each, known parts, seconds
+    within each segment and a total near the target; raises OutlineError."""
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("clips"), list):
+        raise OutlineError("Expected an object with a clips list")
+    if not isinstance(parsed.get("on_beat"), bool):
+        raise OutlineError("on_beat must be true or false")
+    if not str(parsed.get("notes", "")).strip():
+        raise OutlineError("notes must not be empty")
+    if not parsed["clips"]:
+        raise OutlineError("clips must not be empty")
+    used: set[int] = set()
+    total = 0.0
+    for k, item in enumerate(parsed["clips"], start=1):
+        ref = str(item.get("segment", ""))
+        if not (ref.startswith("c") and ref[1:].isdigit()):
+            raise OutlineError(f"clip {k}: bad segment {ref!r}")
+        i = int(ref[1:])
+        if i not in offered:
+            raise OutlineError(f"clip {k}: {ref} was not offered")
+        if i in used:
+            raise OutlineError(f"clip {k}: {ref} used twice")
+        used.add(i)
+        if item.get("part") not in parts:
+            raise OutlineError(f"clip {k}: part {item.get('part')!r} not in {parts}")
+        sec = item.get("seconds")
+        if isinstance(sec, bool) or not isinstance(sec, (int, float)):
+            raise OutlineError(f"clip {k}: seconds must be a number")
+        if not MIN_CLIP_SEC <= sec <= candidates[i].duration + 0.05:
+            raise OutlineError(
+                f"clip {k}: {sec}s outside {MIN_CLIP_SEC}-"
+                f"{candidates[i].duration:.1f}s of {ref}"
+            )
+        if not str(item.get("why", "")).strip():
+            raise OutlineError(f"clip {k}: why must not be empty")
+        total += sec
+    if not target_sec - REVIEW_UNDER_SEC <= total <= target_sec + REVIEW_OVER_SEC:
+        raise OutlineError(
+            f"clips add up to {total:.1f}s, need "
+            f"{target_sec - REVIEW_UNDER_SEC:.0f}-{target_sec + REVIEW_OVER_SEC:.0f}s"
+        )
+    return parsed
+
+
+def review_request(
+    instruction: str,
+    target_sec: float,
+    plan: dict[str, Any],
+    clips: list[Clip],
+    candidates: list[Candidate],
+    assessments: list[Assessment],
+    segment_relevance: list[list[dict[int, float]]],
+    lines: dict[str, list[tuple[float, float, str]]] | None = None,
+    server_url: str = outline.SERVER_URL,
+    profile: Profile | None = None,
+    beat_grid: BeatGrid | None = None,
+) -> tuple[list[Clip], dict[str, Any], str, float, list[str]]:
+    """The planner reviews the filled cut against the instruction and
+    returns the final one: (clips, review, raw, seconds, failed tries).
+
+    It sees the cut and, per part, the REVIEW_POOL unused segments most
+    relevant to the part's slots, with what is said in them (``lines``:
+    sentences per video), and may replace, drop, add or reorder them and
+    set each clip's seconds. Each clip takes the window of its segment that
+    cuts the least speech (outline.clip_span), widened to whole sentences
+    (outline.whole_sentences); a cut that then runs over the target is
+    brought back by shortening the clips without speech (``review["fit"]``
+    notes when the speech alone runs over). When the planner answers
+    ``on_beat``, each window instead starts on a beat of its sound and lasts
+    whole beats (``beat_grid``: a video and a time range -> beat period and
+    times), and a cut that runs over loses whole beats from its longest
+    clips."""
+    lines = lines or {}
+    speech = {v: [(s, e) for s, e, _ in ls] for v, ls in lines.items()}
+    position = {(c.video, c.index): i for i, c in enumerate(candidates)}
+    videos: dict[str, int] = {}
+    for c in candidates:
+        videos.setdefault(c.video, len(videos) + 1)
+    current = [position[(c.video, c.index)] for c in clips]
+    offered = set(current)
+    pool_lines = []
+    for k, part in enumerate(plan["parts"]):
+        relevance: dict[int, float] = {}
+        for slot in segment_relevance[k]:
+            for i, r in slot.items():
+                relevance[i] = max(r, relevance.get(i, 0.0))
+        best = sorted(
+            (
+                i
+                for i in relevance
+                if i not in offered
+                and assessments[i].keep
+                and candidates[i].duration >= MIN_CLIP_SEC
+            ),
+            key=lambda i: (-relevance[i], i),
+        )[:REVIEW_POOL]
+        offered |= set(best)
+        pool_lines.append(f"【{part['name']}】")
+        pool_lines += [
+            _segment_line(i, candidates[i], assessments[i], videos, lines) for i in best
+        ]
+    current_lines = [
+        f"{n}. [{clip.role}] 用 {clip.duration:.1f}s ← "
+        + _segment_line(i, candidates[i], assessments[i], videos, lines)
+        for n, (clip, i) in enumerate(zip(clips, current, strict=True), start=1)
+    ]
+    names = [p["name"] for p in plan["parts"]]
+    prompt = REVIEW_PROMPT.format(
+        instruction=instruction,
+        target=target_sec,
+        low=target_sec - REVIEW_UNDER_SEC,
+        high=target_sec + REVIEW_OVER_SEC,
+        title=plan["title"],
+        parts="\n".join(
+            f"- {p['name']}（约 {p['duration_sec']:.0f} 秒）：{p['summary']}"
+            for p in plan["parts"]
+        ),
+        structure=(
+            STRUCTURE_PROMPT.format(name=profile.name, structure=profile.structure)
+            if profile
+            else ""
+        ),
+        current="\n".join(current_lines),
+        pool="\n".join(pool_lines),
+        speech_note="；有人说话的镜头另列对白" if lines else "",
+    )
+    review, raw, seconds, errors = outline._ask(
+        prompt,
+        REVIEW_SCHEMA,
+        "edit_review",
+        lambda parsed: validate_review(parsed, offered, names, candidates, target_sec),
+        server_url,
+    )
+    picked = [int(item["segment"][1:]) for item in review["clips"]]
+    if review["on_beat"]:
+        if beat_grid is None:
+            raise OutlineError("on_beat needs the sound's beats (beat_grid)")
+        spans, review["fit"] = _on_beats(
+            review["clips"], picked, candidates, speech, target_sec, beat_grid
+        )
+    else:
+        spans = []
+        for item, i in zip(review["clips"], picked, strict=True):
+            c = candidates[i]
+            said = speech.get(c.video, [])
+            start, end = outline.clip_span(c, float(item["seconds"]), said)
+            spans.append(outline.whole_sentences(start, end, c.start, c.end, said))
+        spans, review["fit"] = _fit(spans, picked, candidates, speech, target_sec)
+    out = []
+    for order, (item, i, (start, end)) in enumerate(
+        zip(review["clips"], picked, spans, strict=True)
+    ):
+        c = candidates[i]
+        out.append(
+            Clip(
+                order=order,
+                role=item["part"],
+                video=c.video,
+                index=c.index,
+                src_start=round(start, 3),
+                src_end=round(end, 3),
+                description=c.tags["description"],
+                reason=f"审片：{item['why']}（得分 {assessments[i].score:.1f}）",
+            )
+        )
+    validate_timeline(out, candidates)
+    return out, review, raw, seconds, errors

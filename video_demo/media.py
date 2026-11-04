@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 from bisect import bisect_right
 from collections.abc import Callable, Iterable, Iterator
 from contextlib import ExitStack
@@ -16,8 +17,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 OUT_FPS = 30
 OUT_SIZE = (854, 480)
-# Cuts made from an instruction are rendered larger, for showing.
-EDIT_SIZE = (1280, 720)
+# Cuts made from an instruction are rendered at 1080p, for showing; frames
+# are streamed into the encoder (iter_clip), so memory holds about one.
+EDIT_SIZE = (1920, 1080)
+# x264 quality: previews are for looking at, finished cuts for showing.
+PREVIEW_CRF, EDIT_CRF = 23, 18
 # Preview sound: stereo AAC; every clip fades in and out this fast so the
 # joins do not click.
 AUDIO_RATE = 48_000
@@ -52,6 +56,8 @@ FADE_OUT_SEC = 1.2
 # Dissolve between two clips: the first runs on this long past its end
 # (a handle from the source) under the start of the next.
 DISSOLVE_SEC = 0.6
+# At every other cut of a finished cut the sound crossfades over this.
+AUDIO_XFADE_SEC = 0.15
 
 # Changes frame number n (counted in the output) before it is encoded.
 FrameDraw = Callable[[int, np.ndarray], np.ndarray]
@@ -248,21 +254,200 @@ def segment_frames_every(
         buf, idx = [], idx + 1
 
 
-def read_clip(
+# PQ (SMPTE ST 2084) pictures are shown as SDR BT.709: linear light, P3 to
+# BT.709 primaries, then a curve that keeps light up to PQ_KNEE as it is and
+# rolls off what is brighter, then the BT.709 transfer. Diffuse white at
+# 100 nits (as Meridian is graded; 203 nits left faces too dark).
+_PQ_M1, _PQ_M2 = 2610 / 16384, 2523 / 4096 * 128
+_PQ_C1, _PQ_C2, _PQ_C3 = 3424 / 4096, 2413 / 4096 * 32, 2392 / 4096 * 32
+PQ_WHITE_NITS = 100.0
+PQ_KNEE = 0.6
+P3_TO_709 = np.array(
+    [[1.2249, -0.2247, 0.0], [-0.0420, 1.0419, 0.0], [-0.0197, -0.0786, 1.0979]],
+    np.float32,
+)
+# Linear light (white = 1) is looked up on a square-root scale up to this,
+# so shadows keep fine steps.
+_PQ_TOP, _PQ_STEPS = 16.0, 4096
+# A stream that does not say its transfer is PQ when hardly any frame
+# reaches near white, which SDR footage does in most frames: share of
+# PQ_PROBE_FRAMES frames whose 99.9th percentile reaches PQ_BRIGHT_LEVEL.
+# Measured: Meridian (PQ, unflagged) 0 %; SDR walks, vlogs and a night
+# timelapse 78-100 %.
+PQ_PROBE_FRAMES = 40
+PQ_BRIGHT_LEVEL = 217
+PQ_BRIGHT_SHARE = 0.1
+_TRC_UNSPECIFIED, _TRC_PQ, _TRC_HLG = 2, 16, 18
+
+
+def _pq_tables() -> tuple[np.ndarray, np.ndarray]:
+    """(8-bit PQ code -> linear light with white 1, square-root-scaled
+    linear light -> 8-bit SDR code)."""
+    e = (np.arange(256) / 255) ** (1 / _PQ_M2)
+    nits = 10000 * (np.maximum(e - _PQ_C1, 0) / (_PQ_C2 - _PQ_C3 * e)) ** (1 / _PQ_M1)
+    x = (np.arange(_PQ_STEPS) / (_PQ_STEPS - 1)) ** 2 * _PQ_TOP
+    over = np.maximum(x - PQ_KNEE, 0)
+    rolled = PQ_KNEE + (1 - PQ_KNEE) * (1 - np.exp(-over / (1 - PQ_KNEE)))
+    y = np.where(x <= PQ_KNEE, x, rolled)
+    sdr = np.where(y < 0.018, 4.5 * y, 1.099 * y**0.45 - 0.099)
+    return (nits / PQ_WHITE_NITS).astype(np.float32), (
+        np.clip(sdr, 0, 1) * 255 + 0.5
+    ).astype(np.uint8)
+
+
+_PQ_LINEAR, _PQ_SDR = _pq_tables()
+
+
+def _pq_mapped(rgb: np.ndarray) -> np.ndarray:
+    """pq_to_sdr worked out from the formula (slow: for building the cube)."""
+    linear = _PQ_LINEAR[rgb] @ P3_TO_709.T
+    idx = np.sqrt(np.clip(linear, 0, _PQ_TOP) / _PQ_TOP) * (_PQ_STEPS - 1)
+    return _PQ_SDR[idx.astype(np.int32)]
+
+
+@functools.cache
+def _pq_cube() -> np.ndarray:
+    """_pq_mapped of every 8-bit RGB colour, indexed by r << 16 | g << 8 | b
+    (48 MB; a frame is then one lookup instead of float maths per pixel)."""
+    levels = np.arange(256, dtype=np.uint8)
+    g, b = np.meshgrid(levels, levels, indexing="ij")
+    plane = np.stack([np.zeros_like(g), g, b], axis=-1).reshape(-1, 3)
+    cube = np.empty((256, 256 * 256, 3), dtype=np.uint8)
+    for r in range(256):
+        plane[:, 0] = r
+        cube[r] = _pq_mapped(plane)
+    return cube.reshape(-1, 3)
+
+
+def pq_to_sdr(rgb: np.ndarray) -> np.ndarray:
+    """An 8-bit RGB picture coded in PQ with P3 primaries, as SDR BT.709."""
+    code = rgb.astype(np.int32)
+    return _pq_cube()[code[..., 0] << 16 | code[..., 1] << 8 | code[..., 2]]
+
+
+@functools.cache
+def is_pq(path: Path) -> bool:
+    """Whether ``path``'s picture is coded in PQ: as its stream says, or,
+    when it says nothing, by its highlights (PQ_BRIGHT_SHARE). HLG is not
+    supported and raises."""
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        trc = stream.codec_context.color_trc
+        if trc == _TRC_HLG:
+            raise ValueError(f"{path.name}: HLG pictures are not supported")
+        if trc != _TRC_UNSPECIFIED:
+            return trc == _TRC_PQ
+        duration = float(container.duration / av.time_base)
+        # The key frame at or before each probe time: no frames in between
+        # are decoded.
+        stream.codec_context.skip_frame = "NONKEY"
+        bright = 0
+        for k in range(PQ_PROBE_FRAMES):
+            t = duration * (k + 0.5) / PQ_PROBE_FRAMES
+            container.seek(int(t / stream.time_base), stream=stream)
+            for frame in container.decode(stream):
+                if frame.time is not None:
+                    rgb = frame.reformat(width=320, height=180, format="rgb24")
+                    top = np.percentile(rgb.to_ndarray().max(axis=2), 99.9)
+                    bright += top >= PQ_BRIGHT_LEVEL
+                    break
+    return bright < PQ_BRIGHT_SHARE * PQ_PROBE_FRAMES
+
+
+# Analysis of footage larger than this reads a proxy of this size and rate
+# (make_proxy): 4K is decoded once instead of once per analysis pass.
+PROXY_SIZE = (1280, 720)
+PROXY_FPS = 30
+
+
+def make_proxy(src: Path, dst: Path) -> None:
+    """``src``'s picture at most PROXY_SIZE (its own aspect) and PROXY_FPS,
+    no sound, with the same timestamps; written to a temporary file and
+    moved into place, so a stopped run leaves no half proxy."""
+    tmp = dst.with_suffix(".tmp.mp4")
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with av.open(str(src)) as inp, av.open(str(tmp), mode="w") as out:
+        stream = inp.streams.video[0]
+        stream.thread_type = "AUTO"
+        ctx = stream.codec_context
+        w, h = fit_size(ctx.width, ctx.height, PROXY_SIZE)
+        video = out.add_stream("libx264", rate=PROXY_FPS)
+        video.width, video.height = w, h
+        video.pix_fmt = "yuv420p"
+        video.options = {"crf": "23", "preset": "veryfast"}
+        video.codec_context.time_base = Fraction(1, PROXY_FPS)
+        last = -1
+        for frame in inp.decode(stream):
+            if frame.time is None:
+                continue
+            pts = round(float(frame.time) * PROXY_FPS)
+            if pts <= last:
+                continue
+            last = pts
+            small = frame.reformat(width=w, height=h, format="yuv420p")
+            small.pts, small.time_base = pts, Fraction(1, PROXY_FPS)
+            out.mux(video.encode(small))
+        out.mux(video.encode())
+    tmp.replace(dst)
+
+
+def fit_size(width: int, height: int, frame: tuple[int, int]) -> tuple[int, int]:
+    """The largest even size with the aspect of ``width`` x ``height`` that
+    fits in ``frame``."""
+    scale = min(frame[0] / width, frame[1] / height)
+    return (
+        max(2, round(width * scale / 2) * 2),
+        max(2, round(height * scale / 2) * 2),
+    )
+
+
+def edit_size(sources: list[tuple[int, int, float]]) -> tuple[int, int]:
+    """EDIT_SIZE, or the same turned upright when portrait sources fill more
+    of the cut; ``sources`` are (width, height, seconds in the cut)."""
+    upright = sum(s for w, h, s in sources if h > w)
+    wide = sum(s for w, h, s in sources if h <= w)
+    return (EDIT_SIZE[1], EDIT_SIZE[0]) if upright > wide else EDIT_SIZE
+
+
+def _placed(
+    frame: av.VideoFrame, size: tuple[int, int], pq: bool = False
+) -> np.ndarray:
+    """``frame`` scaled to fit ``size`` with its own aspect, centred on
+    black; a ``pq`` picture is shown as SDR (pq_to_sdr)."""
+    w, h = fit_size(frame.width, frame.height, size)
+    picture = frame.reformat(width=w, height=h, format="rgb24").to_ndarray()
+    if pq:
+        picture = pq_to_sdr(picture)
+    if (w, h) == size:
+        return picture
+    canvas = np.zeros((size[1], size[0], 3), dtype=np.uint8)
+    x, y = (size[0] - w) // 2, (size[1] - h) // 2
+    canvas[y : y + h, x : x + w] = picture
+    return canvas
+
+
+def iter_clip(
     path: Path,
     start: float,
     duration: float,
     size: tuple[int, int] = OUT_SIZE,
-) -> list[np.ndarray]:
-    """Resample [start, start+duration) of ``path`` to OUT_FPS RGB frames
-    of ``size``."""
+    pq: bool = False,
+) -> Iterator[np.ndarray]:
+    """[start, start+duration) of ``path`` as OUT_FPS RGB frames of
+    ``size``, one at a time (a picture of another aspect is fitted inside,
+    on black; ``pq`` pictures are shown as SDR); raises at the end when the
+    video ran out of frames."""
     n_out = round(duration * OUT_FPS)
     targets = [start + i / OUT_FPS for i in range(n_out)]
-    frames: list[np.ndarray] = []
+    sent = 0
+    # The decoded frame on hold and its picture, placed only once a target
+    # shows it: frames before the start or between targets are skipped.
+    held: av.VideoFrame | None = None
     last: np.ndarray | None = None
     ended = False
     with av.open(str(path)) as container:
         stream = container.streams.video[0]
+        stream.thread_type = "AUTO"
         video_end = (
             float(container.duration / av.time_base) if container.duration else 0.0
         )
@@ -272,29 +457,40 @@ def read_clip(
                 continue
             t = float(frame.time)
             # Sample-and-hold: every target before this frame shows the last one.
-            while last is not None and len(frames) < n_out and targets[len(frames)] < t:
-                frames.append(last)
-            if len(frames) >= n_out:
+            while held is not None and sent < n_out and targets[sent] < t:
+                if last is None:
+                    last = _placed(held, size, pq)
+                yield last
+                sent += 1
+            if sent >= n_out:
                 break
-            last = frame.reformat(
-                width=size[0], height=size[1], format="rgb24"
-            ).to_ndarray()
+            held, last = frame, None
         else:
             ended = True
     # A clip that runs to the end of the video: the last frame stays on screen
     # until the video ends (there is no later frame to end its hold).
     while (
-        ended
-        and last is not None
-        and len(frames) < n_out
-        and targets[len(frames)] < video_end + 1e-3
+        ended and held is not None and sent < n_out and targets[sent] < video_end + 1e-3
     ):
-        frames.append(last)
-    if len(frames) < n_out:
+        if last is None:
+            last = _placed(held, size, pq)
+        yield last
+        sent += 1
+    if sent < n_out:
         raise ValueError(
-            f"{path.name}: needed {n_out} frames from {start}s, got {len(frames)}"
+            f"{path.name}: needed {n_out} frames from {start}s, got {sent}"
         )
-    return frames
+
+
+def read_clip(
+    path: Path,
+    start: float,
+    duration: float,
+    size: tuple[int, int] = OUT_SIZE,
+    pq: bool = False,
+) -> list[np.ndarray]:
+    """iter_clip, all frames at once."""
+    return list(iter_clip(path, start, duration, size, pq))
 
 
 def write_video(frames: Iterable[np.ndarray], out_path: Path) -> None:
@@ -312,10 +508,17 @@ def write_video(frames: Iterable[np.ndarray], out_path: Path) -> None:
             container.mux(packet)
 
 
-def read_audio_clip(path: Path, start: float, duration: float) -> np.ndarray:
+def read_audio_clip(
+    path: Path,
+    start: float,
+    duration: float,
+    fade_in: bool = True,
+    fade_out: bool = True,
+) -> np.ndarray:
     """[start, start+duration) of ``path``'s first audio stream as stereo
     float32 at AUDIO_RATE, shape (2, n); silence where the file has no sound
-    (no audio stream, or it ends early). Both ends fade over AUDIO_FADE_SEC.
+    (no audio stream, or it ends early). Each end fades over AUDIO_FADE_SEC
+    unless told not to (an end that is crossfaded instead).
     Samples are placed by the first decoded frame's time and counted from
     there, so the clip is off by at most the resampler's delay."""
     n = round(duration * AUDIO_RATE)
@@ -344,8 +547,21 @@ def read_audio_clip(path: Path, start: float, duration: float) -> np.ndarray:
     fade = min(round(AUDIO_FADE_SEC * AUDIO_RATE), n // 2)
     if fade:
         ramp = np.linspace(0.0, 1.0, fade, dtype=np.float32)
-        out[:, :fade] *= ramp
-        out[:, n - fade :] *= ramp[::-1]
+        if fade_in:
+            out[:, :fade] *= ramp
+        if fade_out:
+            out[:, n - fade :] *= ramp[::-1]
+    return out
+
+
+def crossfade(carry: np.ndarray, sound: np.ndarray) -> np.ndarray:
+    """``sound`` with ``carry`` (what the clip before it sounds like just
+    past its end) fading out over its start while it fades in, at equal
+    power, so a cut does not dip or click."""
+    out = sound.copy()
+    m = min(carry.shape[1], out.shape[1])
+    t = np.linspace(0.0, 1.0, m, dtype=np.float32) * (np.pi / 2)
+    out[:, :m] = carry[:, :m] * np.cos(t) + out[:, :m] * np.sin(t)
     return out
 
 
@@ -407,22 +623,27 @@ def duck_and_mix(
 
 def dissolve(
     tail: tuple[list[np.ndarray], np.ndarray],
-    head: tuple[list[np.ndarray], np.ndarray],
-) -> tuple[list[np.ndarray], np.ndarray]:
+    head: tuple[Iterable[np.ndarray], np.ndarray],
+) -> tuple[Iterator[np.ndarray], np.ndarray]:
     """``head`` (frames and sound of a clip) with ``tail`` (what the clip
     before it shows and sounds like just past its end) laid over its start
     and fading out: the two dissolve into each other without changing the
-    clip's length."""
-    frames, sound = list(head[0]), head[1].copy()
-    n = min(len(tail[0]), len(frames))
-    for k in range(n):
-        a = (k + 1) / (n + 1)
-        mixed = tail[0][k].astype(np.float32) * (1 - a) + frames[k] * a
-        frames[k] = mixed.astype(np.uint8)
+    clip's length. The head's frames are blended as they are read."""
+    sound = head[1].copy()
+    n = len(tail[0])
+
+    def frames() -> Iterator[np.ndarray]:
+        for k, frame in enumerate(head[0]):
+            if k < n:
+                a = (k + 1) / (n + 1)
+                mixed = tail[0][k].astype(np.float32) * (1 - a) + frame * a
+                frame = mixed.astype(np.uint8)
+            yield frame
+
     m = min(tail[1].shape[1], sound.shape[1])
     ramp = np.linspace(0.0, 1.0, m, dtype=np.float32)
     sound[:, :m] = tail[1][:, :m] * (1 - ramp) + sound[:, :m] * ramp
-    return frames, sound
+    return frames(), sound
 
 
 def edge_gain(at: int, n: int, total: int, fade_in: int, fade_out: int) -> np.ndarray:
@@ -435,11 +656,12 @@ def edge_gain(at: int, n: int, total: int, fade_in: int, fade_out: int) -> np.nd
 
 
 def write_av(
-    clips: Iterable[tuple[list[np.ndarray], np.ndarray]],
+    clips: Iterable[tuple[Iterable[np.ndarray], np.ndarray]],
     outputs: list[tuple[Path, FrameDraw | None]],
     narration: list[tuple[float, np.ndarray]] | None = None,
     size: tuple[int, int] = OUT_SIZE,
     total_sec: float | None = None,
+    crf: int = PREVIEW_CRF,
 ) -> None:
     """Clips (OUT_FPS RGB frames of ``size``, and their sound from
     read_audio_clip) back to back into each output mp4, H.264 + AAC, in
@@ -455,7 +677,7 @@ def write_av(
             video = container.add_stream("libx264", rate=Fraction(OUT_FPS))
             video.width, video.height = size
             video.pix_fmt = "yuv420p"
-            video.options = {"crf": "23", "preset": "veryfast"}
+            video.options = {"crf": str(crf), "preset": "veryfast"}
             audio = container.add_stream("aac", rate=AUDIO_RATE)
             audio.layout = "stereo"
             audio.bit_rate = AUDIO_BITRATE
@@ -533,7 +755,8 @@ class SubtitlePainter:
         self._cues = cues
         self._starts = [c[0] for c in cues]
         self._frame = frame
-        self._scale = frame[1] / OUT_SIZE[1]
+        # Sized by the shorter side, so text keeps its size on upright frames.
+        self._scale = min(frame) / OUT_SIZE[1]
         self._font = ImageFont.truetype(str(font), round(size * self._scale))
         self._drawn: dict[int, tuple[np.ndarray, np.ndarray, int, int]] = {}
 
@@ -593,7 +816,7 @@ class TitlePainter:
         frame: tuple[int, int] = OUT_SIZE,
     ) -> None:
         self._start, self._end = start, end
-        scale = frame[1] / OUT_SIZE[1]
+        scale = min(frame) / OUT_SIZE[1]
         size = round(TITLE_SIZE * scale)
         big = ImageFont.truetype(str(font), size)
         while big.getlength(title) > 0.9 * frame[0] and size > 12:

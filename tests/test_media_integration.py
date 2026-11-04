@@ -8,6 +8,7 @@ import av
 import numpy as np
 import pytest
 
+from video_demo import media
 from video_demo.media import (
     AUDIO_RATE,
     EDIT_SIZE,
@@ -19,9 +20,15 @@ from video_demo.media import (
     TitlePainter,
     compose,
     count_frames,
+    crossfade,
     cut_clip,
     dissolve,
     edge_gain,
+    edit_size,
+    fit_size,
+    is_pq,
+    make_proxy,
+    pq_to_sdr,
     probe,
     read_audio_clip,
     read_clip,
@@ -197,7 +204,8 @@ def test_burned_subtitles_only_while_the_cue_lasts(tmp_path: Path) -> None:
 def test_dissolve_blends_the_tail_into_the_head_keeping_its_length() -> None:
     tail = ([np.full((2, 2, 3), 200, np.uint8)] * 3, np.full((2, 4), 1.0, np.float32))
     head = ([np.zeros((2, 2, 3), np.uint8)] * 5, np.zeros((2, 6), np.float32))
-    frames, sound = dissolve(tail, head)
+    blended, sound = dissolve(tail, head)
+    frames = list(blended)
     assert len(frames) == 5 and sound.shape == (2, 6)
     levels = [int(f[0, 0, 0]) for f in frames]
     assert levels == [150, 100, 50, 0, 0]  # tail fades out over 3 frames
@@ -235,7 +243,7 @@ def test_subtitles_and_title_scale_with_the_frame() -> None:
     rows_a = np.flatnonzero(a.any(axis=(1, 2)))
     rows_b = np.flatnonzero(b.any(axis=(1, 2)))
     assert (rows_b[-1] - rows_b[0]) / (rows_a[-1] - rows_a[0]) == pytest.approx(
-        1.5, abs=0.15
+        EDIT_SIZE[1] / OUT_SIZE[1], rel=0.1
     )
     card = TitlePainter("爱丁堡城市漫游", "城市漫步", FONT, 0.5, 3.5, EDIT_SIZE)
     frame = np.zeros((EDIT_SIZE[1], EDIT_SIZE[0], 3), np.uint8)
@@ -248,3 +256,95 @@ def test_subtitles_and_title_scale_with_the_frame() -> None:
     both = compose(card, large)
     assert both is not None and both(2 * OUT_FPS, frame).any()
     assert compose(None, None) is None
+
+
+def test_fit_size_keeps_the_aspect_inside_the_frame() -> None:
+    assert fit_size(1920, 1080, EDIT_SIZE) == EDIT_SIZE
+    assert fit_size(1080, 1920, (1280, 720)) == (404, 720)
+    assert fit_size(3840, 1600, (1280, 720)) == (1280, 534)
+    assert fit_size(3840, 2160, (1920, 1080)) == (1920, 1080)
+
+
+def test_edit_size_turns_upright_when_portrait_fills_more() -> None:
+    assert edit_size([(1920, 1080, 30.0), (1080, 1920, 20.0)]) == EDIT_SIZE
+    upright = (EDIT_SIZE[1], EDIT_SIZE[0])
+    assert edit_size([(1920, 1080, 10.0), (1080, 1920, 20.0)]) == upright
+
+
+def test_read_clip_puts_a_portrait_picture_on_black(tmp_path: Path) -> None:
+    path = tmp_path / "upright.mp4"
+    with av.open(str(path), mode="w") as container:
+        stream = container.add_stream("libx264", rate=OUT_FPS)
+        stream.width, stream.height = 240, 480
+        stream.pix_fmt = "yuv420p"
+        for _ in range(OUT_FPS):
+            grey = np.full((480, 240, 3), 200, np.uint8)
+            for packet in stream.encode(av.VideoFrame.from_ndarray(grey)):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    frame = read_clip(path, 0.0, 0.5, OUT_SIZE)[0]
+    assert frame.shape == (OUT_SIZE[1], OUT_SIZE[0], 3)
+    middle = frame[:, OUT_SIZE[0] // 2]
+    assert middle.mean() > 150  # the picture, scaled to the full height
+    assert frame[:, :100].max() == 0 and frame[:, -100:].max() == 0  # black sides
+
+
+def test_pq_to_sdr_keeps_black_and_rolls_off_highlights() -> None:
+    grey = np.repeat(np.arange(256, dtype=np.uint8)[:, None, None], 3, axis=2)
+    out = pq_to_sdr(grey)[:, 0, 0].astype(int)
+    assert out[0] == 0 and out[-1] == 255
+    assert (np.diff(out) >= 0).all()  # a grey ramp stays a ramp
+    # PQ code 130 is about 100 nits, the white the cut is graded to: near
+    # SDR white, not the 51 % grey it shows as when read as SDR.
+    assert 225 <= out[130] <= 245
+
+
+def test_pq_to_sdr_lookup_matches_the_formula() -> None:
+    colours = np.random.default_rng(0).integers(0, 256, (64, 64, 3), np.uint8)
+    assert np.array_equal(pq_to_sdr(colours), media._pq_mapped(colours))
+
+
+def _flat_video(path: Path, level: int) -> None:
+    frames = [np.full((OUT_SIZE[1], OUT_SIZE[0], 3), level, np.uint8)] * OUT_FPS * 2
+    write_video(frames, path)
+
+
+def test_is_pq_reads_unflagged_highlights(tmp_path: Path) -> None:
+    dim, bright = tmp_path / "dim.mp4", tmp_path / "bright.mp4"
+    _flat_video(dim, 130)  # never near white: PQ-coded picture
+    _flat_video(bright, 235)
+    assert is_pq(dim) and not is_pq(bright)
+
+
+def test_crossfade_keeps_a_steady_sound_steady() -> None:
+    carry = np.full((2, 100), 0.5, np.float32)
+    sound = np.full((2, 300), 0.5, np.float32)
+    out = crossfade(carry, sound)
+    assert out.shape == sound.shape
+    # Equal power: two uncorrelated halves keep the level; equal ones
+    # (the same tone) rise at most by sqrt(2) in the middle, never dip.
+    assert out[0, 0] == pytest.approx(0.5) and out[0, -1] == pytest.approx(0.5)
+    assert out.min() >= 0.5 - 1e-6 and out.max() <= 0.5 * np.sqrt(2) + 1e-6
+
+
+def test_proxy_is_smaller_with_the_same_times(tmp_path: Path) -> None:
+    src, proxy = tmp_path / "big.mp4", tmp_path / "proxy" / "p.mp4"
+    with av.open(str(src), mode="w") as container:
+        stream = container.add_stream("libx264", rate=50)
+        stream.width, stream.height = 1920, 1080
+        stream.pix_fmt = "yuv420p"
+        for k in range(100):  # 2 s at 50 fps, a new grey level each 0.5 s
+            grey = np.full((1080, 1920, 3), 40 + 40 * (k // 25), np.uint8)
+            for packet in stream.encode(av.VideoFrame.from_ndarray(grey)):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    make_proxy(src, proxy)
+    info = probe(proxy)
+    assert (info.width, info.height) == (1280, 720) and not info.has_audio
+    assert info.duration == pytest.approx(2.0, abs=0.05)
+    # The same moment shows the same picture in both.
+    late = read_clip(proxy, 1.6, 0.1, (64, 36))[0].mean()
+    assert late == pytest.approx(read_clip(src, 1.6, 0.1, (64, 36))[0].mean(), abs=3)
+    assert not proxy.with_suffix(".tmp.mp4").exists()

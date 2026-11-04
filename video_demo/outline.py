@@ -33,7 +33,7 @@ import json
 import math
 import statistics
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -53,6 +53,22 @@ from video_demo.suggest import (
 SERVER_URL = "http://127.0.0.1:8092"
 TIMEOUT_SEC = 900
 TEMPERATURES = (0.2, 0.5, 0.8)
+
+# The calls a planner other than the local model may answer (ab_eval.cloud):
+# with PLANNER set to (system, prompt, schema, name, temperature) -> (answer,
+# seconds), these go to it instead. Prompts with pictures stay local.
+PLANNER_CALLS = frozenset({"edit_outline", "edit_review"})
+Planner = Callable[[str, str, dict[str, Any], str, float], tuple[str, float]]
+PLANNER: Planner | None = None
+# Told each PLANNER_CALLS prompt (system, prompt, schema, name, temperature)
+# whoever answers it, so a run can keep what was asked.
+RECORDER: Callable[[str, str, dict[str, Any], str, float], None] | None = None
+
+
+def planner_name() -> str:
+    """Where PLANNER_CALLS are answered, for reports."""
+    return "Qwen3.5-4B（本地）" if PLANNER is None else "云端"
+
 
 CHUNK_SEC = 300.0
 # Bump when the summary prompt or schema changes, so cached summaries are
@@ -517,15 +533,17 @@ def _ask(
     validate: Any,
     server_url: str,
 ) -> tuple[dict[str, Any], str, float, list[str]]:
-    """Ask with each temperature until the answer validates.
+    """Ask with each temperature until the answer validates; a retry is told
+    why the answer before it failed.
 
     ``prompt`` is text, or text and image parts (OpenAI message content).
     Raises OutlineError listing every attempt when all fail.
     """
     errors: list[str] = []
     seconds = 0.0
+    asked = prompt
     for temperature in TEMPERATURES:
-        raw, elapsed = _request(prompt, temperature, schema, name, server_url)
+        raw, elapsed = _request(asked, temperature, schema, name, server_url)
         seconds += elapsed
         try:
             try:
@@ -535,7 +553,23 @@ def _ask(
             return validate(parsed), raw, seconds, errors
         except OutlineError as exc:
             errors.append(f"temperature={temperature}: {exc}")
+            asked = _with_error(prompt, str(exc))
     raise OutlineError("；".join(errors))
+
+
+RETRY_NOTE = (
+    "\n\n上一次的回答没有通过检查：{error}\n请改正这个问题，重新输出完整的 JSON。"
+)
+
+
+def _with_error(
+    prompt: str | list[dict[str, Any]], error: str
+) -> str | list[dict[str, Any]]:
+    """``prompt`` with the reason the last answer failed added at its end."""
+    note = RETRY_NOTE.format(error=error)
+    if isinstance(prompt, str):
+        return prompt + note
+    return [*prompt, {"type": "text", "text": note.strip()}]
 
 
 def _request(
@@ -545,6 +579,11 @@ def _request(
     name: str,
     server_url: str,
 ) -> tuple[str, float]:
+    if name in PLANNER_CALLS and isinstance(prompt, str):
+        if RECORDER is not None:
+            RECORDER(SYSTEM_PROMPT, prompt, schema, name, temperature)
+        if PLANNER is not None:
+            return PLANNER(SYSTEM_PROMPT, prompt, schema, name, temperature)
     body = {
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -665,6 +704,29 @@ def clip_span(
         starts, key=lambda x: (round(cut(x), 2), abs(x + length / 2 - middle), x)
     )
     return best, best + length
+
+
+# Kept before and after a sentence a window is widened to take in, so its
+# first and last syllables are not clipped.
+SPEECH_PAD_SEC = 0.2
+
+
+def whole_sentences(
+    start: float,
+    end: float,
+    lo: float,
+    hi: float,
+    speech: Sequence[tuple[float, float]],
+) -> tuple[float, float]:
+    """[start, end] widened to take in every sentence it cuts, with
+    SPEECH_PAD_SEC around it, as far as [lo, hi] (the segment) allows; a
+    sentence that runs past the segment stays cut."""
+    for a, b in sorted(speech):
+        if a < start < b and a >= lo:
+            start = max(lo, a - SPEECH_PAD_SEC)
+        if a < end < b and b <= hi:
+            end = min(hi, b + SPEECH_PAD_SEC)
+    return start, end
 
 
 def pick_segments(

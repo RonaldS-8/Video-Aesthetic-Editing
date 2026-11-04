@@ -501,3 +501,196 @@ def test_write_edit_shows_instruction_slots_and_misses(tmp_path: Path) -> None:
     assert "<span class='miss'>选到 8s</span>" in html
     assert 'src="preview.mp4"' in html
     assert '<pre class="raw">{&quot;title&quot;: &quot;&lt;t&gt;&quot;}</pre>' in html
+
+
+# --- review --------------------------------------------------------------------
+
+
+def _review_setup() -> (
+    tuple[list[suggest.Candidate], list[suggest.Assessment], dict, list[suggest.Clip]]
+):
+    cands = [_cand(i, i * 10.0) for i in range(6)]
+    plan = _plan([(5, [_slot("a")]), (5, [_slot("b")])], seconds=[10, 10])
+    filled = [
+        suggest.Clip(0, "p0", "v", 0, 0.0, 8.0, "d0", "r"),
+        suggest.Clip(1, "p1", "v", 1, 10.0, 18.0, "d1", "r"),
+    ]
+    return cands, _assess(cands), plan, filled
+
+
+def _relevance() -> list[list[dict[int, float]]]:
+    # Part p0 finds c2 and c3, part p1 finds c4; c5 is relevant to nothing.
+    return [[{2: 0.9, 3: 0.5, 0: 0.4}], [{4: 0.8, 1: 0.7}]]
+
+
+def _answer(clips: list[tuple[str, str, float]], on_beat: bool = False) -> str:
+    return json.dumps(
+        {
+            "notes": "换了开场",
+            "on_beat": on_beat,
+            "clips": [
+                {"segment": s, "part": p, "seconds": sec, "why": "好"}
+                for s, p, sec in clips
+            ],
+        },
+        ensure_ascii=False,
+    )
+
+
+def test_review_request_builds_the_planner_cut(monkeypatch) -> None:
+    cands, assessments, plan, filled = _review_setup()
+    asked: list[str] = []
+
+    def planner(system, prompt, schema, name, temperature):
+        asked.append(prompt)
+        return _answer([("c2", "p0", 7.0), ("c0", "p0", 5.0), ("c4", "p1", 8.0)]), 1.0
+
+    monkeypatch.setattr(outline, "PLANNER", planner)
+    clips, review, _, _, errors = instruct.review_request(
+        "剪 20 秒", 20.0, plan, filled, cands, assessments, _relevance()
+    )
+    assert [c.index for c in clips] == [2, 0, 4]
+    assert [c.role for c in clips] == ["p0", "p0", "p1"]
+    assert [round(c.duration, 1) for c in clips] == [7.0, 5.0, 8.0]
+    assert clips[0].reason.startswith("审片：好") and not errors
+    # The cut and the unused segments relevant to each part are offered;
+    # c5 is relevant to no part and c1 is already in the cut.
+    assert "c2 |" in asked[0] and "c4 |" in asked[0] and "c5 |" not in asked[0]
+    assert asked[0].count("c1 |") == 1
+
+
+def test_review_request_levels_a_cut_that_runs_over(monkeypatch) -> None:
+    cands, assessments, plan, filled = _review_setup()
+    answer = _answer([("c2", "p0", 8.0), ("c0", "p0", 8.0), ("c4", "p1", 8.0)])
+    monkeypatch.setattr(outline, "PLANNER", lambda *a: (answer, 0.0))
+    clips, *_ = instruct.review_request(
+        "剪 20 秒", 20.0, plan, filled, cands, assessments, _relevance()
+    )
+    assert sum(c.duration for c in clips) == pytest.approx(20.0, abs=0.01)
+
+
+@pytest.mark.parametrize(
+    ("clips", "error"),
+    [
+        ([("c5", "p0", 10.0), ("c0", "p1", 10.0)], "not offered"),
+        ([("c0", "p0", 8.0), ("c0", "p1", 8.0), ("c2", "p1", 4.0)], "twice"),
+        ([("c0", "p9", 8.0), ("c2", "p1", 8.0), ("c4", "p1", 4.0)], "part"),
+        ([("c0", "p0", 9.0), ("c2", "p1", 8.0), ("c4", "p1", 4.0)], "outside"),
+        ([("c0", "p0", 1.0), ("c2", "p1", 8.0), ("c4", "p1", 8.0)], "outside"),
+        ([("c0", "p0", 8.0), ("c2", "p1", 8.0)], "add up to 16.0s"),
+        ([("x2", "p0", 8.0)], "bad segment"),
+    ],
+)
+def test_validate_review_rejects(clips, error) -> None:
+    cands, _, _, _ = _review_setup()
+    with pytest.raises(outline.OutlineError, match=error):
+        instruct.validate_review(
+            json.loads(_answer(clips)), {0, 1, 2, 3, 4}, ["p0", "p1"], cands, 20.0
+        )
+
+
+def test_validate_review_needs_notes() -> None:
+    cands, _, _, _ = _review_setup()
+    parsed = json.loads(_answer([("c0", "p0", 8.0), ("c2", "p1", 8.0)]))
+    parsed["notes"] = " "
+    with pytest.raises(outline.OutlineError, match="notes"):
+        instruct.validate_review(parsed, {0, 2}, ["p0", "p1"], cands, 16.0)
+
+
+def test_whole_sentences_widens_to_the_sentence_inside_the_segment() -> None:
+    speech = [(2.0, 4.0), (6.5, 9.5), (11.0, 14.0)]
+    # Cuts into the first and second sentences: both taken in, padded.
+    assert outline.whole_sentences(3.0, 7.0, 0.0, 10.0, speech) == (1.8, 9.7)
+    # The third runs past the segment's end (10 s): it stays cut there.
+    assert outline.whole_sentences(5.0, 9.8, 0.0, 10.0, speech) == (5.0, 9.8)
+    # Padding stops at the segment.
+    assert outline.whole_sentences(2.5, 3.0, 2.0, 10.0, speech) == (2.0, 4.2)
+
+
+def test_review_keeps_spoken_clips_whole_and_shortens_the_others(
+    monkeypatch,
+) -> None:
+    cands, assessments, plan, filled = _review_setup()
+    # c2 (20-28 s) holds a sentence at 21-27 s; the planner asks for 4 s.
+    lines = {"v": [(21.0, 27.0, "我们明天去冲浪")]}
+    asked: list[str] = []
+
+    def planner(system, prompt, schema, name, temperature):
+        asked.append(prompt)
+        return _answer([("c2", "p0", 4.0), ("c0", "p0", 8.0), ("c4", "p1", 8.0)]), 0
+
+    monkeypatch.setattr(outline, "PLANNER", planner)
+    clips, review, *_ = instruct.review_request(
+        "剪 20 秒", 20.0, plan, filled, cands, assessments, _relevance(), lines
+    )
+    assert "对白：1.0–7.0s「我们明天去冲浪」" in asked[0]
+    spoken = clips[0]
+    assert spoken.src_start <= 20.8 and spoken.src_end >= 27.2  # whole, padded
+    # The clips without speech gave up the difference.
+    assert sum(c.duration for c in clips) == pytest.approx(20.0, abs=0.01)
+    assert review["fit"] == ""
+
+
+def test_review_notes_when_the_speech_alone_runs_over(monkeypatch) -> None:
+    cands, assessments, plan, filled = _review_setup()
+    lines = {"v": [(0.5, 7.5, "第一句"), (20.5, 27.5, "第二句"), (40.5, 47.5, "三")]}
+    answer = _answer([("c0", "p0", 7.0), ("c2", "p0", 7.0), ("c4", "p1", 7.0)])
+    monkeypatch.setattr(outline, "PLANNER", lambda *a: (answer, 0.0))
+    clips, review, *_ = instruct.review_request(
+        "剪 20 秒", 20.0, plan, filled, cands, assessments, _relevance(), lines
+    )
+    assert all(c.duration >= 7.0 for c in clips)
+    assert "保留整句" in review["fit"]
+
+
+def test_review_on_beats_starts_clips_on_beats(monkeypatch) -> None:
+    cands, assessments, plan, filled = _review_setup()
+    answer = _answer([("c2", "p0", 4.0), ("c0", "p0", 6.0), ("c4", "p1", 6.0)], True)
+    monkeypatch.setattr(outline, "PLANNER", lambda *a: (answer, 0.0))
+
+    def grid(video: str, lo: float, hi: float) -> tuple[float, list[float]]:
+        return 0.5, [0.1 + 0.5 * k for k in range(200) if lo <= 0.1 + 0.5 * k <= hi]
+
+    clips, review, *_ = instruct.review_request(
+        "剪 15 秒，卡在节拍上",
+        15.0,
+        plan,
+        filled,
+        cands,
+        assessments,
+        _relevance(),
+        beat_grid=grid,
+    )
+    for c in clips:
+        assert round((c.src_start - 0.1) / 0.5, 6) % 1 == 0  # on a beat
+        assert round(c.duration / 0.5, 6) % 1 == 0  # whole beats
+    assert sum(c.duration for c in clips) <= 15.5 and review["fit"] == ""
+
+
+def test_review_on_beats_needs_beats(monkeypatch) -> None:
+    cands, assessments, plan, filled = _review_setup()
+    answer = _answer([("c0", "p0", 8.0), ("c2", "p1", 8.0), ("c4", "p1", 4.0)], True)
+    monkeypatch.setattr(outline, "PLANNER", lambda *a: (answer, 0.0))
+    with pytest.raises(outline.OutlineError, match="beat_grid"):
+        instruct.review_request(
+            "剪 20 秒", 20.0, plan, filled, cands, assessments, _relevance()
+        )
+
+
+@pytest.mark.parametrize(
+    ("brightness", "words"),
+    [(8.0, "画面很暗"), (44.9, "画面很暗"), (52.0, "画面偏暗"), (90.0, "画面明亮")],
+)
+def test_lightness_reads_measured_brightness(brightness: float, words: str) -> None:
+    assert instruct.lightness(brightness) == words
+
+
+def test_review_line_shows_time_light_and_measured_brightness() -> None:
+    c = replace(_cand(3, 10.0, time_of_day="黄昏"), brightness=20.0)
+    c.tags["light"] = "逆光"
+    a = suggest.assess(c)
+    line = instruct._segment_line(3, c, a, {"v": 1}, {})
+    assert "黄昏，逆光，画面很暗" in line
+    # Without signals the line still reads, with no brightness.
+    plain = instruct._segment_line(3, _cand(3, 10.0), a, {"v": 1}, {})
+    assert "白天，—" in plain and "画面" not in plain.split("|")[4]

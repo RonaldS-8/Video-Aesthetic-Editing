@@ -16,7 +16,7 @@ import requests
 from video_demo import tag
 
 CATEGORY_DIR = Path(__file__).resolve().parent.parent / "prompts" / "categories"
-CATEGORIES = ("city-walk", "nature", "food", "travel-vlog", "people")
+CATEGORIES = ("city-walk", "nature", "food", "travel-vlog", "people", "film")
 SECTIONS = {
     "简介": "intro",
     "看片重点": "focus",

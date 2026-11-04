@@ -1,0 +1,73 @@
+{
+ "phases": {
+  "prepare": 16.57,
+  "cut": 4.3
+ },
+ "steps": [
+  {
+   "step": "check",
+   "category": "check",
+   "seconds": 0.16,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "stage",
+   "category": "decode",
+   "seconds": 0.0,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "prepare",
+   "category": "segment",
+   "seconds": 3.26,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "shortlist",
+   "category": "arrange",
+   "seconds": 0.0,
+   "ok": true,
+   "phase": "prepare",
+   "segments": 19
+  },
+  {
+   "step": "analyze",
+   "category": "understand",
+   "seconds": 2.2,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "index",
+   "category": "understand",
+   "seconds": 5.43,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "catalog",
+   "category": "understand",
+   "seconds": 5.51,
+   "ok": true,
+   "phase": "prepare"
+  },
+  {
+   "step": "edit",
+   "category": "arrange",
+   "seconds": 4.3,
+   "ok": false,
+   "phase": "cut",
+   "planner": "cloud"
+  },
+  {
+   "step": "edit_outline",
+   "category": "arrange",
+   "seconds": 0.0,
+   "ok": true,
+   "planner": "cloud"
+  }
+ ]
+}

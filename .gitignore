@@ -39,3 +39,11 @@ docs/
 
 # Downloaded datasets and archives
 data/downloads/
+
+# A/B evaluation: test material and finished cuts stay local
+ab_eval/testset/*
+!ab_eval/testset/README.md
+ab_eval/results/case-9*/
+ab_eval/results/**/*.mp4
+ab_eval/results/**/work/
+

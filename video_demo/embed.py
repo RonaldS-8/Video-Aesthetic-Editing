@@ -17,7 +17,11 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageOps
 
-MODEL_DIR = Path("models/embeddinggemma")
+from video_demo import layout
+
+MODEL_DIR = layout.models_dir(Path(__file__).resolve().parent.parent) / (
+    "embeddinggemma"
+)
 MANIFEST = MODEL_DIR / "embeddinggemma-2-740m.json"
 # The client's choice: the LiteRT package has 70 and 140 token image
 # signatures; 70 was about 3x faster with similar zero-shot results.
