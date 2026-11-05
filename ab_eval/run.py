@@ -296,11 +296,11 @@ def main(argv: list[str] | None = None) -> int:
     trace = Trace()
     planner = None
     try:
-        with trace.step("check", "check", phase=PREPARE):
+        with trace.step("check", "检查", phase=PREPARE):
             case = load_case(args.case.resolve())
             verify(case)
         subtitles = bool(case.format.get("subtitles")) and not args.no_subtitles
-        with trace.step("stage", "decode", phase=PREPARE) as span:
+        with trace.step("stage", "读取与解码", phase=PREPARE) as span:
             ids = stage(case, work / "data" / "raw")
             if args.seed is not None:
                 (work / "data" / "work").mkdir(parents=True, exist_ok=True)
@@ -308,34 +308,34 @@ def main(argv: list[str] | None = None) -> int:
                     args.seed.resolve(), work / "data" / "work", ids
                 )
         if args.narrate_cut:
-            with serve("qwen"), trace.step("subtitle", "understand", phase=NARRATED):
+            with serve("qwen"), trace.step("subtitle", "理解", phase=NARRATED):
                 video_demo("subtitle", "--collection", case.id, "--translate", "none")
-            with serve("hymt"), trace.step("translate", "understand", phase=NARRATED):
+            with serve("hymt"), trace.step("translate", "理解", phase=NARRATED):
                 video_demo("subtitle", "--collection", case.id)
             narrate_cut(case, out, work, trace)
             return 0
-        with trace.step("prepare", "segment", phase=PREPARE):
+        with trace.step("prepare", "切分", phase=PREPARE):
             video_demo("ingest")
         if not args.all_segments:
-            with trace.step("shortlist", "arrange", phase=PREPARE) as span:
+            with trace.step("shortlist", "选择与编排", phase=PREPARE) as span:
                 kept = shortlist(work / "data" / "work", ids, case.target_seconds)
                 span.attributes["segments"] = sum(kept.values())
         with serve("qwen"):
-            with trace.step("analyze", "understand", phase=PREPARE):
+            with trace.step("analyze", "理解", phase=PREPARE):
                 video_demo("analyze", "--collection", case.id)
             if narrated or subtitles:
                 # The 4B refines what was recognised, then Hy-MT2 translates
                 # it: two steps, so the two models are never loaded together.
-                with trace.step("subtitle", "understand", phase=PREPARE):
+                with trace.step("subtitle", "理解", phase=PREPARE):
                     video_demo(
                         "subtitle", "--collection", case.id, "--translate", "none"
                     )
         if narrated or subtitles:
-            with serve("hymt"), trace.step("translate", "understand", phase=PREPARE):
+            with serve("hymt"), trace.step("translate", "理解", phase=PREPARE):
                 video_demo("subtitle", "--collection", case.id)
-        with trace.step("index", "understand", phase=PREPARE):
+        with trace.step("index", "理解", phase=PREPARE):
             video_demo("index", "--collection", case.id)
-        with serve("qwen"), trace.step("catalog", "understand", phase=PREPARE):
+        with serve("qwen"), trace.step("catalog", "理解", phase=PREPARE):
             video_demo("catalog", "--collection", case.id)
         if args.prepare_only:
             return 0
@@ -346,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
         outline.PLANNER = planner
         outline.RECORDER = keep_prompts(out / "prompts")
         where = "local" if args.planner == "local" else "cloud"
-        with serve("qwen"), trace.step("edit", "arrange", phase=CUT, planner=where):
+        with serve("qwen"), trace.step("edit", "选择与编排", phase=CUT, planner=where):
             folder = cli.cmd_edit(
                 argparse.Namespace(
                     instruction=case.instruction,
@@ -361,7 +361,7 @@ def main(argv: list[str] | None = None) -> int:
                     preview=narrated,
                 )
             )
-        with trace.step("render", "render", phase=CUT, subtitles=subtitles):
+        with trace.step("render", "渲染", phase=CUT, subtitles=subtitles):
             timeline = json.loads((folder / "timeline.json").read_text("utf-8"))
             videos = cli._selected(argparse.Namespace(collection=case.id, only=""))
             rendered = work / "render" / "output.mp4"
@@ -466,7 +466,7 @@ def narrate_cut(case: Case, out: Path, work: Path, trace: Trace) -> None:
 
     timeline = json.loads((out / "timeline.json").read_text("utf-8"))
     videos = cli._selected(argparse.Namespace(collection=case.id, only=""))
-    with serve("qwen"), trace.step("narrate", "other", phase=NARRATED):
+    with serve("qwen"), trace.step("narrate", "其他", phase=NARRATED):
         timeline["narration"], voices = cli._narrate(
             timeline, videos, cli.tts.DEFAULT_VOICE
         )
@@ -475,7 +475,7 @@ def narrate_cut(case: Case, out: Path, work: Path, trace: Trace) -> None:
     (folder / "timeline.json").write_text(
         json.dumps(timeline, ensure_ascii=False, indent=1), "utf-8"
     )
-    with trace.step("render", "render", phase=NARRATED):
+    with trace.step("render", "渲染", phase=NARRATED):
         cli._write_preview(
             timeline,
             {v.id: v.file for v in videos},
