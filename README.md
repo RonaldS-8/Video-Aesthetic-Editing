@@ -10,13 +10,12 @@
 ![Offline](https://img.shields.io/badge/runs-offline-lightgrey)
 ![CPU](https://img.shields.io/badge/GPU-not%20required-orange)
 
-![样片：巴黎，从白昼到夜晚](assets/paris_day_to_night.webp)
+![样片：上海的一天](assets/shanghai_one_day.webp)
 
-<sub>样片：输入两条共 34 分钟的巴黎航拍和一句“把白天的埃菲尔铁塔航拍和
-夜晚的巴黎街景合成一条从白天到夜晚的巴黎短片”，自动剪出的 60 秒成片
-（12 个镜头），动图每个镜头取中间 1.5 秒，无声。素材：Eiffel Tower,
-Paris 2022（the Dronalist）和 The City of Lights, Paris, France 2022
-（ALL IN 8K），Wikimedia Commons，CC BY 3.0；本动图按 CC BY 3.0 发布。</sub>
+<sub>样片：输入一条 20 分钟的上海一日 vlog 和一句“按时间顺序讲完博主在
+上海的这一天，保留说话的关键片段”，自动剪出的 90 秒成片（18 个镜头），
+动图每个镜头取中间 1.5 秒，无声。素材：24 Hours in Shanghai（Grow with
+Ginny），Wikimedia Commons，CC BY 3.0；本动图按 CC BY 3.0 发布。</sub>
 
 每一步怎么做、为什么这样做，见 [技术路径](TECHNICAL.md) 和
 [设计说明](ab_eval/DESIGN.md)。
